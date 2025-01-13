@@ -226,7 +226,6 @@ def decode_img(base64_data):
 
 
 
-#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
 
 def show_text_window(text):
     win.show_text_window(text)
