@@ -1,0 +1,52 @@
+#!/bin/bash
+clear
+
+my_pid=$$
+
+
+pids=$(pgrep 'server.run')
+
+
+# Iterar sobre los PIDs de 'server.run'
+for pid in $pids; do
+  # Comparar el PID actual con el PID del script
+  if [[ "$pid" -ne "$my_pid" ]]; then
+    # Matar el proceso 'server.run' si no es el script actual
+   sudo kill -9 "$pid" 2>/dev/null  # Redirigir stderr a /dev/null para suprimir errores si el proceso ya no existe
+   echo "Proceso server.run  con PID $pid terminado."
+  else
+    echo "Conservando el proceso server.run padre con PID $pid"
+  fi
+done
+
+
+
+
+source '/etc/environment'
+
+echo $OSIRIS000_BIN
+
+cargo="/root/.cargo/bin/cargo"
+
+
+echo ""$OSIRIS000_BIN
+
+serversPath=$OSIRIS000_BIN/server/chat_server
+
+#cd $serversPath
+
+#sudo $cargo build --release
+
+cd $serversPath/target/release
+clear
+./server
+
+#cargo
+
+#. cargo
+#cd server
+#echo "SERVER START"
+#./server
+echo "SERVER EXIT"
+
+

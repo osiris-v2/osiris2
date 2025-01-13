@@ -1,0 +1,44 @@
+***** create *****
+
+**Ayuda del comando create**
+
+El comando `create` crea un nuevo comando.
+
+**Sintaxis:**
+
+```
+create <nombre_del_comando> [opciones]
+```
+
+**Opciones:**
+
+* `-h, --help`: Muestra esta ayuda.
+* `-d, --description`: Especifica una descripción para el comando.
+* `-t, --type`: Especifica el tipo de comando. Los tipos de comando válidos son:
+    * `simple`: Un comando simple que no acepta argumentos.
+    * `argument`: Un comando que acepta argumentos.
+    * `pipeline`: Un comando que acepta una secuencia de comandos.
+
+**Ejemplos:**
+
+```
+# Crea un comando simple llamado "hola"
+create hola
+
+# Crea un comando que acepta un argumento llamado "nombre"
+create saludo --type=argument --description="Imprime un saludo"
+
+# Crea un comando que acepta una secuencia de comandos llamada "pipeline"
+create pipeline --type=pipeline --description="Ejecuta una secuencia de comandos"
+```
+
+**Descripción:**
+
+El comando `create` crea un nuevo comando. El nombre del comando debe ser único. Las opciones opcionales se pueden utilizar para especificar una descripción para el comando y su tipo.
+
+**Valoración:**
+
+El comando `create` es una herramienta útil para crear nuevos comandos. El comando es fácil de usar y tiene una amplia gama de opciones.
+
+*********************************************
+

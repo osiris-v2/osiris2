@@ -1,0 +1,21 @@
+#!/bin/bash
+
+if [ "$1" = "-pilot" ]; then
+COMANDO="/var/www/osiris000/bin/pilottv"
+else
+COMANDO="/var/www/osiris000/bin/osiristv"
+fi
+
+
+if command -v xterm &> /dev/null
+then
+    echo "xterm está instalado"
+    # Ejecuta el comando en una nueva ventana de xterm y deja la terminal abierta
+    nohup xterm -e "bash -c '$COMANDO $*; exec bash'" > /dev/null 2>&1 &
+else
+    echo "xterm no está instalado"
+    # Aquí pones el comando que deseas ejecutar si xterm no está instalado
+    echo "Por favor instala xterm para continuar."
+    exec bash -c "$COMANDO $*"
+fi
+

@@ -1,0 +1,99 @@
+#!/usr/bin/env python3
+import os
+import json
+import tkinter as tk
+from tkinter import filedialog, simpledialog, messagebox
+from tkinter import scrolledtext, Toplevel
+
+class ConfigPanel:
+    def __init__(self, master):
+        self.master = master
+        master.title("Panel de Configuración")
+        master.geometry("600x500")
+
+        self.configs = []
+        self.load_configurations()
+
+        self.create_config_button = tk.Button(master, text="+ Crear Configuración", command=self.create_new_config)
+        self.create_config_button.pack(pady=10)
+
+        self.config_frame = tk.Frame(master)
+        self.config_frame.pack(fill=tk.BOTH, expand=True)
+
+    def create_new_config(self):
+        config_name = simpledialog.askstring("Nueva Configuración", "Ingrese un nombre para la configuración:")
+        if not config_name:
+            return
+
+        new_config = {
+            "id": len(self.configs) + 1,
+            "name": config_name,
+            "path": "",
+            "enabled": False
+        }
+        self.configs.append(new_config)
+        self.add_config_to_ui(new_config)
+        self.save_configurations()
+
+    def add_config_to_ui(self, config):
+        frame = tk.Frame(self.config_frame, bd=1, relief="solid")
+        frame.pack(fill="x", pady=5, padx=10)
+
+        select_button = tk.Button(frame, text="Seleccionar", command=lambda: self.select_path(config))
+        select_button.pack(side="left", padx=5)
+
+        path_entry = tk.Entry(frame, width=40)
+        path_entry.insert(0, config["path"])
+        path_entry.pack(side="left", padx=5)
+        path_entry.bind("<FocusOut>", lambda e: self.update_path(config, path_entry.get()))
+
+        enable_button = tk.Button(frame, text="Habilitar" if not config["enabled"] else "Deshabilitar", 
+                                  command=lambda: self.toggle_enable(config, enable_button))
+        enable_button.pack(side="left", padx=5)
+
+    def select_path(self, config):
+        selected_path = filedialog.askopenfilename() if "archivo" in config["name"].lower() else filedialog.askdirectory()
+        if selected_path:
+            config["path"] = selected_path
+            self.save_configurations()
+            self.refresh_ui()
+
+    def update_path(self, config, new_path):
+        config["path"] = new_path
+        self.save_configurations()
+
+    def toggle_enable(self, config, button):
+        config["enabled"] = not config["enabled"]
+        button.config(text="Deshabilitar" if config["enabled"] else "Habilitar")
+        self.save_configurations()
+
+    def save_configurations(self):
+        try:
+            with open("config.json", "w") as f:
+                json.dump(self.configs, f, indent=4)
+        except Exception as e:
+            messagebox.showerror("Error", f"Error guardando configuraciones: {e}")
+
+    def load_configurations(self):
+        if os.path.exists("config.json"):
+            try:
+                with open("config.json", "r") as f:
+                    self.configs = json.load(f)
+                    for config in self.configs:
+                        self.add_config_to_ui(config)
+            except Exception as e:
+                messagebox.showerror("Error", f"Error cargando configuraciones: {e}")
+
+    def refresh_ui(self):
+        for widget in self.config_frame.winfo_children():
+            widget.destroy()
+        for config in self.configs:
+            self.add_config_to_ui(config)
+
+
+# Ejemplo de uso del Panel de Configuración
+if __name__ == "__main__":
+    root = tk.Tk()
+    config_panel = ConfigPanel(root)
+    root.mainloop()
+

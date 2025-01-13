@@ -1,0 +1,276 @@
+#!/usr/bin/env python3.9
+#dsk app
+import os
+import subprocess
+import tkinter as tk
+from threading import Thread
+from tkinter import filedialog, scrolledtext, Toplevel
+from threading import Event, Lock
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import psutil
+
+class ConverterApp:
+    def __init__(self, master):
+        self.master = master
+        master.title("Conversor de Video Mejorado")
+        master.geometry("750x600")
+
+        self.input_dir = ""
+        self.output_dir = ""
+        self.is_running = False
+        self.stop_event = Event()
+        self.conversion_lock = Lock()
+        self.ffmpeg_processes = []
+        self.allow_new_tasks = True
+
+        self.create_directory_selection_panel()
+        self.create_options_panel()
+
+        self.parallel_var = tk.BooleanVar(value=False)
+        self.parallel_checkbox = tk.Checkbutton(master, text="Ejecutar en Paralelo", variable=self.parallel_var, command=self.toggle_parallel_options)
+        self.parallel_checkbox.grid(row=3, column=0, pady=5, columnspan=2, sticky='ew')
+
+        self.thread_frame = tk.Frame(master)
+        self.thread_label = tk.Label(self.thread_frame, text="Número de hilos:")
+        self.thread_label.pack(side=tk.LEFT)
+        self.thread_count_entry = tk.Entry(self.thread_frame, width=5)
+        self.thread_count_entry.insert(0, "4")
+        self.thread_count_entry.pack(side=tk.LEFT)
+
+        self.thread_frame.grid(row=4, column=0, columnspan=2 ,pady=5)
+        self.thread_frame.grid_remove()
+
+        self.convert_button = tk.Button(master, text="Iniciar Conversión", command=self.start_conversion, bg='green', fg='white')
+        self.convert_button.grid(row=5, column=0, pady=10)
+
+        self.show_command_button = tk.Button(master, text="Mostrar Comando en Ejecución", command=self.show_command_window, state="disabled")
+        self.show_command_button.grid(row=6, column=0, pady=5)
+
+        self.output_text = scrolledtext.ScrolledText(master, width=85, height=20, wrap=tk.WORD)
+        self.output_text.grid(row=7, column=0, pady=10, sticky='nsew')
+
+        master.grid_rowconfigure(7, weight=1)
+        master.grid_columnconfigure(0, weight=1)
+
+    def create_directory_selection_panel(self):
+        dir_frame = tk.Frame(self.master)
+        dir_frame.grid(row=0, column=0, pady=10)
+
+        self.input_button = tk.Button(dir_frame, text="Seleccionar Directorio de Entrada", command=self.select_input_dir, bg='blue', fg='white')
+        self.input_button.grid(row=0, column=0, padx=5)
+
+        self.output_button = tk.Button(dir_frame, text="Seleccionar Directorio de Salida", command=self.select_output_dir, bg='blue', fg='white')
+        self.output_button.grid(row=0, column=1, padx=5)
+
+    def create_options_panel(self):
+        options_frame = tk.Frame(self.master)
+        options_frame.grid(row=1, column=0, pady=10)
+
+        tk.Label(options_frame, text="Extensiones de entrada (ej. mp4,avi):").grid(row=0, column=0)
+        self.extensions_entry = tk.Entry(options_frame, width=15)
+        self.extensions_entry.insert(0, "mp4,avi")
+        self.extensions_entry.grid(row=0, column=1, padx=5)
+
+        tk.Label(options_frame, text="Calidad de salida (ej. 2000k):").grid(row=1, column=0)
+        self.quality_entry = tk.Entry(options_frame, width=15)
+        self.quality_entry.insert(0, "2000k")
+        self.quality_entry.grid(row=1, column=1, padx=5)
+
+        tk.Label(options_frame, text="Formato de salida (ej. mp4, ts):").grid(row=2, column=0)
+        self.format_entry = tk.Entry(options_frame, width=15)
+        self.format_entry.insert(0, "mp4")
+        self.format_entry.grid(row=2, column=1, padx=5)
+
+
+        tk.Label(options_frame, text="Framerate:").grid(row=3, column=0)
+        self.framerate_entry = tk.Entry(options_frame, width=15)
+        self.framerate_entry.insert(0, "24")
+        self.framerate_entry.grid(row=3, column=1, padx=5)
+
+
+        tk.Label(options_frame, text="Codec de video (ej. h264):").grid(row=0, column=2)
+        self.video_codec_entry = tk.Entry(options_frame, width=15)
+        self.video_codec_entry.insert(0, "h264")
+        self.video_codec_entry.grid(row=0, column=3, padx=5)
+
+        tk.Label(options_frame, text="Codec de audio (ej. aac):").grid(row=1, column=2)
+        self.audio_codec_entry = tk.Entry(options_frame, width=15)
+        self.audio_codec_entry.insert(0, "aac")
+        self.audio_codec_entry.grid(row=1, column=3, padx=5)
+
+        tk.Label(options_frame, text="Preset (ej. ultrafast):").grid(row=2, column=2)
+        self.preset_entry = tk.Entry(options_frame, width=15)
+        self.preset_entry.insert(0, "ultrafast")
+        self.preset_entry.grid(row=2, column=3, padx=5)
+
+        tk.Label(options_frame, text="crf (ej. 21):").grid(row=3, column=2)
+        self.crf_entry = tk.Entry(options_frame, width=15)
+        self.crf_entry.insert(0, "21")
+        self.crf_entry.grid(row=3, column=3, padx=5)
+
+
+
+    def toggle_parallel_options(self):
+        if self.parallel_var.get():
+            self.thread_frame.grid()
+        else:
+            self.thread_frame.grid_remove()
+
+    def select_input_dir(self):
+        self.input_dir = filedialog.askdirectory()
+        if self.input_dir:
+            self.output_text.insert(tk.END, f"Directorio de entrada: {self.input_dir}\n")
+
+    def select_output_dir(self):
+        self.output_dir = filedialog.askdirectory()
+        if self.output_dir:
+            self.output_text.insert(tk.END, f"Directorio de salida: {self.output_dir}\n")
+
+    def start_conversion(self):
+        if not self.input_dir or not self.output_dir:
+            self.output_text.insert(tk.END, "Por favor, seleccione ambos directorios.\n")
+            return
+
+        if self.is_running:
+            self.stop_conversion()
+            return  
+
+        self.is_running = True
+        self.stop_event.clear()
+        self.allow_new_tasks = True
+        self.show_command_button.config(state="normal")
+        self.convert_button.config(text="Detener Conversión", bg='red', state="normal")  
+        self.input_button.config(state="disabled")
+        self.output_button.config(state="disabled")
+
+        conversion_thread = Thread(target=self.run_conversion)
+        conversion_thread.start()
+
+    def run_conversion(self):
+        allowed_extensions = self.extensions_entry.get().split(',')
+        quality = self.quality_entry.get() or "2000k"
+        output_format = self.format_entry.get() or "mp4"
+        video_codec = self.video_codec_entry.get() or "h264"
+        audio_codec = self.audio_codec_entry.get() or "aac"
+        preset = self.preset_entry.get() or "ultrafast"
+        framerate = self.framerate_entry.get() or "24"
+        crf = self.crf_entry.get() or "2500k"
+        num_threads = int(self.thread_count_entry.get()) if self.parallel_var.get() else 1
+
+        with ThreadPoolExecutor(max_workers=num_threads) as executor:
+            futures = []
+            for input_file in os.listdir(self.input_dir):
+                # Verificamos si se ha solicitado detener
+                if self.stop_event.is_set():
+                    break  # Salimos del bucle si se ha solicitado detener
+
+                if any(input_file.endswith(ext.strip()) for ext in allowed_extensions):
+                    input_path = os.path.join(self.input_dir, input_file)
+                    if os.path.isfile(input_path):
+                        future = executor.submit(self.convert_file, input_path, output_format, video_codec, audio_codec, quality, preset, framerate, crf)
+                        futures.append(future)
+
+            try:
+                for future in as_completed(futures):
+                    future.result()  # Espera a que la conversión termine
+                    if self.stop_event.is_set():
+                        break
+            finally:
+                self.output_text.insert(tk.END, "Todas las conversiones completadas o detenidas.\n")
+                self.allow_new_tasks = True
+                self.reset_ui()
+
+    def convert_file(self, input_path, output_format, video_codec, audio_codec, quality, preset, framerate, crf):
+        if self.stop_event.is_set():  # Verifica si se ha solicitado detener
+            return
+
+        base_name = os.path.splitext(os.path.basename(input_path))[0]
+        output_file = f"{base_name}.580p.optimo.{output_format}"
+        output_path = os.path.join(self.output_dir, output_file)
+
+        self.output_text.insert(tk.END, f"Convirtiendo {input_path} a {output_path}...\n")
+        self.output_text.yview(tk.END)
+
+        ffmpeg_options = self.build_ffmpeg_options(output_format, video_codec, audio_codec, quality, preset, framerate, crf)
+        command = f"ffmpeg -y -i \"{input_path}\" {ffmpeg_options} \"{output_path}\""
+        
+        # Ejecución del proceso ffmpeg
+        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        self.ffmpeg_processes.append(process)  # Añadir el proceso a la lista
+
+        for line in iter(process.stdout.readline, ''):
+            if self.stop_event.is_set():
+                self.kill_process(process)
+                break
+            self.output_text.insert(tk.END, line)
+            self.output_text.yview(tk.END)
+
+        process.stdout.close()
+        if process in self.ffmpeg_processes:
+            self.ffmpeg_processes.remove(process)  # Remover el proceso de la lista
+        self.output_text.insert(tk.END, "Conversión completada.\n")
+
+    def build_ffmpeg_options(self, output_format, video_codec, audio_codec, quality, preset, framerate, crf):
+        ffmpeg_options = f" -vf scale=-2:580 -preset {preset}  -r {framerate}  -c:v {video_codec}  -c:a {audio_codec} -pix_fmt yuv420p -ac 2 -b:v {quality} -crf {crf} -b:a 128k "
+        format_options = {
+            "ts": "  -bsf:v h264_mp4toannexb  -f mpegts ",
+            "mp3": " -f mp3 ",
+            "ogg": " -f ogg ",
+            "wav": " -f wav ",
+            "flv": " -f flv ",
+            "hls": " -f hls "
+        }
+        if output_format in format_options:
+            ffmpeg_options += f" {format_options[output_format]}"
+            print(ffmpeg_options)
+        return ffmpeg_options
+        
+        
+    def kill_process(self, process):
+        try:
+            p = psutil.Process(process.pid)
+            for child in p.children(recursive=True):
+                child.kill()
+            p.kill()
+            self.output_text.insert(tk.END, f"Proceso {process.pid} y sus hijos detenidos.\n")
+        except Exception as e:
+            self.output_text.insert(tk.END, f"Error al detener el proceso: {e}\n")
+
+    def stop_conversion(self):
+        if self.is_running:
+            self.stop_event.set()
+            self.output_text.insert(tk.END, "Deteniendo conversiones...\n")
+            self.is_running = False
+            self.allow_new_tasks = False
+
+            for process in self.ffmpeg_processes:
+                self.kill_process(process)
+            self.ffmpeg_processes.clear()
+
+            self.reset_ui()
+
+    def reset_ui(self):
+        self.convert_button.config(text="Iniciar Conversión", bg='green', state="normal")  
+        self.input_button.config(state="normal")
+        self.output_button.config(state="normal")
+        self.show_command_button.config(state="disabled")
+
+    def show_command_window(self):
+        command_window = Toplevel(self.master)
+        command_window.title("Comando en Ejecución")
+        command_window.geometry("600x400")
+
+        command_text = scrolledtext.ScrolledText(command_window, wrap=tk.WORD)
+        command_text.pack(fill=tk.BOTH, expand=True)
+
+        command_text.insert(tk.END, "Comandos en ejecución:\n")
+        for process in self.ffmpeg_processes:
+            command_text.insert(tk.END, f"Proceso PID: {process.pid}\n")
+        
+        command_text.config(state=tk.DISABLED)
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = ConverterApp(root)
+    root.mainloop()
+

@@ -1,0 +1,117 @@
+#!/usr/bin/env python3.9
+import sys
+import subprocess
+import ipaddress
+import socket
+from PyQt5.QtWidgets import (
+    QApplication,
+    QWidget,
+    QLabel,
+    QPushButton,
+    QVBoxLayout,
+    QScrollArea,
+    QTableWidget,
+    QTableWidgetItem,
+    QHeaderView,
+    QAbstractItemView,
+    QLineEdit,
+    QGridLayout,
+    QCheckBox,
+    QMessageBox
+)
+from PyQt5.QtCore import Qt, QThread, pyqtSignal
+import re
+
+class NetworkScanner(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle("Escáner de Red Local Avanzado")
+        self.setGeometry(100, 100, 1000, 600)
+
+        # Crear los widgets
+        self.scan_button = QPushButton("Detectar Redes")
+        self.scan_button.clicked.connect(self.start_scan)
+
+        self.table = QTableWidget()
+        self.table.setColumnCount(4)
+        self.table.setHorizontalHeaderLabels(["Dirección MAC", "Fabricante", "IP", "Interfaz"])
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table.verticalHeader().setVisible(False)
+        self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.table.setAlternatingRowColors(True)
+
+        # Añadir los widgets a un layout
+        layout = QVBoxLayout()
+        layout.addWidget(self.scan_button)
+        layout.addWidget(self.table)
+        self.setLayout(layout)
+
+    def start_scan(self):
+        self.table.setRowCount(0)  # Limpiar la tabla
+        mac_addresses = self.get_mac_addresses()
+        for mac in mac_addresses:
+            manufacturer = self.get_mac_manufacturer(mac)
+            ip = self.get_ip_by_mac(mac)
+            interface = self.get_interface_by_mac(mac)
+            self.add_data_to_table(mac, manufacturer, ip, interface)
+
+    def get_mac_addresses(self):
+        # Obtener todas las direcciones MAC usando el comando 'ip maddress'
+        try:
+            output = subprocess.check_output(["ip", "maddress"]).decode("utf-8")
+            mac_addresses = re.findall(r'link\s+([0-9a-f:]{17}|[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2})', output)
+            return list(set(mac_addresses))  # Eliminar duplicados
+        except subprocess.CalledProcessError as e:
+            QMessageBox.warning(self, "Error", f"Error al obtener direcciones MAC: {str(e)}")
+            return []
+
+    def get_mac_manufacturer(self, mac):
+        # Obtener el fabricante usando la dirección MAC
+        try:
+            result = subprocess.run(['getmac', '/v', '/fo', 'csv'], capture_output=True, text=True)
+            for line in result.stdout.splitlines()[1:]:  # Ignorar la cabecera
+                if mac.lower() in line.lower():
+                    return line.split(',')[1].strip('"')  # Retornar el fabricante
+        except Exception as e:
+            return "No disponible"
+        return "No disponible"
+
+    def get_ip_by_mac(self, mac):
+        # Obtener la IP correspondiente a la dirección MAC
+        try:
+            result = subprocess.check_output(["arp", "-n"]).decode("utf-8")
+            for line in result.splitlines():
+                if mac.lower() in line.lower():
+                    return line.split()[0]  # Retornar la dirección IP
+        except subprocess.CalledProcessError as e:
+            QMessageBox.warning(self, "Error", f"Error al obtener IP: {str(e)}")
+        return "No disponible"
+
+    def get_interface_by_mac(self, mac):
+        # Obtener la interfaz correspondiente a la dirección MAC
+        try:
+            result = subprocess.check_output(["ip", "link"]).decode("utf-8")
+            interfaces = re.findall(r'(\d+): ([^:]+): <.*?link/.*?\s+([0-9a-f:]{17}|[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2})', result)
+            for index, iface, link_mac in interfaces:
+                if link_mac.lower() == mac.lower():
+                    return iface.strip()  # Retornar la interfaz
+        except subprocess.CalledProcessError as e:
+            QMessageBox.warning(self, "Error", f"Error al obtener la interfaz: {str(e)}")
+        return "No disponible"
+
+    def add_data_to_table(self, mac, manufacturer, ip, interface):
+        row_index = self.table.rowCount()
+        self.table.insertRow(row_index)
+
+        self.table.setItem(row_index, 0, QTableWidgetItem(mac))
+        self.table.setItem(row_index, 1, QTableWidgetItem(manufacturer))
+        self.table.setItem(row_index, 2, QTableWidgetItem(ip))
+        self.table.setItem(row_index, 3, QTableWidgetItem(interface))
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = NetworkScanner()
+    window.show()
+    sys.exit(app.exec_())
+

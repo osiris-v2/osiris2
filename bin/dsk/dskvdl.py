@@ -1,0 +1,172 @@
+import os
+import tkinter as tk
+from tkinter import filedialog, scrolledtext, Toplevel, messagebox
+from tkinter.ttk import Progressbar
+from threading import Thread, Event
+import requests
+import subprocess
+
+class DownloaderApp:
+    def __init__(self, master):
+        self.master = master
+        master.title("Downloader Mejorado")
+        master.geometry("800x700")
+
+        self.output_dir = ""
+        self.is_running = False
+        self.stop_event = Event()
+        self.download_mode = tk.StringVar(value="sequential")
+        self.format_option = tk.StringVar(value="mp4")
+        self.additional_options = {
+            "audio_only": tk.BooleanVar(),
+            "limit_speed": tk.BooleanVar(),
+            "max_quality": tk.BooleanVar(),
+        }
+
+        self.create_directory_selection_panel()
+        self.create_options_panel()
+        self.create_download_buttons()
+
+        self.output_text = scrolledtext.ScrolledText(master, width=85, height=12, wrap=tk.WORD)
+        self.output_text.pack(pady=10, fill=tk.BOTH, expand=True)
+
+        master.grid_rowconfigure(3, weight=1)
+        master.grid_columnconfigure(0, weight=1)
+
+    def create_directory_selection_panel(self):
+        dir_frame = tk.Frame(self.master)
+        dir_frame.pack(pady=10)
+
+        self.output_button = tk.Button(dir_frame, text="Seleccionar Directorio de Salida", command=self.select_output_dir, bg='blue', fg='white')
+        self.output_button.grid(row=0, column=0, padx=5)
+
+    def create_options_panel(self):
+        options_frame = tk.Frame(self.master)
+        options_frame.pack(pady=10)
+
+        tk.Label(options_frame, text="URLs para descargar (una por línea):").grid(row=0, column=0, padx=5)
+        self.urls_entry = scrolledtext.ScrolledText(options_frame, width=50, height=5)
+        self.urls_entry.grid(row=1, column=0, columnspan=3, padx=5, pady=5)
+
+        self.parallel_button = tk.Radiobutton(options_frame, text="Descarga en Paralelo", variable=self.download_mode, value="parallel")
+        self.parallel_button.grid(row=2, column=0)
+        self.sequential_button = tk.Radiobutton(options_frame, text="Descarga Secuencial", variable=self.download_mode, value="sequential")
+        self.sequential_button.grid(row=2, column=1)
+
+        # Format selection for yt-dlp
+        tk.Label(options_frame, text="Formato de descarga:").grid(row=3, column=0, padx=5, sticky="w")
+        format_options = [("MP4", "mp4"), ("MKV", "mkv"), ("Audio MP3", "mp3"), ("Audio AAC", "aac")]
+        for idx, (text, val) in enumerate(format_options):
+            tk.Radiobutton(options_frame, text=text, variable=self.format_option, value=val).grid(row=4, column=idx, padx=5)
+
+        # Additional yt-dlp options
+        tk.Checkbutton(options_frame, text="Solo audio", variable=self.additional_options["audio_only"]).grid(row=5, column=0, sticky="w")
+        tk.Checkbutton(options_frame, text="Limitar velocidad", variable=self.additional_options["limit_speed"]).grid(row=5, column=1, sticky="w")
+        tk.Checkbutton(options_frame, text="Calidad máxima", variable=self.additional_options["max_quality"]).grid(row=5, column=2, sticky="w")
+
+    def create_download_buttons(self):
+        self.download_button = tk.Button(self.master, text="Iniciar Descarga", command=self.start_download, bg='green', fg='white')
+        self.download_button.pack(pady=10)
+
+        self.stop_button = tk.Button(self.master, text="Detener Descarga", command=self.stop_download, bg='red', state="disabled")
+        self.stop_button.pack(pady=5)
+
+        self.show_command_button = tk.Button(self.master, text="Mostrar Comando en Ejecución", command=self.show_command_window, state="disabled")
+        self.show_command_button.pack(pady=5)
+
+    def select_output_dir(self):
+        self.output_dir = filedialog.askdirectory()
+        if self.output_dir:
+            self.output_text.insert(tk.END, f"Directorio de salida: {self.output_dir}\n")
+
+    def start_download(self):
+        if not self.output_dir:
+            messagebox.showerror("Error", "Selecciona un directorio de salida.")
+            return
+
+        if self.is_running:
+            return
+
+        self.is_running = True
+        self.stop_event.clear()
+        self.stop_button.config(state="normal")
+        self.download_button.config(state="disabled")
+        self.show_command_button.config(state="normal")
+
+        urls = self.urls_entry.get("1.0", tk.END).strip().splitlines()
+        if self.download_mode.get() == "parallel":
+            self.download_parallel(urls)
+        else:
+            Thread(target=self.download_sequential, args=(urls,)).start()
+
+    def stop_download(self):
+        self.stop_event.set()
+        self.output_text.insert(tk.END, "Descarga detenida.\n")
+        self.is_running = False
+        self.download_button.config(state="normal")
+        self.stop_button.config(state="disabled")
+        self.show_command_button.config(state="disabled")
+
+    def download_with_ytdlp(self, url):
+        file_name = os.path.join(self.output_dir, os.path.basename(url))
+        options = ["yt-dlp", "-f", self.format_option.get(), url, "-o", f"{file_name}.%(ext)s"]
+
+        if self.additional_options["audio_only"].get():
+            options.extend(["-x", "--audio-format", self.format_option.get()])
+        if self.additional_options["limit_speed"].get():
+            options.extend(["-r", "500K"])  # Example speed limit, adjust as needed
+        if self.additional_options["max_quality"].get():
+            options.append("-f bestvideo+bestaudio")
+
+        process = subprocess.Popen(options, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        
+        for line in process.stdout:
+            self.output_text.insert(tk.END, line)
+            self.output_text.see(tk.END)
+            if self.stop_event.is_set():
+                process.terminate()
+                return
+
+        self.output_text.insert(tk.END, f"Descargado: {file_name}\n")
+
+    def download_sequential(self, urls):
+        for url in urls:
+            if self.stop_event.is_set():
+                break
+            self.output_text.insert(tk.END, f"Iniciando descarga: {url}\n")
+            self.download_with_ytdlp(url)
+        self.download_complete()
+
+    def download_parallel(self, urls):
+        threads = []
+        for url in urls:
+            if self.stop_event.is_set():
+                break
+            thread = Thread(target=self.download_with_ytdlp, args=(url,))
+            threads.append(thread)
+            thread.start()
+
+        for thread in threads:
+            thread.join()
+
+        self.download_complete()
+
+    def download_complete(self):
+        self.output_text.insert(tk.END, "Todas las descargas completadas.\n")
+        self.is_running = False
+        self.download_button.config(state="normal")
+        self.stop_button.config(state="disabled")
+        self.show_command_button.config(state="disabled")
+
+    def show_command_window(self):
+        command_window = Toplevel(self.master)
+        command_window.title("Comando en Ejecución")
+        command_window.geometry("600x200")
+        command_label = tk.Label(command_window, text="Descargando archivos de las URLs especificadas...", wraplength=500)
+        command_label.pack(pady=10)
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = DownloaderApp(root)
+    root.mainloop()
+

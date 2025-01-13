@@ -1,0 +1,102 @@
+body{
+	
+
+background:#000000;
+
+
+}
+
+
+
+
+#intro-app {
+  /* Centrar el elemento en la pantalla horizontalmente y verticalmente */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  /* Estilos del texto */
+  font-size: 34px;
+  font-family: "Arial", sans-serif;
+  color: red; /* Color inicial del texto */
+
+  /* Estilos del fondo */
+  background-color: rgba(1,2,10,0.8); /* Color de fondo */
+
+  /* Animación de cambios en el color, aspecto y tamaño del texto */
+  animation: cambio_estilos 10s infinite;
+}
+
+@keyframes cambio_estilos {
+  0% {
+    color: red; /* Color inicial */
+    font-size: 42px; /* Tamaño inicial */
+    /* Añadir otros estilos que desees */
+  }
+  50% {
+    color: blue; /* Cambio de color */
+    font-size: 45px; /* Cambio de tamaño */
+    /* Añadir otros estilos que desees */
+  }
+  100% {
+    color: green; /* Color final */
+    font-size: 42px; /* Tamaño final */
+    /* Añadir otros estilos que desees */
+  }
+}
+
+.mbuton{
+
+font-size:13px;font-weight:bold;
+font-family:arial;padding:2px;
+color:rgba(0,0,0,.6)
+}
+
+  #splash {
+     background-color: #349866;
+     font-weight:bold;
+    color: #badc10;
+    border: none;
+    padding: 7px 10px;
+    font-size: 16px;
+    cursor: pointer;
+    top:0px;left:0px;
+    border-radius:5px;
+    transition: background-color 0.7s ease;
+    z-index:999;position:absolute;
+    height:30px;
+  }
+  #splash:hover {
+    background-color: #2980b9;
+  }
+  #splash-container {
+      display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 30px;
+    background-color: rgba(255, 255, 255, 0.2);
+  
+    justify-content: center;
+    align-items: center;
+  }
+  #splash-content {
+    background-color: rgba(255,255,255,.3);
+    padding: 5px%;
+    border-radius: 8px;
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+  }
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,10 @@
+#!/bin/bash
+source '/etc/environment'
+FILE="${OSIRIS000_BIN}/com/datas/ffmpeg/progress_hls.txt"
+>$FILE
+echo "PROGRESS HLS" > $FILE 
+while true; do
+clear
+reset
+tail -n 10 -f $FILE
+done

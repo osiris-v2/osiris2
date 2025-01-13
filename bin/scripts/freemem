@@ -1,0 +1,275 @@
+#!/bin/bash
+clear
+reset
+source '/etc/environment'
+
+# matamos procesos freemem si existen para que soolo haya uno
+# Obtener el PID del script actual
+my_pid=$$
+
+# Obtener los PIDs de todos los procesos 'freemem'
+freemem_pids=$(pgrep freemem)
+
+# Iterar sobre los PIDs de 'freemem'
+for pid in $freemem_pids; do
+  # Comparar el PID actual con el PID del script
+  if [[ "$pid" -ne "$my_pid" ]]; then
+    # Matar el proceso 'freemem' si no es el script actual
+    sudo kill -9 "$pid" 2>/dev/null  # Redirigir stderr a /dev/null para suprimir errores si el proceso ya no existe
+    echo "Proceso freemem con PID $pid terminado."
+  else
+    echo "Conservando el proceso freemem padre con PID $pid"
+  fi
+done
+# Intervalo de tiempo entre cada ejecución en segundos
+INTERVALO=300
+
+# Porcentaje de memoria libre mínima requerida
+PORCENTAJE_UMBRAL=5
+
+# Memoria libre mínima fija (en MB)
+MEMORIA_MINIMA_FIJA=1024
+
+# Configuración de umbrales CPU
+CPU_THRESHOLD=80
+
+
+# Archivo de log
+LOGFILE="${OSIRIS000_BIN}/com/datas/fr33m3m.log"
+
+echo "FREEMEM LOG: $LOGFILE"
+
+
+# Activar /swapfile (aumento para aumentar memoria de intercambio si es necesario)
+# Ruta del archivo de intercambio
+SWAPFILE="/swapfile"
+
+swap_activate(){
+
+# Verifica si el archivo de intercambio existe
+if [ -f "$SWAPFILE" ]; then
+    # Verifica si el archivo de intercambio está activado
+    if swapon --show=NAME | grep -q "$SWAPFILE"; then
+        echo "El archivo de intercambio $SWAPFILE está activado." >> "$LOGFILE"
+    else
+        echo " El archivo de intercambio $SWAPFILE existe pero no está activado. Activando..." >> "$LOGFILE"
+        sudo swapon "$SWAPFILE"
+        echo "Archivo de intercambio $SWAPFILE activado." >> "$LOGFILE"
+    fi
+else
+    echo "El archivo de intercambio $SWAPFILE no existe." >> "$LOGFILE"
+fi
+
+}
+
+
+# Función para comprobar el estado del servidor gráfico y tratar de solucionar problemas comunes
+comprobar_servidor_grafico() {
+    # Lista de errores conocidos para comprobar
+    local errores_conocidos=("unable to open display" "X Error" "connection refused" "No protocol specified")
+
+    # Verificar si el servidor gráfico está corriendo
+    if ! pgrep -x "Xorg" > /dev/null && ! pgrep -x "wayland" > /dev/null; then
+        echo "Servidor gráfico no encontrado. Verifique si Xorg o Wayland están instalados y funcionando." >> "$LOGFILE"
+        echo "Puede que sea necesario reiniciar el servidor gráfico. Verifique los logs del sistema." >> "$LOGFILE"
+    else
+        # Captura la salida de xdpyinfo
+        xdpyinfo_output=$(xdpyinfo 2>&1)
+        
+        # Verifica si xdpyinfo tuvo salida de error
+        if [ $? -ne 0 ]; then
+            # Comprobar si la salida contiene alguno de los errores conocidos
+            for error in "${errores_conocidos[@]}"; do
+                if grep -q "$error" <<< "$xdpyinfo_output"; then
+                    case "$error" in
+                        "unable to open display")
+                            echo "Error en xdpyinfo: no se puede abrir la pantalla. Verifique la configuración del servidor gráfico y los permisos de acceso." >> "$LOGFILE"
+                            echo "Intentando restablecer la conexión al servidor gráfico..." >> "$LOGFILE"
+                            # Intentar restablecer la conexión sin reiniciar
+                            xset -q &> /dev/null
+                            if [ $? -ne 0 ]; then
+                                echo "No se pudo restablecer la conexión al servidor gráfico. Puede ser necesario reiniciar el servidor gráfico." >> "$LOGFILE"
+                            else
+                                echo "Conexión al servidor gráfico restablecida." >> "$LOGFILE"
+                            fi
+                            ;;
+                        "X Error")
+                            echo "Error en xdpyinfo: X Error detected. Verifique los logs de Xorg para más detalles." >> "$LOGFILE"
+                            echo "Verifique si hay problemas con la configuración de Xorg en /var/log/Xorg.0.log." >> "$LOGFILE"
+                            ;;
+                        "connection refused")
+                            echo "Error en xdpyinfo: Conexión rechazada. Verifique el estado del servidor gráfico." >> "$LOGFILE"
+                            ;;
+                        "No protocol specified")
+                            echo "Error en xdpyinfo: No se especificó el protocolo. Verifique los permisos de acceso a la pantalla." >> "$LOGFILE"
+                            ;;
+                        *)
+                            echo "Error desconocido en xdpyinfo: $xdpyinfo_output" >> "$LOGFILE"
+                            echo "Puede que sea necesario reiniciar el servidor gráfico. Verifique los logs del sistema." >> "$LOGFILE"
+                            ;;
+                    esac
+                    break
+                fi
+            done
+        else
+            echo "Servidor gráfico funcionando correctamente." >> "$LOGFILE"
+        fi
+    fi
+}
+
+
+# Función para reiniciar el servidor gráfico
+reiniciar_servidor_grafico() {
+    DISPLAY_MANAGER=$(cat /etc/X11/default-display-manager)
+    echo "Reiniciando el servidor gráfico..." >> "$LOGFILE"
+
+    if [[ "$DISPLAY_MANAGER" == *"/lightdm" ]]; then
+        sudo systemctl restart lightdm
+    elif [[ "$DISPLAY_MANAGER" == *"/gdm3" ]]; then
+        sudo systemctl restart gdm
+    elif [[ "$DISPLAY_MANAGER" == *"/sddm" ]]; then
+        sudo systemctl restart sddm
+    else
+        echo "Gestor de display no soportado o no encontrado: $DISPLAY_MANAGER" >> "$LOGFILE"
+    fi
+
+    echo "Servidor gráfico reiniciado." >> "$LOGFILE"
+}
+
+
+check_cpu_usage() {
+    echo "$(date) - Iniciando verificación de uso de CPU y memoria" >> "$LOGFILE"
+    # Identificar procesos que usan más del umbral de CPU
+    high_cpu_procs=$(ps -eo pid,ppid,cmd,%mem,%cpu --sort=-%cpu | awk -v threshold=$CPU_THRESHOLD '$NF >= threshold {print $1}' | tr '\n' ' ')
+    if [ ! -z "$high_cpu_procs" ]; then
+        echo "$(date) - Procesos con alto uso de CPU: $high_cpu_procs" >> "$LOGFILE"
+        # Reducir la prioridad de los procesos intensivos
+        for pid in $high_cpu_procs; do
+            # Verificar que el PID es un proceso válido y no es del sistema
+            if ps -p $pid > /dev/null; then
+                echo "Reduciendo prioridad del proceso $pid" >> "$LOGFILE"
+                echo "$(ps -p $pid -o pid,ppid,cmd,%mem,%cpu)" >> "$LOGFILE"
+                sudo renice +10 -p $pid
+            else
+                echo "PID $pid no es un proceso válido o es del sistema" >> "$LOGFILE"
+            fi
+        done
+    else
+        echo "No hay procesos de alto consumo de CPU." >> "$LOGFILE"
+    fi
+}
+
+
+send_alert_to_monitoring() {
+    # Función que envía un mensaje al sistema de monitoreo
+    local message="$1"
+    # Comando de ejemplo, reemplaza con la integración real
+    echo "$message" >> "$LOGFILE"
+}
+
+matar_zombies() {
+    echo "$(date) - Detectando procesos zombie..." >> "$LOGFILE"
+    mapfile -t zombie_pids < <(ps -eo pid,ppid,state | awk '$3=="Z" {print $1}')
+
+    if [ ${#zombie_pids[@]} -eq 0 ]; then
+        echo "No se encontraron procesos zombie." >> "$LOGFILE"
+    else
+        for zombie_pid in "${zombie_pids[@]}"; do
+            ppid=$(ps -p "$zombie_pid" -o ppid=)
+            if [ -n "$ppid" ]; then
+                handle_error "INFO[PS][0]: Proceso padre $ppid $(ps -p $ppid -jfl) ha generado un zombie $zombie_pid."
+                # Intentar notificar al proceso padre
+                error_message=$(kill -SIGCHLD "$ppid" 2>&1)   # Captura cualquier mensaje de error
+                if [ $? -ne 0 ]; then                        # Verifica si 'kill' falló
+                    handle_error "WARM[PS][1]: $error_message"  # Escribe el mensaje en el log
+                    error_message="WARM[PS][0]: No se pudo enviar SIGCHLD a $ppid. Es posible que se requieran permisos adicionales."
+                    handle_error "$error_message"            # Llama a la función 'handle_error' con el mensaje de error
+                    continue                                 # Continúa con la siguiente iteración del bucle
+                fi
+            fi
+        done
+    fi
+}
+
+
+handle_error() {
+    local error_message="$1"
+    local message="$error_message"
+    send_alert_to_monitoring "$message"
+    # Aquí puedes agregar acciones de recuperación si es necesario
+}
+
+
+
+echo -e "####### CLEAR LOG \n########################\n FREEMEM \n    $(date)       \n ################" > "$LOGFILE"
+
+echo "====================" >> "$LOGFILE"
+echo "Comprobando Swap..." >> "$LOGFILE"
+swap_activate
+
+# Bucle principal
+while true; do
+
+
+    echo "====================" >> "$LOGFILE"
+    echo "Observando CPU..." >> "$LOGFILE"
+    check_cpu_usage
+
+
+    # comprobar procesos
+    echo "====================" >> "$LOGFILE"
+    echo "Comprobando Procesos..." >> "$LOGFILE"
+    matar_zombies
+
+
+    # comprobar memoria
+    echo "====================" >> "$LOGFILE"
+    echo "Comprobando la memoria..." >> "$LOGFILE"
+
+
+    # Obtener la memoria total y la memoria libre actual (en MB)
+    MEM_TOTAL=$(free -m | awk '/^Mem:/{print $2}')
+    MEM_LIBRE=$(free -m | awk '/^Mem:/{print $7}')
+
+    # Calcular el umbral de memoria libre en MB
+    UMBRAL_MEMORIA=$(( MEM_TOTAL * PORCENTAJE_UMBRAL / 100 ))
+
+    # Usar el mayor valor entre el umbral calculado y la memoria mínima fija
+    MEM_UMBRAL_FINAL=$(( UMBRAL_MEMORIA > MEMORIA_MINIMA_FIJA ? UMBRAL_MEMORIA : MEMORIA_MINIMA_FIJA ))
+
+    if [ "$MEM_LIBRE" -lt "$MEM_UMBRAL_FINAL" ]; then
+        echo "Memoria libre ($MEM_LIBRE MB) por debajo del umbral ($MEM_UMBRAL_FINAL MB). Liberando memoria..." >> "$LOGFILE"
+        # Sincronizar el sistema de archivos
+        sync
+
+        # Liberar el caché de página, inodos y dentries
+        echo 3 > /proc/sys/vm/drop_caches
+
+        # Deshabilitar y habilitar swap
+        swapoff -a && swapon -a
+        # Ajustar swappiness (opcional)
+        sysctl vm.swappiness=10
+
+        # Mostrar estado de la memoria después de liberar
+        echo "Memoria después de liberar:" >> "$LOGFILE"
+        free -m >> "$LOGFILE"
+    else
+        echo "Memoria libre ($MEM_LIBRE MB) es suficiente. No se requiere liberación de memoria." >> "$LOGFILE"
+    fi
+
+
+    # Comprobar el estado del servidor gráfico después de liberar memoria
+    echo "====================" >> "$LOGFILE"
+    echo "Comprobando Servidor Gráfico..." >> "$LOGFILE"
+    comprobar_servidor_grafico
+
+
+    # Esperar el intervalo de tiempo especificado
+    echo "====================" >> "$LOGFILE"
+    echo "Esperando $INTERVALO segundos..." >> "$LOGFILE"
+    echo "====================" >> "$LOGFILE"
+    sleep $INTERVALO
+done &
+
+tail -f "$LOGFILE"
+

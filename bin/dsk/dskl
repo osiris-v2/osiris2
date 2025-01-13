@@ -1,0 +1,128 @@
+#!/usr/bin/env python3.9
+import sys
+import json
+import os
+from PyQt5.QtWidgets import (
+    QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QGridLayout, QMessageBox
+)
+from PyQt5.QtGui import QIcon, QPixmap
+from PyQt5.QtCore import Qt
+
+class AppLauncher(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Lanzador de Aplicaciones")
+        self.setGeometry(100, 100, 700, 400)
+
+        # Layout principal en cuadrícula
+        self.grid_layout = QGridLayout()
+        self.grid_layout.setAlignment(Qt.AlignTop)  # Alinear al tope de la ventana
+        self.setLayout(self.grid_layout)
+
+        # Cargar aplicaciones desde JSON y crear botones
+        self.load_and_create_buttons()
+
+    def load_and_create_buttons(self):
+        try:
+            with open("aplicaciones.json", "r") as file:
+                applications = json.load(file)
+
+            row = 0  # Inicializamos la fila
+
+            for app in applications:
+                try:
+                    # Si está deshabilitada, omitimos
+                    if not app.get("enabled", False):
+                        continue
+
+                    # Extraer datos del JSON
+                    name = app.get("name", "Aplicación desconocida")
+                    alias = app.get("alias", "")
+                    path = app.get("path", "")
+                    icon_path = app.get("icon", "icons/default.png")
+                    full_path = os.path.join(path, alias)
+
+                    # Layout horizontal para el botón, icono e información
+                    app_layout = QHBoxLayout()
+
+                    # Configurar ícono
+                    icon_label = QLabel()
+                    pixmap = QPixmap(icon_path) if os.path.exists(icon_path) else QPixmap("icons/default.png")
+                    icon_label.setPixmap(pixmap.scaled(32, 32, Qt.KeepAspectRatio))
+                    app_layout.addWidget(icon_label)
+
+                    # Crear el botón para lanzar la aplicación
+                    launch_button = QPushButton("Lanzar")
+                    launch_button.setToolTip(f"{name}\nRuta: {full_path}")
+                    launch_button.clicked.connect(lambda _, p=full_path: self.launch_application(p))
+                    app_layout.addWidget(launch_button)
+
+                    # Crear el botón de información
+                    info_button = QPushButton("Info")
+                    info_button.setToolTip(f"Detalles de {name}")
+                    info_button.clicked.connect(lambda _, a=app: self.show_info(a))
+                    app_layout.addWidget(info_button)
+
+                    # Agregar layout de la aplicación al layout de la cuadrícula
+                    self.grid_layout.addLayout(app_layout, row, 0)
+
+                    # Agregar una etiqueta con el nombre de la aplicación
+                    name_label = QLabel(name)
+                    app_layout.addWidget(name_label)
+
+                    row += 1
+
+                except Exception as e:
+                    QMessageBox.warning(self, "Error de Aplicación", f"Error al cargar '{name}': {str(e)}")
+
+        except FileNotFoundError:
+            QMessageBox.critical(self, "Error", "Archivo 'aplicaciones.json' no encontrado.")
+        except json.JSONDecodeError:
+            QMessageBox.critical(self, "Error", "Error al decodificar el archivo JSON.")
+        except Exception as e:
+            QMessageBox.critical(self, "Error desconocido", f"Error al cargar aplicaciones: {str(e)}")
+
+    def launch_application(self, app_path):
+        try:
+            # Ejecutar el programa
+            if not os.path.exists(app_path):
+                raise FileNotFoundError(f"La ruta '{app_path}' no existe.")
+            
+            os.system(f"{app_path} &")
+
+        except FileNotFoundError as e:
+            QMessageBox.warning(self, "Error de Ejecución", str(e))
+        except Exception as e:
+            QMessageBox.critical(self, "Error inesperado", f"No se pudo iniciar la aplicación: {str(e)}")
+
+    def show_info(self, app):
+        try:
+            # Obtener información detallada del JSON
+            name = app.get("name", "Sin nombre")
+            alias = app.get("alias", "Sin alias")
+            path = app.get("path", "Sin ruta")
+            icon = app.get("icon", "Sin icono")
+            enabled = app.get("enabled", False)
+
+            # Formatear el mensaje
+            info_message = (
+                f"Nombre: {name}\n"
+                f"Alias: {alias}\n"
+                f"Ruta: {path}\n"
+                f"Icono: {icon}\n"
+                f"Habilitado: {'Sí' if enabled else 'No'}"
+            )
+
+            # Mostrar mensaje
+            QMessageBox.information(self, "Información de la Aplicación", info_message)
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"No se pudo mostrar la información: {str(e)}")
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    launcher = AppLauncher()
+    launcher.show()
+    sys.exit(app.exec_())
+

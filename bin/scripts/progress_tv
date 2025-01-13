@@ -1,0 +1,10 @@
+#!/bin/bash
+
+FILE="${OSIRIS000_BIN}/com/datas/ffmpeg/progress_process.txt"
+>$FILE
+echo "Progress TV" > $FILE
+while true; do
+clear
+reset
+tail -n 10 -f $FILE
+done

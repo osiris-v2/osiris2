@@ -1,0 +1,279 @@
+#!/usr/bin/env python3.9
+import sys
+from PyQt5.QtWidgets import (
+    QApplication,
+    QWidget,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QTextEdit,
+    QVBoxLayout,
+    QHBoxLayout,
+    QFileDialog,
+    QMessageBox,
+    QComboBox,
+    QTabWidget,
+    QGridLayout,
+    QSpinBox,
+    QCheckBox,
+    QButtonGroup,
+)
+from PyQt5.QtGui import QIcon, QFont
+from PyQt5.QtCore import Qt, QSize
+from PyQt5 import QtCore
+import json
+
+class HtmlEditor(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("HTML Editor")
+        self.setWindowIcon(QIcon("icon.png"))  # Replace "icon.png" with your icon file
+        self.resize(800, 600)  # Set initial window size
+
+        # Create UI elements
+        self.text_edit = QTextEdit()
+        self.text_edit.setFont(QFont("Arial", 12))
+
+        # Top Bar (File Actions)
+        self.file_tab_widget = QTabWidget()
+        self.file_tab_widget.addTab(self.create_file_tab(), "File")
+        self.file_tab_widget.addTab(self.create_json_tab(), "JSON")
+
+        # Main Area
+        self.main_area_layout = QVBoxLayout()
+        self.main_area_layout.addWidget(self.text_edit)
+
+        # Tool Bar (HTML Elements)
+        self.tool_bar_layout = QHBoxLayout()
+        self.add_toolbar_buttons()
+
+        # Combine main layout
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(self.file_tab_widget)
+        self.layout.addLayout(self.tool_bar_layout)
+        self.layout.addLayout(self.main_area_layout)
+        self.setLayout(self.layout)
+
+    def create_file_tab(self):
+        tab_layout = QVBoxLayout()
+        self.save_button = QPushButton("Save")
+        self.load_button = QPushButton("Load")
+
+        tab_layout.addWidget(self.save_button)
+        tab_layout.addWidget(self.load_button)
+
+        # Connect signals to slots
+        self.save_button.clicked.connect(self.save_html)
+        self.load_button.clicked.connect(self.load_html)
+
+        tab_widget = QWidget()
+        tab_widget.setLayout(tab_layout)
+        return tab_widget
+
+    def create_json_tab(self):
+        tab_layout = QVBoxLayout()
+        self.save_as_json_button = QPushButton("Save as JSON")
+        tab_layout.addWidget(self.save_as_json_button)
+        self.save_as_json_button.clicked.connect(self.save_as_json)
+
+        tab_widget = QWidget()
+        tab_widget.setLayout(tab_layout)
+        return tab_widget
+
+    def add_toolbar_buttons(self):
+        # Insert Elements Buttons
+        self.open_image_dialog_button = QPushButton("Insert Image")
+        self.open_video_dialog_button = QPushButton("Insert Video")
+        self.insert_url_button = QPushButton("Insert URL")
+        self.insert_link_button = QPushButton("Insert Link")
+        self.insert_text_button = QPushButton("Insert Text")
+        self.insert_heading_button = QPushButton("Insert Heading")
+        self.insert_list_button = QPushButton("Insert List")
+        self.insert_table_button = QPushButton("Insert Table")
+
+        # Combo box for image and video sources
+        self.source_combobox = QComboBox()
+        self.source_combobox.addItems(["File", "URL"])
+
+        # Line edit for URL input
+        self.url_lineedit = QLineEdit()
+        self.url_lineedit.setPlaceholderText("Enter URL")
+
+        # Formatting Options
+        self.bold_button = QPushButton("B")
+        self.italic_button = QPushButton("I")
+        self.underline_button = QPushButton("U")
+        self.heading_level_spinbox = QSpinBox()
+        self.heading_level_spinbox.setRange(1, 6)
+        self.heading_level_spinbox.setValue(1)
+        self.list_type_combobox = QComboBox()
+        self.list_type_combobox.addItems(["Ordered", "Unordered"])
+        self.table_rows_spinbox = QSpinBox()
+        self.table_rows_spinbox.setRange(1, 10)
+        self.table_rows_spinbox.setValue(2)
+        self.table_cols_spinbox = QSpinBox()
+        self.table_cols_spinbox.setRange(1, 10)
+        self.table_cols_spinbox.setValue(2)
+
+        # Add buttons to toolbar
+        self.tool_bar_layout.addWidget(self.open_image_dialog_button)
+        self.tool_bar_layout.addWidget(self.open_video_dialog_button)
+        self.tool_bar_layout.addWidget(self.insert_url_button)
+        self.tool_bar_layout.addWidget(self.insert_link_button)
+        self.tool_bar_layout.addWidget(self.insert_text_button)
+        self.tool_bar_layout.addWidget(self.insert_heading_button)
+        self.tool_bar_layout.addWidget(self.insert_list_button)
+        self.tool_bar_layout.addWidget(self.insert_table_button)
+        self.tool_bar_layout.addWidget(self.source_combobox)
+        self.tool_bar_layout.addWidget(self.url_lineedit)
+        self.tool_bar_layout.addWidget(self.bold_button)
+        self.tool_bar_layout.addWidget(self.italic_button)
+        self.tool_bar_layout.addWidget(self.underline_button)
+        self.tool_bar_layout.addWidget(self.heading_level_spinbox)
+        self.tool_bar_layout.addWidget(self.list_type_combobox)
+        self.tool_bar_layout.addWidget(self.table_rows_spinbox)
+        self.tool_bar_layout.addWidget(self.table_cols_spinbox)
+
+        # Connect signals to slots
+        self.open_image_dialog_button.clicked.connect(self.open_image_dialog)
+        self.open_video_dialog_button.clicked.connect(self.open_video_dialog)
+        self.insert_url_button.clicked.connect(self.insert_url)
+        self.insert_link_button.clicked.connect(self.insert_link)
+        self.insert_text_button.clicked.connect(self.insert_text)
+        self.insert_heading_button.clicked.connect(self.insert_heading)
+        self.insert_list_button.clicked.connect(self.insert_list)
+        self.insert_table_button.clicked.connect(self.insert_table)
+        self.source_combobox.currentTextChanged.connect(self.source_changed)
+        self.bold_button.clicked.connect(self.format_text_bold)
+        self.italic_button.clicked.connect(self.format_text_italic)
+        self.underline_button.clicked.connect(self.format_text_underline)
+        self.heading_level_spinbox.valueChanged.connect(self.insert_heading)
+
+    def save_html(self):
+        file_name, _ = QFileDialog.getSaveFileName(self, "Save HTML", "", "*.html")
+        if file_name:
+            with open(file_name, "w") as f:
+                f.write(self.text_edit.toHtml())
+            QMessageBox.information(self, "Saved", f"File saved as {file_name}")
+
+    def load_html(self):
+        file_name, _ = QFileDialog.getOpenFileName(self, "Load HTML", "", "*.html")
+        if file_name:
+            with open(file_name, "r") as f:
+                html = f.read()
+                self.text_edit.setHtml(html)
+
+    def save_as_json(self):
+        file_name, _ = QFileDialog.getSaveFileName(self, "Save as JSON", "", "*.json")
+        if file_name:
+            data = {"html": self.text_edit.toHtml()}
+            with open(file_name, "w") as f:
+                json.dump(data, f, indent=4)
+            QMessageBox.information(self, "Saved", f"File saved as {file_name}")
+
+    def open_image_dialog(self):
+        if self.source_combobox.currentText() == "File":
+            file_name, _ = QFileDialog.getOpenFileName(
+                self, "Open Image", "", "Image Files (*.png *.jpg *.jpeg *.gif)"
+            )
+            if file_name:
+                self.text_edit.insertHtml(f'<img src="{file_name}">')
+        elif self.source_combobox.currentText() == "URL":
+            url = self.url_lineedit.text()
+            if url:
+                self.text_edit.insertHtml(f'<img src="{url}">')
+
+    def open_video_dialog(self):
+        if self.source_combobox.currentText() == "File":
+            file_name, _ = QFileDialog.getOpenFileName(
+                self, "Open Video", "", "Video Files (*.mp4 *.avi *.webm)"
+            )
+            if file_name:
+                self.text_edit.insertHtml(f'<video src="{file_name}" controls></video>')
+        elif self.source_combobox.currentText() == "URL":
+            url = self.url_lineedit.text()
+            if url:
+                self.text_edit.insertHtml(f'<video src="{url}" controls></video>')
+
+    def insert_url(self):
+        url = self.url_lineedit.text()
+        if url:
+            self.text_edit.insertHtml(f'<a href="{url}">{url}</a>')
+
+    def insert_link(self):
+        url = self.url_lineedit.text()
+        text = self.text_edit.toPlainText()
+        if url and text:
+            self.text_edit.insertHtml(f'<a href="{url}">{text}</a>')
+
+    def insert_text(self):
+        text = self.url_lineedit.text()
+        if text:
+            self.text_edit.insertPlainText(text)
+
+    def insert_heading(self):
+        text = self.url_lineedit.text()
+        level = self.heading_level_spinbox.value()
+        if text:
+            self.text_edit.insertHtml(f'<h{level}>{text}</h{level}>')
+
+    def insert_list(self):
+        list_type = self.list_type_combobox.currentText()
+        if list_type == "Ordered":
+            self.text_edit.insertHtml("<ol><li></li></ol>")
+        elif list_type == "Unordered":
+            self.text_edit.insertHtml("<ul><li></li></ul>")
+
+        # Move the cursor to the list item
+        cursor = self.text_edit.textCursor()
+        cursor.movePosition(QtCore.QTextCursor.PreviousBlock, QtCore.QTextCursor.MoveAnchor)
+        cursor.movePosition(QtCore.QTextCursor.EndOfBlock, QtCore.QTextCursor.KeepAnchor)
+        self.text_edit.setTextCursor(cursor)
+
+    def insert_table(self):
+        rows = self.table_rows_spinbox.value()
+        cols = self.table_cols_spinbox.value()
+        html = f"<table>"
+        for i in range(rows):
+            html += "<tr>"
+            for j in range(cols):
+                html += f"<td></td>"
+            html += "</tr>"
+        html += "</table>"
+        self.text_edit.insertHtml(html)
+
+    def source_changed(self, text):
+        if text == "URL":
+            self.url_lineedit.show()
+        else:
+            self.url_lineedit.hide()
+
+    def format_text_bold(self):
+        cursor = self.text_edit.textCursor()
+        if cursor.hasSelection():
+            self.text_edit.insertHtml("<b>" + cursor.selectedText() + "</b>")
+            cursor.clearSelection()
+        else:
+            self.text_edit.insertHtml("<b></b>")
+
+    def format_text_italic(self):
+        cursor = self.text_edit.textCursor()
+        if cursor.hasSelection():
+            self.text_edit.insertHtml("<i>" + cursor.selectedText() + "</i>")
+            cursor.clearSelection()
+        else:
+            self.text_edit.insertHtml("<i></i>")
+
+    def format_text_underline(self):
+        cursor = self.text_edit.textCursor()
+        if cursor.hasSelection():
+            self.text_edit.insertHtml("<u>" + cursor.selectedText() + "</u>")
+            cursor.clearSelection()
+        else:
+            self.text_edit.insertHtml("<u></u>")
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    editor = HtmlEditor()
+    editor.show()
+    sys.exit(app.exec_())

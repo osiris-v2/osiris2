@@ -1,0 +1,114 @@
+body{
+
+
+	background-color: #fdfefc ; 
+margin:0;
+
+
+}
+
+
+.pantalla{
+
+background-color: transparent;
+border:0px #341192 solid;
+
+}
+
+
+
+.navbar{
+
+height:50px;
+position:stycky;
+border:0px #341192 solid;
+background:#000000;
+
+}
+
+
+.center_screen {
+
+clear:both;
+width:100%;height:100%;
+border:solid 0px #a043f0 ;
+
+}
+
+.scroll_panel {
+	clear:both;
+	display:inline-block;
+	width:100%;
+	border: 0px solid #454332 ;
+
+}
+
+.video_panel {
+
+
+	float: left ;
+	min-width: 120px;
+	border:0px #f44ff2 solid;padding:2vw;margin:0 auto ;  width:60vw ; display : inline-block ;  
+
+}
+
+
+.player_panel {
+
+padding:2px;
+	background:#4e172d;
+	overflow:hidden ; 
+	border:0px #f4ff12 solid;padding:0;margin:0 auto ; margin:0 auto;
+	 width:100% ; display : inline-block ;  
+}
+
+
+.video_player {
+background:#000000;
+height:auto;
+max-height:85vw;
+transform: scale(1,1);
+border:0px #f41f92 solid; 
+width:100%  ; margin:0 0 ;
+
+}
+
+
+.video_player_controls{
+
+
+background:#000000;
+
+color: white; font-family: arial; 
+
+}
+
+
+.feed {
+
+
+	border:1px #741112 solid; width: flex ; margin: 0vw auto 0w auto;
+
+}
+
+
+.sugesstions {
+
+	float:lefT;
+	height:100%;
+	width:auto;  
+	border: solid #64ad63 0px ;
+	margin: 0  auto ;
+	padding:3vw;
+
+}
+
+
+.footer{
+
+
+	clear:both;
+	width:auto;
+	border:solid 0px #abbe88;
+	padding: 2vw ;
+}

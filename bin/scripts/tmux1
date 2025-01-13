@@ -1,0 +1,81 @@
+#!/bin/bash
+source '/etc/environment'
+source $OSIRIS000_VENV_PATH/bin/activate
+
+SESSION_NAME="${SESSION_NAME:-my_tmux_session_$(date +%s)}"
+COMMAND_PANEL0="${COMMAND_PANEL0:-bash $OSIRIS000_BASEPATH/osiris}"
+COMMAND_PANEL1="${COMMAND_PANEL1:-$OSIRIS000_BIN/scripts/server.run}"
+COMMAND_PANEL2="${COMMAND_PANEL2:-$OSIRIS000_BIN/scripts/client}"
+COMMAND_PANEL3="${COMMAND_PANEL3:-cd $OSIRIS000_BIN && bash ./osiris_run}"
+COMMAND_PANEL4="${COMMAND_PANEL4:-sudo $OSIRIS000_BIN/scripts/freemem2}"
+COMMAND_PANEL5="${COMMAND_PANEL5:-$OSIRIS000_BIN/pilottv}"
+COMMAND_PANEL6="${COMMAND_PANEL6:-/home/$USER/otvs -screen -prompt}"
+COMMAND_PANEL7="${COMMAND_PANEL7:-$OSIRIS000_BIN/scripts/progress_tv}"
+COMMAND_PANEL8="${COMMAND_PANEL8:-$OSIRIS000_BIN/scripts/progress_hls}"
+
+
+# Función para limpiar la sesión tmux al finalizar
+limpiar_tmux() {
+  if tmux has-session -t "$SESSION_NAME" > /dev/null 2>&1; then
+    echo "Limpiando sesión tmux '$SESSION_NAME'..."
+    tmux kill-session -t "$SESSION_NAME" || \
+      handle_error "Error al matar la sesión tmux: $?"
+  fi
+}
+
+# Manejo de errores centralizado
+handle_error() {
+  local message="$1"
+  echo "$(date) - ERROR: $message" >> "/var/log/tmux_session.log"
+  # Aquí puedes agregar acciones adicionales de manejo de errores, como enviar notificaciones por correo electrónico
+}
+
+
+# Crear una nueva sesión de tmux
+tmux new-session -d -s "$SESSION_NAME" -n osiris_tmux
+
+# GRUPO IZQUIERDO
+# Dividir verticalmente en dos columnas principales (izquierda/derecha)
+tmux split-window -h -t "$SESSION_NAME:0.0" -p 66
+
+# Dividir la columna izquierda (server y client arriba, osiris abajo)
+tmux split-window -v -t "$SESSION_NAME:0.0" -p 50    # Crear fila superior e inferior
+tmux split-window -h -t "$SESSION_NAME:0.0" -p 50    # Dividir fila superior (server y client)
+
+tmux send-keys -t "$SESSION_NAME:0.0" "$COMMAND_PANEL1" C-m  # server
+tmux send-keys -t "$SESSION_NAME:0.1" "$COMMAND_PANEL2" C-m  # client
+tmux send-keys -t "$SESSION_NAME:0.2" "$COMMAND_PANEL0" C-m  # osiris
+
+# GRUPO DERECHO
+# Dividir la columna derecha en tres filas (osiris_run, pilottv+freemem, otvs+progress)
+tmux split-window -v -t "$SESSION_NAME:0.3" -p 33    # Crear fila superior (osiris_run)
+tmux split-window -v -t "$SESSION_NAME:0.4" -p 50    # Crear fila intermedia
+
+# Configurar osiris_run en la fila superior derecha
+tmux send-keys -t "$SESSION_NAME:0.3" "$COMMAND_PANEL3" C-m
+
+# Dividir fila intermedia (pilottv y freemem)
+tmux split-window -h -t "$SESSION_NAME:0.4" -p 50
+tmux send-keys -t "$SESSION_NAME:0.4" "$COMMAND_PANEL5" C-m  # pilottv
+tmux send-keys -t "$SESSION_NAME:0.5" "$COMMAND_PANEL4" C-m  # freemem
+
+# Dividir la fila inferior (otvs, progress_tv, progress_hls)
+tmux split-window -v -t "$SESSION_NAME:0.6" -p 50    # Dividir fila inferior (otvs arriba)
+tmux split-window -h -t "$SESSION_NAME:0.7" -p 50    # Dividir fila inferior en dos columnas (progress_tv, progress_hls)
+
+tmux send-keys -t "$SESSION_NAME:0.6" "$COMMAND_PANEL6" C-m  # otvs
+tmux send-keys -t "$SESSION_NAME:0.7" "$COMMAND_PANEL7" C-m  # progress_tv
+tmux send-keys -t "$SESSION_NAME:0.8" "$COMMAND_PANEL8" C-m  # progress_hls
+
+# Habilitar el modo ratón y adjuntar la sesión
+tmux set-option -t "$SESSION_NAME" mouse on
+tmux attach-session -t "$SESSION_NAME"
+
+
+# Capturar las señales SIGINT (Ctrl+C) y SIGTERM (kill) para ejecutar la limpieza
+
+trap 'limpiar_tmux; exit 0' INT TERM
+
+# Mantener el script ejecutandose (esto es importante para que la trampa funcione)
+wait
+

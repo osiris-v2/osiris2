@@ -1,0 +1,186 @@
+#dpkg .deb package
+DEBIAN
+
+#para directorio osirisp root
+
+#Ignores
+.gitignore
+
+#DOC MD
+DOCS
+
+#README git
+README.md
+LICENSE.md
+
+
+#Archivos instalación
+osiris
+osiris.sh
+install.com
+install.sh
+share.sh
+datax
+
+
+#Archivos Osiris
+#directorio bin
+bin/auth.py
+bin/Cargo.lock
+bin/Cargo.toml
+bin/cnf.py
+bin/com.conf
+bin/com.ini
+bin/com.py
+bin/fhelp.py
+bin/get_config.py
+bin/gitup
+bin/gitup.txt
+#Directorio HELP
+bin/help
+bin/lib
+bin/osiris
+bin/osiris.py
+bin/venv.sh
+
+#Virtual env
+bin/com/osiris_env/lib/python3.9/site-packages/osiris2/multiprocess.py
+bin/com/osiris_env/lib/python3.9/site-packages/osiris2/__init__.py
+
+#modulos pip inicial
+bin/com/osiris_env/pip.requeriments.txt
+
+
+#scripts obin
+#bin/scripts/mpvc.sh
+#bin/scripts/plaympv.sh
+#bin/script/cleardep.sh
+#bin/scripts/tmux1
+#bin/scripts/freemem
+#bin/scripts/performance.sh
+bin/scripts
+
+#inst folder
+bin/install
+
+
+
+#desktop
+bin/dsk
+bin/com/dsk
+
+
+#bin/com/dsk/dsk1.py
+#bin/com/dsk/dsk2.py
+#bin/com/dsk/dsk3.py
+#bin/com/dsk/dsk4.py
+
+
+#TV
+# cambia a /home/*user*/otvs   bin/osiristv
+bin/pilottv
+bin/mkpilot
+#... servidores rust - esto es provisional
+bin/server/chat_server/src
+bin/server/chat_server/Cargo.toml
+
+#default password
+#bin/data/auth_pwd
+#data bin
+bin/data
+
+
+#Archivos Comandos
+
+bin/com/shell.py
+bin/com/create.py
+
+bin/com/ffmpeg2.py
+#para ffmpeg2
+bin/com/datas/ffmpeg/start.mkv
+bin/com/datas/ffmpeg/carta.mkv
+bin/com/datas/ffmpeg/intro.mp4
+bin/com/datas/ffmpeg/logo.png
+bin/com/datas/ffmpeg/random/info.txt
+bin/com/datas/ffmpeg/random/transition/info.txt
+
+bin/com/cert.py
+bin/com/fdev.py
+bin/com/hls.py
+bin/com/sniff.py
+bin/com/scanip.py
+bin/com/blockchain.py
+bin/com/selecttv.py
+
+
+bin/com/gemini.py
+bin/com/gemini3.py
+bin/com/desktop.py
+
+
+#TV
+bin/com/otvkill
+
+
+bin/com/play3/play4.py
+
+
+bin/OPS/ops.c
+bin/OPS/ops
+#bin/com/lib
+
+
+#install default
+
+#install/webapp/default
+#install/sql
+
+
+
+#html
+
+#html/index.html
+#html/public.html
+
+
+#js libs
+#html/lib/js/wfcore3.js
+#html/lib/php/aconf.php
+#html/lib/php/lib.php
+html/lib
+html/img
+html/engines
+html/textos/info.txt
+
+#html/app
+
+html/app/freedirectory/index.php
+html/app/freedirectory/import.php
+
+
+
+html/app/mitv/js
+html/app/mitv/css
+html/app/mitv/tv/app.js
+html/app/mitv/tv/build.js
+html/app/mitv/tv/index.js
+html/app/mitv/tv/load.js
+html/app/mitv/tv/paneles.js
+html/app/mitv/tv/source.js
+html/app/mitv/tv/app.php
+html/app/mitv/tv/default.css
+html/app/mitv/tv/index.php
+html/app/mitv/tv/player2.php
+
+
+
+
+#html/conf2
+
+#clones
+#html/clones/observatoriospublicos.es
+
+
+
+
+#EOF

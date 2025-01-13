@@ -1,0 +1,192 @@
+#!/bin/bash
+#Habilita la salida al encontrar errores, pero con excepciones para comandos no críticos.
+#set -e  #Comentado para un manejo de errores más granular.
+
+# --- Configuraciones ---
+INTERVALO_SEGUNDOS=300          # Intervalo de tiempo entre cada ejecución (en segundos)
+PORCENTAJE_MEMORIA_UMBRAL=5    # Porcentaje de memoria libre mínima requerida
+MEMORIA_MINIMA_FIJA_MB=1024    # Memoria libre mínima fija (en MB)
+CPU_UMBRAL_PORCENTAJE=80       # Umbral de uso de CPU (%) para alertas
+MAX_TAMANO_LOG_BYTES=$((5242880 / 1000))  # Tamaño máximo del archivo de log (500 KB)
+LOGFILE="/var/log/freemem.log" # Ubicación del archivo de log (cambia si es necesario)
+SWAPFILE="/swapfile"          # Ubicación del archivo de intercambio
+
+# --- Funciones ---
+
+# Activa el archivo de intercambio si existe y no está activo
+swap_activate() {
+  if [[ -f "$SWAPFILE" ]]; then
+    if ! swapon --show | grep -q "$SWAPFILE"; then
+      echo "$(date) - Activando archivo de intercambio: $SWAPFILE" >> "$LOGFILE"
+      sudo swapon "$SWAPFILE" || handle_error "Error al activar el archivo de intercambio: $?"
+    else
+      echo "$(date) - Archivo de intercambio $SWAPFILE ya está activo." >> "$LOGFILE"
+    fi
+  else
+    echo "$(date) - Archivo de intercambio $SWAPFILE no encontrado." >> "$LOGFILE"
+  fi
+}
+
+# Mata procesos zombie
+matar_zombies() {
+    echo "$(date) - Detectando procesos zombie..." >> "$LOGFILE"
+    mapfile -t zombie_pids < <(ps -eo pid,ppid,state | awk '$3=="Z" {print $1}')
+
+    if [ ${#zombie_pids[@]} -eq 0 ]; then
+        echo "No se encontraron procesos zombie." >> "$LOGFILE"
+    else
+        for zombie_pid in "${zombie_pids[@]}"; do
+            ppid=$(ps -p "$zombie_pid" -o ppid=)
+            if [ -n "$ppid" ]; then
+                handle_error "INFO[PS][0]: Proceso padre $ppid $(ps -p $ppid -jfl) ha generado un zombie $zombie_pid."
+                # Intentar notificar al proceso padre
+                error_message=$(kill -SIGCHLD "$ppid" 2>&1)   # Captura cualquier mensaje de error
+                if [ $? -ne 0 ]; then                        # Verifica si 'kill' falló
+                    handle_error "WARM[PS][1]: $error_message"  # Escribe el mensaje en el log
+                    error_message="WARM[PS][0]: No se pudo enviar SIGCHLD a $ppid. Es posible que se requieran permisos adicionales."
+                    handle_error "$error_message"            # Llama a la función 'handle_error' con el mensaje de error
+                    continue                                 # Continúa con la siguiente iteración del bucle
+                fi
+            fi
+        done
+    fi
+}
+
+# Verifica el uso de CPU y reduce la prioridad de procesos con alto uso
+check_cpu_usage() {
+  echo "$(date) - Iniciando verificación de uso de CPU..." >> "$LOGFILE"
+  local high_cpu_procs=$(ps -eo pid,ppid,cmd,%mem,%cpu --sort=-%cpu | awk -v threshold="$CPU_UMBRAL_PORCENTAJE" '$NF >= threshold {print $1}' | tr '\n' ' ')
+  if [[ -n "$high_cpu_procs" ]]; then
+    echo "$(date) - Procesos con alto uso de CPU: $high_cpu_procs" >> "$LOGFILE"
+    for pid in $high_cpu_procs; do
+      if ps -p "$pid" > /dev/null; then
+        echo "$(date) - Reduciendo prioridad del proceso $pid" >> "$LOGFILE"
+        echo "$(ps -p "$pid" -o pid,ppid,cmd,%mem,%cpu)" >> "$LOGFILE"
+        sudo ionice -c 3 -p "$pid" || handle_error "Error al cambiar la prioridad de I/O del proceso $pid: $?"
+      else
+        echo "$(date) - PID $pid no es un proceso válido o es del sistema." >> "$LOGFILE"
+      fi
+    done
+  else
+    echo "$(date) - No se encontraron procesos con alto consumo de CPU." >> "$LOGFILE"
+  fi
+}
+
+# Comprobar y gestionar el servidor gráfico
+comprobar_servidor_grafico() {
+  echo "$(date) - Comprobando el servidor gráfico..." >> "$LOGFILE"
+  if ! pgrep -x "Xorg" > /dev/null && ! pgrep -x "wayland" > /dev/null; then
+    handle_error "Servidor gráfico no encontrado. Verifique la instalación y funcionamiento de Xorg o Wayland."
+  else
+    local xdpyinfo_output=$(xdpyinfo 2>&1)
+    if [[ $? -ne 0 ]]; then
+      handle_error "Error en xdpyinfo: $xdpyinfo_output. Reinicio del servidor gráfico recomendado."
+      reiniciar_servidor_grafico
+    else
+      echo "$(date) - Servidor gráfico funcionando correctamente." >> "$LOGFILE"
+    fi
+  fi
+}
+
+# Reinicia el servidor gráfico
+reiniciar_servidor_grafico() {
+  echo "$(date) - Reiniciando el servidor gráfico..." >> "$LOGFILE"
+  local DISPLAY_MANAGER=$(cat /etc/X11/default-display-manager 2>/dev/null || echo "Desconocido")
+  case "$DISPLAY_MANAGER" in
+    */lightdm*) sudo systemctl restart lightdm ;;
+    */gdm3*) sudo systemctl restart gdm ;;
+    */sddm*) sudo systemctl restart sddm ;;
+    *) echo "$(date) - Gestor de display no soportado o no encontrado: $DISPLAY_MANAGER" >> "$LOGFILE" ;;
+  esac
+  echo "$(date) - Servidor gráfico reiniciado." >> "$LOGFILE"
+}
+
+
+# Limita el tamaño del archivo de log
+limitar_tamano_log() {
+  if [[ -f "$LOGFILE" ]]; then
+    local FILE_SIZE=$(stat -c%s "$LOGFILE")
+    if [[ "$FILE_SIZE" -gt "$MAX_TAMANO_LOG_BYTES" ]]; then
+      local LINES_TO_KEEP=$(( $(wc -l < "$LOGFILE") / 2 ))
+      head -n "$LINES_TO_KEEP" "$LOGFILE" > "$LOGFILE.tmp" && mv "$LOGFILE.tmp" "$LOGFILE" || handle_error "Error al recortar el log"
+      echo "$(date) - Archivo de log recortado. Tamaño actual: $(stat -c%s "$LOGFILE") bytes" >> "$LOGFILE"
+    fi
+  fi
+}
+
+
+# Manejo de errores centralizado
+handle_error() {
+  local message="$1"
+  echo "$(date) - ERROR: $message" >> "$LOGFILE"
+  # Aquí puedes agregar acciones adicionales de manejo de errores, como enviar notificaciones por correo electrónico
+  # Ejemplo:  mail -s "Error en freemem.sh" root@localhost <<< "$message"
+}
+
+# Nueva función para matar procesos y manejar PID
+kill_processes() {
+  local my_pid=$$
+  local freemem_pids=$(pgrep -f freemem2) # Busca solo procesos con el nombre "freemem2"
+
+  for pid in $freemem_pids; do
+    #Si el nombre del proceso es freemem2 y el PID no coincide con el actual, se mata.
+    if [[ "$pid" -ne "$my_pid" && $(ps -p "$pid" -o comm=) == "freemem2" ]]; then
+      sudo kill -9 "$pid" 2>/dev/null || handle_error "Error al matar el proceso freemem2 con PID $pid: $?"
+      echo "$(date) - Proceso freemem2 con PID $pid terminado." >> "$LOGFILE"
+    else
+      if [[ "$pid" == "$my_pid" ]]; then
+        echo "$(date) - Conservando el proceso freemem2 padre con PID $pid" >> "$LOGFILE"
+      else
+        echo "$(date) - El proceso con PID $pid no es freemem2" >> "$LOGFILE"
+      fi
+    fi
+  done
+}
+
+# --- Inicio del script ---
+
+# Llamar a la función para matar procesos
+kill_processes
+
+# Crear el archivo de log si no existe.
+[[ ! -f "$LOGFILE" ]] && touch "$LOGFILE"
+
+echo -e "####### CLEAR LOG \n########################\n FREEMEM \n    $(date)       \n ################" > "$LOGFILE"
+
+echo "====================" >> "$LOGFILE"
+echo "Comprobando Swap..." >> "$LOGFILE"
+swap_activate
+
+# Bucle principal
+while true; do
+  check_cpu_usage
+  matar_zombies
+  echo "====================" >> "$LOGFILE"
+  echo "$(date) - Comprobando la memoria..." >> "$LOGFILE"
+
+  # Obtener la memoria dentro del bucle para que las variables estén disponibles.
+   MEM_TOTAL=$(free -m --si | awk '/^Mem:/{print $2}')
+   MEM_LIBRE=$(free -m --si | awk '/^Mem:/{print $7}')
+
+  # El cálculo se realiza después de la asignación de variables
+   MEM_UMBRAL_FINAL=$(( (MEM_TOTAL * PORCENTAJE_MEMORIA_UMBRAL / 100) > MEMORIA_MINIMA_FIJA_MB ? (MEM_TOTAL * PORCENTAJE_MEMORIA_UMBRAL / 100) : MEMORIA_MINIMA_FIJA_MB ))
+
+  if (( MEM_LIBRE < MEM_UMBRAL_FINAL )); then # Usar aritmética dentro del bucle
+    echo "$(date) - Memoria libre ($MEM_LIBRE MB) por debajo del umbral ($MEM_UMBRAL_FINAL MB). Liberando memoria..." >> "$LOGFILE"
+    sync
+    echo 3 > /proc/sys/vm/drop_caches
+    swapoff -a && swapon -a || handle_error "Error al deshabilitar/habilitar swap"
+    sysctl vm.swappiness=10
+    echo "$(date) - Memoria después de liberar:" >> "$LOGFILE"
+    free -m --si >> "$LOGFILE"
+  else
+    echo "$(date) - Memoria libre ($MEM_LIBRE MB) suficiente. No se requiere liberación." >> "$LOGFILE"
+  fi
+
+  comprobar_servidor_grafico
+  limitar_tamano_log
+  echo "$(date) - Esperando $INTERVALO_SEGUNDOS segundos..." >> "$LOGFILE"
+  sleep "$INTERVALO_SEGUNDOS"
+done &
+
+tail -f "$LOGFILE"

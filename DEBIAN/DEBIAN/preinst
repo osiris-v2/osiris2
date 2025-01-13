@@ -1,0 +1,12 @@
+#!/usr/bin/bash
+
+
+
+
+
+
+echo "Pre Install File ... "
+
+echo "Abortando"
+
+exit 0

@@ -1,0 +1,12 @@
+***** sniff *****
+
+
+sniff monitoriza la red
+
+
+sniff --interfaces lista las interfaces de red disponibles
+
+sniff [interface] lee la interfaz indicada
+
+
+******

@@ -1,0 +1,322 @@
+#!/usr/bin/env python3.9
+#Utilidad para crear documentación de osiris
+#Hay dos directorios base, de entrada y de salida
+#Lee los archivos dados en el directorio de entrada (directorio base + directorio del array) + archivo
+#crea archivos json en el directorio de salida  (directorio de salida base + directorio del array) + archivo .json
+#crea en el directorio de salida los index.html,script.js y styles.css correspondientes
+import os
+import json
+import numpy as np
+
+
+
+
+directorio_entrada_base = "/var/www"
+directorio_salida_base = "/var/www/osiris000/html/app/freedirectory"
+
+  # Definir los directorios y archivos a procesar
+directorios_archivos = [
+      # Formato: (directorio, [lista de archivos])
+      ("osiris000", ["prueba.md","osiris.sh","share.sh", "install.com","install.sh","osiris","LICENSE.md","README.md"]),
+      ("osiris000/bin/", ["auth.py"])
+  ]
+
+
+
+
+
+def crear_json_from_file(archivo_entrada, directorio_salida, nombre_archivo):
+  """Crea un archivo JSON con el código fuente del archivo de entrada."""
+
+  ruta_archivo_json = os.path.join(directorio_salida, nombre_archivo + ".json")
+
+  # Sobreescribir el archivo si ya existe
+  with open(ruta_archivo_json, 'w') as archivo_json:
+    with open(archivo_entrada, 'r') as archivo_original:
+      contenido = archivo_original.read()
+      data = [{"nombre": nombre_archivo, "codigo": contenido}]
+      json.dump(data, archivo_json, indent=4)
+
+def crear_index_html(directorio_salida, archivos):
+  """Crea un archivo index.html con enlaces a los archivos JSON creados."""
+
+  ruta_index_html = os.path.join(directorio_salida, "index.html")
+
+  with open(ruta_index_html, 'w') as archivo_index:
+    archivo_index.write("<!DOCTYPE html>\n")
+    archivo_index.write("<html lang='es'>\n")
+    archivo_index.write("<head>\n")
+    archivo_index.write("<meta charset='UTF-8'>\n")
+    archivo_index.write("<meta name='viewport' content='width=device-width, initial-scale=1.0'>\n")
+    archivo_index.write("<title>Índice de archivos</title>\n")
+    archivo_index.write("<link rel='stylesheet' href='style.css'>\n")
+    archivo_index.write("</head>\n")
+    archivo_index.write("<body>\n")
+    archivo_index.write("<div class='contenedor'>\n")
+    archivo_index.write("<div class='menu'>\n")
+    archivo_index.write("<h1>Índice de archivos</h1>\n")
+    archivo_index.write("<ul class='lista-archivos'>\n")
+
+    # Se utiliza la variable 'nombre_archivo' para generar los enlaces correctamente
+    for nombre_archivo in archivos: 
+      archivo_index.write(f"<li><a href='#' data-archivo='{nombre_archivo}'>{nombre_archivo}</a></li>\n")
+
+    archivo_index.write("</ul>\n")
+    archivo_index.write("</div>\n")
+    archivo_index.write("<div class='visor'>\n")
+    archivo_index.write("<h4 id='nombre-archivo'></h4>\n")
+    archivo_index.write("<div class='opciones-resaltado' style='display:none;'>\n")  # Botones ocultos inicialmente
+    archivo_index.write("</div>\n")
+    archivo_index.write("<p id='texto-inicial'>Selecciona un archivo del índice para verlo.</p>\n")
+    archivo_index.write("<pre id='codigo-fuente'></pre>\n")
+    archivo_index.write("</div>\n")
+    archivo_index.write("</div>\n")
+    archivo_index.write("<script src='script.js'></script>\n")
+    archivo_index.write("</body>\n")
+    archivo_index.write("</html>")
+
+def crear_css(directorio_salida):
+#  return
+  """Crea el archivo style.css con un diseño artístico."""
+
+  ruta_css = os.path.join(directorio_salida, "style.css")
+
+  with open(ruta_css, 'w') as archivo_css:
+    archivo_css.write("""
+body {
+  font-family: 'Arial', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f5f5f5;
+  display: flex;
+  min-height: 100vh;
+}
+
+.contenedor {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+}
+
+.menu {
+  background-color: #f2f2f2;
+  width: 10vw;
+  padding: 2.5vw;
+  border-right: 1px solid #ddd;
+}
+
+.visor {
+  flex: 1;
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 2.5em;
+  font-weight: bold;
+}
+
+.lista-archivos {
+  list-style: none;
+  padding: 0;
+  text-align: center;
+}
+
+.lista-archivos li {
+  margin-bottom: 10px;
+}
+
+.lista-archivos a {
+  color: #333;
+  text-decoration: none;
+  font-size: 1.2em;
+  font-weight: bold;
+  padding: 8px 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+.lista-archivos a:hover {
+  background-color: #eee;
+}
+
+#nombre-archivo {
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+#codigo-fuente {
+  background-color: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  overflow-x: auto;
+  font-family: 'Courier New', monospace;
+  white-space: pre-wrap;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  width: auto;
+  max-width: 90vw;
+  color: #333; /* Color de texto por defecto */
+}
+
+#texto-inicial {
+  text-align: center;
+  font-size: 1.5em;
+  color: #666;
+}
+
+.opciones-resaltado {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.opciones-resaltado button {
+  padding: 8px 15px;
+  margin: 0 5px;
+  border: none;
+  border-radius: 5px;
+  background-color: #4CAF50;
+  color: white;
+  cursor: pointer;
+}
+
+/* Estilos para el resaltado de sintaxis */
+.comentario {
+  color: #008000; /* Verde para comentarios */
+}
+
+.funcion {
+  color: #0000FF; /* Azul para funciones */
+}
+
+.clase {
+  color: #FF0000; /* Rojo para clases */
+}
+
+/* Estilos para la numeración de línea */
+.numero-linea {
+  color: #666;
+  margin-right: 10px;
+  text-align: right;
+  width: 30px;
+}
+
+
+
+/* Estilos para el texto resaltado */
+.highlight {
+  background-color: yellow; /* Puedes cambiar el color aquí */
+}
+
+/* Estilos para la sección de código fuente */
+.codigo-fuente {
+  font-family: 'Courier New', monospace;
+  white-space: pre-wrap;
+}
+
+    """)
+
+def crear_js(directorio_salida):
+#  return
+  """Crea el archivo script.js con funcionalidad de carga dinámica de archivos JSON."""
+
+  ruta_js = os.path.join(directorio_salida, "script.js")
+
+  with open(ruta_js, 'w') as archivo_js:
+    archivo_js.write("""
+const listaArchivos = document.querySelector('.lista-archivos');
+const visor = document.querySelector('.visor');
+const codigoFuente = document.getElementById('codigo-fuente');
+const textoInicial = document.getElementById('texto-inicial');
+const nombreArchivo = document.getElementById('nombre-archivo');
+const resaltarTodoBtn = document.getElementById('resaltar-todo');
+const quitarResaltadoBtn = document.getElementById('quitar-resaltado');
+const opcionesResaltado = document.querySelector('.opciones-resaltado');
+
+
+function resaltarCodigo(codigo, tipo) {
+  let partes = codigo.split('\\n'); // Corrección para el split: '\\n'
+  let resultado = '';
+  for (let i = 0; i < partes.length; i++) {
+    let parte = partes[i];
+    if (parte.trim().startsWith('#')) {
+      resultado += `<span class="numero-linea">${i + 1}</span><span class="comentario">${parte}</span><br>`;
+    } else if (parte.trim().startsWith('def ')) {
+      resultado += `<span class="numero-linea">${i + 1}</span><span class="funcion">${parte}</span><br>`;
+    } else if (parte.trim().startsWith('class ')) {
+      resultado += `<span class="numero-linea">${i + 1}</span><span class="clase">${parte}</span><br>`;
+    } else {
+      resultado += `<span class="numero-linea">${i + 1}</span><span>${parte}</span><br>`;
+    }
+  }
+  if (tipo === 'resaltar') {
+    codigoFuente.innerHTML = resultado;
+  } else {
+    codigoFuente.textContent = resultado;
+  }
+}
+
+function cargarArchivo(archivo) {
+  fetch(`${archivo}.json`)
+    .then(response => response.json())
+    .then(data => {
+      nombreArchivo.textContent = ` ${data[0].nombre} `;
+      codigoFuente.textContent = data[0].codigo;
+      textoInicial.style.display = 'none';
+      opcionesResaltado.style.display = 'block';  // Mostrar botones de resaltado
+      resaltarCodigo(data[0].codigo, 'resaltar'); // Resaltar al cargar (por defecto)
+
+    })
+    .catch(error => console.error('Error al cargar el archivo:', error));
+}
+
+listaArchivos.addEventListener('click', (event) => {
+  if (event.target.tagName === 'A') {
+    const archivo = event.target.dataset.archivo;
+    cargarArchivo(archivo);
+  }
+});
+
+    """)
+
+def main():
+  """Función principal del programa."""
+
+  global directorio_entrada_base, directorio_salida_base, directorios_archivos
+
+
+  for directorio, archivos in directorios_archivos:
+    # Crear la ruta completa al directorio de salida
+    directorio_salida = os.path.join(directorio_salida_base, directorio)
+    # Crear el directorio si no existe
+    if not os.path.exists(directorio_salida):
+      os.makedirs(directorio_salida)
+
+    # Procesar cada archivo
+    archivos_procesados = []
+    print(f"JSON y HTML crear en {directorio_salida}")
+    for archivo in archivos:
+      ruta_archivo = os.path.join(directorio_entrada_base, directorio, archivo)
+      if os.path.isfile(ruta_archivo):
+        # Obtener el nombre del archivo relativo al directorio base de entrada
+        nombre_archivo = os.path.relpath(ruta_archivo, directorio_entrada_base)
+        crear_json_from_file(ruta_archivo, directorio_salida, archivo) 
+        archivos_procesados.append(archivo) 
+        print(archivo)
+
+    #Crear index.html y los archivos CSS y JS
+    crear_index_html(directorio_salida, archivos_procesados)
+    crear_css(directorio_salida)
+    crear_js(directorio_salida)
+
+
+
+if __name__ == "__main__":
+  main()
+

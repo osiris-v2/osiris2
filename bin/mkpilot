@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# Directorio de entrada
+input_dir="${OSIRIS000_BIN}/com/datas/ffmpeg/random/transition"
+# Directorio de salida
+output_dir="${OSIRIS000_BIN}/com/datas/ffmpeg/random/youtube2"
+# Crear el directorio de salida si no existe
+mkdir -p "$output_dir"
+
+# Configuración de FFmpeg para salida optimizada
+ffmpeg_options="-af aresample=async=1,loudnorm=I=-16:TP=-1.5:LRA=11 -vf scale=-2:580 -c:v h264 -preset ultrafast -c:a aac -ac 2 -bsf:v h264_mp4toannexb -b:v 3000k -b:a 128k -maxrate 5000k -f mpegts"
+
+# Función para convertir archivo a formato optimizado
+convert_to_optimo() {
+    local input_file="$1"
+    local output_file="$2"
+
+    echo "Convirtiendo $input_file a $output_file..."
+    if /usr/bin/ffmpeg -y -i "$input_file" $ffmpeg_options "$output_file"; then
+        echo "Conversión exitosa: $output_file"
+        rm "$input_file" && echo "Archivo de entrada $input_file eliminado."
+    else
+        echo "Error al convertir $input_file. Se omite el archivo."
+    fi
+}
+
+# Recorrer todos los archivos en el directorio "random"
+for input_file in "$input_dir"/*; do
+    if [[ -f "$input_file" ]]; then
+        # Obtener el nombre base del archivo y añadir la extensión .optimo.ts
+        base_name=$(basename "$input_file")
+        output_file="$output_dir/${base_name%.*}.580p.optimo.ts"
+
+        # Convertir el archivo
+        convert_to_optimo "$input_file" "$output_file"
+    else
+        echo "No se encontraron archivos en el directorio $input_dir."
+    fi
+done
+
+echo "Conversión completa. Archivos optimizados guardados en el directorio $output_dir."
+

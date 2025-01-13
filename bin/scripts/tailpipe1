@@ -1,0 +1,6 @@
+#!/bin/bash
+
+while true; do
+clear
+tail -n 12 -f $OSIRIS000_BIN/com/datas/pipe1.log
+done

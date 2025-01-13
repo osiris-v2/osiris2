@@ -1,0 +1,36 @@
+#!/bin/bash
+clear
+
+
+source '/etc/environment'
+
+
+sudo killall -9 -g 'server.run'
+sudo killall -9 -g client
+
+echo $OSIRIS000_BIN
+
+cargo="/root/.cargo/bin/cargo"
+
+
+echo ""$OSIRIS000_BIN
+
+serversPath=$OSIRIS000_BIN/server/chat_server
+
+cd $serversPath
+
+sudo $cargo build --release --verbose
+
+cd $serversPath/target/release
+#clear
+#./server
+
+#cargo
+
+#. cargo
+#cd server
+#echo "SERVER START"
+#./server
+echo "SERVER EXIT"
+
+

@@ -1,0 +1,48 @@
+#!/bin/bash
+source '/etc/environment'
+source $OSIRIS000_VENV_PATH/bin/activate
+# Variables de entorno configurables
+SESSION_NAME="${SESSION_NAME:-my_tmux_session_$(date +%s)}"
+VIDEO_FILE="${VIDEO_FILE:-${OSIRIS000_BIN}/com/datas/ffmpeg/intro.mp4}"
+ERROR_LOG="${ERROR_LOG:-mpv_errors.log}"
+COMMAND_PANEL0="${COMMAND_PANEL0:-$OSIRIS000_BASEPATH/osiris}"
+COMMAND_PANEL1="${COMMAND_PANEL1:-cd $OSIRIS000_BIN && ./osiris_run}"  # Performance Panel
+COMMAND_PANEL2="${COMMAND_PANEL2:-$OSIRIS000_BIN/scripts/freemem}"
+COMMAND_PANEL3="${COMMAND_PANEL3:-$OSIRIS000_BIN/pilottv}"
+COMMAND_PANEL4="${COMMAND_PANEL4:-/home/$USER/otvs -screen -prompt}"
+COMMAND_PANEL5="${COMMAND_PANEL5:-$OSIRIS000_BIN/scripts/progress_tv}"
+COMMAND_PANEL6="${COMMAND_PANEL6:-$OSIRIS000_BIN/scripts/progress_hls}"
+
+
+# Crear una nueva sesión de tmux con nombre único
+tmux new-session -d -s "$SESSION_NAME" -n window0
+
+# Dividir la ventana en dos paneles: izquierda (osiris) y derecha (para las tres filas)
+tmux split-window -h -t "$SESSION_NAME:window0" -p 30
+
+# En el panel derecho (que será el panel 1), dividir en cuatro paneles horizontales
+tmux split-window -v -t "$SESSION_NAME:window0.1" -p 60
+tmux split-window -v -t "$SESSION_NAME:window0.2" -p 60
+tmux split-window -h -t "$SESSION_NAME:window0.3" -p 70
+tmux split-window -v -t "$SESSION_NAME:window0.4" -p 50
+tmux split-window -h -t "$SESSION_NAME:window0.5" -p 60
+
+# Enviar comandos a cada panel de la sesión y ventana específicos
+tmux send-keys -t "$SESSION_NAME:window0.0" "$COMMAND_PANEL0" C-m  # osiris a la izquierda
+tmux send-keys -t "$SESSION_NAME:window0.1" "$COMMAND_PANEL1" C-m  # Performance derecha top
+tmux send-keys -t "$SESSION_NAME:window0.2" "$COMMAND_PANEL2" C-m  # pilottv en la parte 2 derecha
+tmux send-keys -t "$SESSION_NAME:window0.3" "$COMMAND_PANEL3" C-m 
+tmux send-keys -t "$SESSION_NAME:window0.4" "$COMMAND_PANEL4" C-m  # otvs en la parte 3 derecha
+tmux send-keys -t "$SESSION_NAME:window0.5" "$COMMAND_PANEL5" C-m  # progress tv en la parte inferior derecha
+tmux send-keys -t "$SESSION_NAME:window0.6" "$COMMAND_PANEL6" C-m  # progress hls en la parte inferior derecha
+
+# Habilitar el uso del ratón para la sesión específica
+tmux set-option -t "$SESSION_NAME" mouse on
+
+# Esperar un momento para que los comandos se ejecuten
+
+
+sleep 1
+
+# Adjuntar a la sesión
+tmux attach-session -t $SESSION_NAME

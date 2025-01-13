@@ -1,0 +1,25 @@
+
+***** bard HELP *****
+
+
+Bard-osiris versión de prueba. En desarrollo.
+
+Cómo obtener la clave desde la consola del navegador usando la ruta "F12 for console Session: Application → Cookies → Copy the value of __Secure-1PSID cookie":
+
+1. Abre la consola del navegador.
+2. Presiona la tecla `F12` o haz clic en el botón "Inspeccionar" en el menú del navegador.
+3. En la consola del navegador, haz clic en la pestaña "Session".
+4. En la sección "Application", haz clic en la pestaña "Cookies".
+5. Busca la cookie con el nombre "__Secure-1PSID".
+6. Haz clic en el icono de la lupa junto a la cookie para ver el valor de la cookie.
+7. Copia el valor de la cookie y edita en bin/com el archivo bard.py o el archivo de configuración. si existe.
+
+
+    Comandos para bard:
+	
+	bard [ Entra en bard.py y monta la api si no fue montada y abre sesión nueva ]
+	bard --reset [ Desmonta la api al volver a usar bard se monta automáticamente ]
+	bard --clear-log [ Borra el log de la conversación actual ]
+	bard texto [ Envía mensaje a Google-Bard e imprime la respuesta en la consola ]
+
+

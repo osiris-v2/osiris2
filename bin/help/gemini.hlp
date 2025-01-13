@@ -1,0 +1,90 @@
+MANUAL DE USUARIO: COMANDO GEMINI
+
+El comando `gemini` proporciona una interfaz de línea de comandos para interactuar con la API de Gemini de Google.  Una vez montado con el comando `use gemini`, puedes interactuar con la IA de Gemini directamente, sin necesidad de prefijar tus comandos con `gemini`. El prompt se mostrará como `>>>gemini>`.
+
+I. INICIANDO LA INTERACCIÓN:
+
+Para iniciar la interacción con Gemini, usa el comando `use gemini` en la terminal de Osiris. A partir de este punto, escribe tus instrucciones o preguntas directamente en la terminal.
+
+
+II. COMANDOS GEMINI:
+
+A. SOLICITUDES DE TEXTO:
+
+Después de ejecutar `use gemini`, cualquier texto que ingreses se enviará a la API de Gemini como solicitud.  Por ejemplo:
+
+```
+>>>gemini> Traduce "Hello, world!" al español
+```
+
+B. SELECCIÓN DE MODELO:
+
+Para cambiar el modelo de Gemini que se usa, utiliza el comando `--nmodel` *antes* de realizar cualquier solicitud de texto.  El sistema te pedirá que selecciones un modelo de una lista.
+
+C. GESTIÓN DE CONTEXTO:
+
+Osiris permite la gestión eficiente del contexto de tu conversación con Gemini.  Los siguientes comandos facilitan la administración de este contexto:
+
+
+* `--load [ruta_archivo]` (-l): Carga el contenido de un archivo de texto para usarlo como contexto adicional.
+
+* `--addload [texto]` (-al): Añade texto directamente al contexto actual.
+
+* `--showload` (-sl): Muestra el contenido cargado con `--load`.
+
+* `--saveload [nombre_archivo]` (-sav): Guarda el contexto actual en un archivo.
+
+* `--savecontext` (-sc): Guarda el contexto actual en un archivo.
+
+* `--clearcontext` (-cc): Limpia el contexto actual.
+
+* `--loadselect [ruta_archivo]` (-lsel): Carga un contexto desde un archivo.
+
+* `--loadmultiple [archivo1] [archivo2] ...` (-lm): Carga múltiples contextos de archivos.
+
+* `--export [nombre_archivo]` (-exp): Exporta el contexto actual a un archivo.
+
+* `--import [nombre_archivo]` (-imp): Importa un contexto desde un archivo.
+
+* `--search [término]` (-s): Busca un término en el contexto actual. Usa `--search --load [término]` para cargar el contexto encontrado.
+
+D.  OTRAS FUNCIONES:
+
+* `--autosave` (-as): Activa o desactiva el guardado automático del contexto y las respuestas.
+
+* `--newquestions [pregunta]` (-nq): Genera preguntas relacionadas con una pregunta base para una mejor exploración del tema.
+
+* `--info` (-i): Muestra información sobre el modelo Gemini actual y el contexto.
+
+* `--setparams [param1=valor1] [param2=valor2] ...` (-sp): Permite configurar parámetros del modelo Gemini. Ejemplo: `--setparams temperature=0.5 max_tokens=150`.
+
+* `--settopic [tema]` (-st): Establece un tema para la conversación.
+
+
+III. PROCESAMIENTO DE IMÁGENES:
+
+Para enviar una imagen a Gemini para su procesamiento, usa el comando:
+
+* `--loadimage [ruta_imagen]` (-li): Envía una imagen al modelo de Gemini para generar una respuesta.  Puedes usar `--li --fd` para abrir un diálogo de selección de archivos. Puedes añadir texto a la solicitud de imagen usando `--loadimage [ruta] [texto]`.
+
+IV. EJEMPLOS:
+
+* `>>>gemini> ¿Cuál es la capital de Francia?`
+
+* `>>>gemini> --load datos.txt ¿Cómo está el tiempo en Nueva York?`
+
+* `>>>gemini> --loadimage imagen.jpg "Describe esta imagen"`
+
+* `>>>gemini> --nmodel Selecciona modelo 1. Traduce "Hello world" al español`
+
+V. CONSIDERACIONES:
+
+* Asegúrate de tener una conexión a Internet estable.
+* Los comandos deben ser ejecutados secuencialmente. No se deben ejecutar varias opciones en una misma línea.
+* Para una mejor gestión de errores, consulta el manual general de Osiris.
+
+VI. DESMONTAJE:
+
+Para desmontar el comando `gemini` y liberar recursos, escribe `gemini --reset`.  Esto reiniciará el estado del comando.
+
+Este manual proporciona una visión general del comando `gemini`. Para obtener información más detallada sobre los comandos de gestión de contexto, consulta el manual general de Osiris.

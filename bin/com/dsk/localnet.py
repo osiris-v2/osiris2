@@ -1,0 +1,306 @@
+import sys
+import subprocess
+import ipaddress
+import socket
+import threading
+import time
+from PyQt5.QtWidgets import (
+    QApplication,
+    QWidget,
+    QLabel,
+    QPushButton,
+    QVBoxLayout,
+    QMessageBox,
+    QScrollArea,
+    QTableWidget,
+    QTableWidgetItem,
+    QProgressBar,
+    QHeaderView,
+    QAbstractItemView,
+    QLineEdit,
+    QGridLayout,
+    QCheckBox
+)
+from PyQt5.QtCore import Qt, QThread, pyqtSignal
+from PyQt5.QtGui import QFont
+
+class NetworkScanner(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle("Escáner de Red Local Avanzado")
+        self.setGeometry(100, 100, 1000, 600)  # Tamaño inicial de la ventana
+
+        # Crear los widgets
+        self.scan_button = QPushButton("Detectar Redes")
+        self.scan_button.clicked.connect(self.start_scan)
+
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setRange(0, 100)
+        self.progress_bar.setValue(0)
+
+        # Campos de texto para ingresar rangos de IP personalizados
+        self.ip_range_label = QLabel("Rango de IP (opcional):")
+        self.ip_range_input = QLineEdit()
+        self.ip_range_input.setPlaceholderText("Ej: 192.168.1.1-192.168.1.254")
+
+        # Checkboxes para opciones adicionales
+        self.show_router_info_checkbox = QCheckBox("Mostrar Información del Router")
+        self.show_os_info_checkbox = QCheckBox("Mostrar Información del Sistema Operativo")
+
+        # Tabla para mostrar la información de los dispositivos
+        self.table = QTableWidget()
+        self.table.setColumnCount(9)  # 9 columnas
+        self.table.setHorizontalHeaderLabels(
+            ["IP", "MAC", "Nombre Host", "Ping", "Traceroute", "DNS", "Whois", "Detalles", "Información del Router"]
+        )
+        self.table.verticalHeader().setVisible(False)  # Ocultar números de fila
+        self.table.setEditTriggers(QTableWidget.NoEditTriggers)  # Deshabilitar la edición de celdas
+        self.table.setSelectionBehavior(QAbstractItemView.SelectRows)  # Selección completa de filas
+        self.table.setAlternatingRowColors(True)  # Colores alternativos en las filas
+
+        # Ajustar el ancho de las columnas
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)  # Ajustar el ancho de las columnas de forma flexible
+        self.table.setColumnWidth(8, 250)  # Ancho de la columna "Detalles"
+
+        # Añadir los widgets a un layout
+        layout = QVBoxLayout()
+        layout.addWidget(self.scan_button)
+        layout.addWidget(self.progress_bar)
+
+        # Layout para el rango de IP y opciones
+        ip_range_layout = QGridLayout()
+        ip_range_layout.addWidget(self.ip_range_label, 0, 0)
+        ip_range_layout.addWidget(self.ip_range_input, 0, 1)
+        ip_range_layout.addWidget(self.show_router_info_checkbox, 1, 0, 1, 2)
+        ip_range_layout.addWidget(self.show_os_info_checkbox, 2, 0, 1, 2)
+        layout.addLayout(ip_range_layout)
+
+        layout.addWidget(self.table)
+        self.setLayout(layout)
+
+        # Variables para el control del escaneo
+        self.scan_thread = None
+        self.networks = []
+        self.scan_started = False
+
+    def start_scan(self):
+        if self.scan_started:
+            return
+
+        self.scan_started = True
+        self.scan_button.setEnabled(False)  # Deshabilitar el botón durante el escaneo
+        self.progress_bar.setValue(0)  # Resetear la barra de progreso
+        self.table.setRowCount(0)  # Limpiar la tabla
+
+        # Buscar redes locales y rangos de IP personalizados
+        self.networks = self.detect_local_networks()
+        custom_range = self.ip_range_input.text()
+        if custom_range:
+            self.networks.extend(self.parse_ip_range(custom_range))
+
+        # Iniciar el escaneo en un hilo separado
+        self.scan_thread = ScanThread(self.networks, self.get_ip_info)
+        self.scan_thread.progress_signal.connect(self.update_progress)
+        self.scan_thread.data_signal.connect(self.add_data_to_table)
+        self.scan_thread.scan_finished_signal.connect(self.scan_finished)  # Conexión de la señal
+        self.scan_thread.start()
+
+    def detect_local_networks(self):
+        networks = []
+        interfaces = subprocess.check_output(["ip", "addr", "show"]).decode("utf-8").splitlines()
+        for line in interfaces:
+            if "inet " in line:
+                parts = line.split()
+                ip_address = parts[1].split("/")[0]
+                network = ipaddress.ip_network(ip_address)
+                networks.append(network)
+        return networks
+
+    def parse_ip_range(self, ip_range_str):
+        networks = []
+        parts = ip_range_str.split("-")
+        if len(parts) == 2:
+            try:
+                start_ip = ipaddress.ip_address(parts[0])
+                end_ip = ipaddress.ip_address(parts[1])
+                network = ipaddress.ip_network(f"{start_ip}/{start_ip.max_prefixlen}")
+                networks.append(network)
+            except ValueError:
+                QMessageBox.warning(self, "Error", "Rango de IP inválido.")
+        return networks
+
+    def update_progress(self, progress):
+        self.progress_bar.setValue(progress)
+
+    def add_data_to_table(self, data):
+        row_index = self.table.rowCount()
+        self.table.insertRow(row_index)
+
+        self.table.setItem(row_index, 0, QTableWidgetItem(data["ip"]))
+        self.table.setItem(row_index, 1, QTableWidgetItem(data.get("mac", "")))
+        self.table.setItem(row_index, 2, QTableWidgetItem(data.get("hostname", "")))
+        self.table.setItem(row_index, 3, QTableWidgetItem(data.get("ping", "")))
+        self.table.setItem(row_index, 4, QTableWidgetItem(data.get("traceroute", "")))
+        self.table.setItem(row_index, 5, QTableWidgetItem(data.get("dns", "")))
+        self.table.setItem(row_index, 6, QTableWidgetItem(data.get("whois", "")))
+        self.table.setItem(row_index, 7, QTableWidgetItem(data.get("details", "")))
+        self.table.setItem(row_index, 8, QTableWidgetItem(data.get("router_info", "")))
+
+        # Agregar la información al detalle
+        if data.get("details"):
+            self.table.item(row_index, 7).setFont(QFont("Courier New", 8))  # Fuente monospace
+        if data.get("router_info"):
+            self.table.item(row_index, 8).setFont(QFont("Courier New", 8))  # Fuente monospace
+
+    def get_ip_info(self, ip_address):
+        info = {}
+        
+        # 1. Ping
+        ping_result = self.run_command(["ping", "-c", "1", ip_address])
+        info["ping"] = ping_result.stdout
+        if "TTL=" in ping_result.stdout:
+            info["ping"] = "Activo"
+
+        # 2. Traceroute
+        traceroute_result = self.run_command(["traceroute", ip_address])
+        info["traceroute"] = traceroute_result.stdout
+
+        # 3. Obtener la dirección MAC (si el ping fue exitoso)
+        if info["ping"] == "Activo":
+            mac_address = self.get_mac_address_from_ping(ping_result.stdout)
+            if mac_address:
+                info["mac"] = mac_address
+
+        # 4. Obtener el nombre de host
+        try:
+            hostname = socket.gethostbyaddr(ip_address)[0]
+            info["hostname"] = hostname
+        except socket.herror:
+            pass
+
+        # 5. Dig para información DNS
+        dig_result = self.run_command(["dig", "+short", ip_address])
+        info["dns"] = dig_result.stdout
+
+        # 6. Whois
+        whois_result = self.run_command(["whois", ip_address])
+        info["whois"] = whois_result.stdout
+
+        # 7. Información del router (si es posible)
+        if self.show_router_info_checkbox.isChecked() and info.get("mac"):
+            router_info = self.get_router_info(info["mac"])
+            if router_info:
+                info["router_info"] = router_info  # Guardar detalles del router
+
+        # 8. Agregar información adicional
+        info["details"] = ""  # Inicializar detalles como una cadena vacía
+        if self.show_os_info_checkbox.isChecked():
+            info["details"] += "**Información del sistema operativo:**\n"
+            os_info = self.get_os_info(ip_address)
+            if os_info:
+                info["details"] += f"{os_info}\n\n"
+
+        return info
+
+    def run_command(self, command):
+        try:
+            result = subprocess.run(command, capture_output=True, text=True)
+            return result
+        except Exception as e:
+            return {"stdout": f"Error al ejecutar el comando: {e}\n"}
+
+    def get_mac_address_from_ping(self, ping_result):
+        lines = ping_result.splitlines()
+        for line in lines:
+            if "from " in line and " [0x" in line:
+                parts = line.split(" ")
+                mac_address = parts[2]
+                return mac_address.replace("[", "").replace("]", "")
+        return None
+
+    def get_router_info(self, mac_address):
+        # Buscar la dirección IP del router usando la dirección MAC
+        netstat_result = self.run_command(["netstat", "-a"])
+        ifconfig_result = self.run_command(["ifconfig"])
+
+        # Buscar la dirección IP en la salida de netstat o ifconfig
+        for line in netstat_result.stdout.splitlines():
+            if mac_address in line:
+                parts = line.split(" ")
+                ip_address = parts[4]
+                return f"Dirección IP del Router: {ip_address}"
+        for line in ifconfig_result.stdout.splitlines():
+            if mac_address in line:
+                parts = line.split(" ")
+                ip_address = parts[1]
+                return f"Dirección IP del Router: {ip_address}"
+        return None
+
+    def get_os_info(self, ip_address):
+        try:
+            result = subprocess.run(["nmap", "-O", ip_address], capture_output=True, text=True)
+            output_lines = result.stdout.splitlines()
+            for line in output_lines:
+                if "OS detection" in line:
+                    os_info = line.split(" ")[-1].strip()
+                    return os_info
+        except Exception as e:
+            return f"Error al obtener información del sistema operativo: {e}"
+        return None
+
+    def scan_ip(self, ip_address):
+        info = self.get_ip_info(ip_address)
+        info["ip"] = ip_address
+        return info
+
+    def scan_finished(self):
+        self.scan_started = False
+        self.scan_button.setEnabled(True)  # Rehabilitar el botón
+
+class ScanThread(QThread):
+    progress_signal = pyqtSignal(int)
+    data_signal = pyqtSignal(dict)
+    scan_finished_signal = pyqtSignal()  # Nueva señal
+
+    def __init__(self, networks, get_ip_info_function):
+        super().__init__()
+        self.networks = networks
+        self.get_ip_info_function = get_ip_info_function
+
+    def run(self):
+        total_ips = 0
+        for network in self.networks:
+            total_ips += len(list(network.hosts()))
+
+        current_ip = 0
+        for network in self.networks:
+            for ip in network.hosts():
+                try:
+                    data = self.scan_ip(str(ip))
+                    self.data_signal.emit(data)
+                except Exception as e:
+                    # Manejar errores durante el escaneo de IP
+                    error_message = f"Error al escanear {str(ip)}: {e}"
+                    print(error_message)  # Imprime el error en la consola
+                    # Puedes agregar una lógica aquí para mostrar un mensaje de error al usuario
+                    # por ejemplo, en la ventana principal o en la tabla.
+
+                current_ip += 1
+                progress = int((current_ip / total_ips) * 100)
+                self.progress_signal.emit(progress)
+                time.sleep(0.1)  # Tiempo de espera para evitar sobrecarga
+
+        self.progress_signal.emit(100)  # Marcar el final del escaneo
+        self.scan_finished_signal.emit()  # Emitir la señal de finalización
+
+    def scan_ip(self, ip_address):
+        info = self.get_ip_info_function(ip_address)  # Llamar a la función pasada
+        info["ip"] = ip_address
+        return info
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = NetworkScanner()
+    window.show()
+    sys.exit(app.exec_())

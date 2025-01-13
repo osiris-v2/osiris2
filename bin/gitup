@@ -1,0 +1,25 @@
+#!/bin/bash
+
+while read archivo; do
+  # Elimina los espacios en blanco al principio de la línea
+  trimmed_line=${archivo##+([[:space:]])}
+
+  # Si la línea está vacía, salta a la siguiente iteración
+  if [ -z "$trimmed_line" ]; then
+    continue
+  fi
+
+  # Si la línea comienza por "#", salta a la siguiente iteración
+  if [[ "$trimmed_line" =~ ^\# ]]; then
+    echo "$trimmed_line"
+    continue
+  fi
+
+   git add "../$archivo"
+   echo "Add to git ../$archivo"
+done < gitup.txt
+
+
+timestamp=$(date +"%Y-%m-%d_%H-%M-%S")
+git commit -m "UFL $timestamp"
+git push

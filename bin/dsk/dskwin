@@ -1,0 +1,82 @@
+#!/usr/bin/env python3.9
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QPushButton
+from PyQt5.QtCore import Qt, QProcess
+import sys
+import os
+
+class MainContainer(QMainWindow):
+    def __init__(self):
+        super().__init__()
+
+        # Crear el widget central
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+
+        # Layout principal vertical
+        main_layout = QVBoxLayout(central_widget)
+
+        # Crear un layout vertical para los botones
+        button_layout = QVBoxLayout()
+        button_layout.setAlignment(Qt.AlignTop | Qt.AlignLeft)
+
+        # Botones para iniciar las aplicaciones
+        self.start_app1_button = QPushButton("Downloader", self)
+        self.start_app2_button = QPushButton("Conversor", self)
+
+        # Establecer un tamaño fijo para los botones
+        self.start_app1_button.setFixedSize(180, 40)
+        self.start_app2_button.setFixedSize(180, 40)
+
+        # Conectar botones a los métodos de inicio de las aplicaciones
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        app1_path = os.path.join(script_dir, "dskvdl")
+        app2_path = os.path.join(script_dir, "dskvc")
+        
+        self.start_app1_button.clicked.connect(lambda: self.start_subprocess(app1_path))
+        self.start_app2_button.clicked.connect(lambda: self.start_subprocess(app2_path))
+
+        # Añadir botones al layout de botones
+        button_layout.addWidget(self.start_app1_button)
+        button_layout.addWidget(self.start_app2_button)
+
+        # Añadir el layout de botones al layout principal
+        main_layout.addLayout(button_layout)
+
+        # Configurar la ventana principal
+        self.setWindowTitle("Ventana Principal con App1 y App2")
+        self.resize(800, 400)
+
+        # Lista para mantener referencias de los procesos
+        self.processes = []
+
+    def start_subprocess(self, command):
+        # Verificar si el archivo es ejecutable
+        if not os.access(command, os.X_OK):
+            print(f"El archivo {command} no es ejecutable o no se encuentra.")
+            return
+
+        # Iniciar la aplicación como un subproceso
+        process = QProcess(self)
+        process.start(command)
+
+        # Guardar el proceso en la lista para mantener la referencia
+        self.processes.append(process)
+
+        # Conectar señales para manejar la finalización del proceso
+        process.finished.connect(lambda exitCode, exitStatus: print(f"{command} terminado con código {exitCode}"))
+
+    def closeEvent(self, event):
+        # Terminar todos los procesos al cerrar la ventana principal
+        for process in self.processes:
+            process.terminate()
+        super().closeEvent(event)
+
+def main():
+    app = QApplication(sys.argv)
+    main_window = MainContainer()
+    main_window.show()
+    sys.exit(app.exec_())
+
+if __name__ == "__main__":
+    main()
+
