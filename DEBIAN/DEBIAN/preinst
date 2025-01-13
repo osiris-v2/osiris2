@@ -1,12 +1,149 @@
 #!/usr/bin/bash
+sudo apt install curl git wget
 
 
+# Variables
+x="osiris2"
+base="/var/${x}"
 
 
+#!/bin/bash
 
+repo_url="https://github.com/osiris000/osiris000.git"
+gitup_file="${base}/bin/gitup.txt"
+install_log="${base}/inst.json"
+temp_repo="${base}/tmp_repo"
 
-echo "Pre Install File ... "
+# Crear directorios necesarios
+mkdir -p "${base}/bin"
+mkdir -p "${temp_repo}"
 
-echo "Abortando"
+# Descargar bin/gitup.txt del repositorio
+echo "Descargando bin/gitup.txt del repositorio..."
+git clone --depth 1 --filter=blob:none --sparse "${repo_url}" "${temp_repo}" || {
+  echo "Error: No se pudo clonar el repositorio" | tee -a "${install_log}"
+  echo '{"status": "error", "message": "No se pudo clonar el repositorio"}' > "${base}/inst.error"
+  exit 1
+}
+cd "${temp_repo}"
+git sparse-checkout set --no-cone "bin/gitup.txt" || {
+  echo "Error: No se pudo configurar sparse-checkout para bin/gitup.txt" | tee -a "${install_log}"
+  echo '{"status": "error", "message": "Error en sparse-checkout para bin/gitup.txt"}' > "${base}/inst.error"
+  exit 1
+}
 
-exit 0
+# Mover gitup.txt a $base/bin/
+if [ -f "bin/gitup.txt" ]; then
+  mv "bin/gitup.txt" "${base}/bin/" || {
+    echo "Error: No se pudo mover bin/gitup.txt a ${base}/bin/" | tee -a "${install_log}"
+    echo '{"status": "error", "message": "Error al mover gitup.txt"}' > "${base}/inst.error"
+    exit 1
+  }
+  echo "gitup.txt descargado y copiado a ${base}/bin/"
+else
+  echo "Error: bin/gitup.txt no se encuentra en el repositorio" | tee -a "${install_log}"
+  echo '{"status": "error", "message": "bin/gitup.txt no encontrado"}' > "${base}/inst.error"
+  exit 1
+fi
+
+# Limpiar directorio temporal
+cd "${base}"
+rm -rf "${temp_repo}"
+
+# Verificar existencia del archivo en $base/bin/
+if [ -f "${gitup_file}" ]; then
+  echo "gitup.txt está en ${gitup_file}. Procediendo con la instalación..." | tee -a "${install_log}"
+else
+  echo "Error: No se encuentra ${gitup_file} tras descargarlo del repositorio" | tee -a "${install_log}"
+  echo '{"status": "error", "message": "gitup.txt no encontrado tras moverlo"}' > "${base}/inst.error"
+  exit 1
+fi
+
+# Verificar contenido de gitup.txt
+echo "Contenido de gitup.txt:"
+cat "${gitup_file}"
+
+# Procesar archivos listados en gitup.txt
+echo "Procesando archivos listados en gitup.txt..."
+
+while IFS= read -r line; do
+  # Limpiar línea
+  line="${line%%*( )}"
+  [[ "$line" =~ ^#.*$ || -z "$line" ]] && continue # Saltar comentarios y líneas vacías
+  
+  # Verificar si la entrada es un archivo o directorio
+  file_path="${line}"
+  echo "Procesando: ${file_path}"
+
+  # Verificar si el archivo existe en el repositorio
+  echo "Intentando descargar ${file_path} desde el repositorio base..."
+  
+  # Si es directorio, usar git sparse-checkout con --cone
+  if [[ "$file_path" == */ ]]; then
+    echo "Es un directorio, utilizando sparse-checkout con --cone para ${file_path}"
+    git clone --depth 1 --filter=blob:none --sparse "${repo_url}" "${temp_repo}" || {
+      echo "Error: No se pudo clonar el repositorio para ${file_path}" | tee -a "${install_log}"
+      echo '{"status": "error", "message": "Error al clonar archivo específico"}' > "${base}/inst.error"
+      exit 1
+    }
+    cd "${temp_repo}"
+    git sparse-checkout set --cone "${file_path}" || {
+      echo "Error: No se pudo configurar sparse-checkout para ${file_path}" | tee -a "${install_log}"
+      echo '{"status": "error", "message": "Error en sparse-checkout"}' > "${base}/inst.error"
+      exit 1
+    }
+  else
+    # Si es archivo, hacer sparse-checkout de archivo específico
+    echo "Es un archivo, utilizando sparse-checkout para ${file_path}"
+    git clone --depth 1 --filter=blob:none --sparse "${repo_url}" "${temp_repo}" || {
+      echo "Error: No se pudo clonar el repositorio para ${file_path}" | tee -a "${install_log}"
+      echo '{"status": "error", "message": "Error al clonar archivo específico"}' > "${base}/inst.error"
+      exit 1
+    }
+    cd "${temp_repo}"
+    git sparse-checkout set --no-cone "${file_path}" || {
+      echo "Error: No se pudo configurar sparse-checkout para ${file_path}" | tee -a "${install_log}"
+      echo '{"status": "error", "message": "Error en sparse-checkout"}' > "${base}/inst.error"
+      exit 1
+    }
+  fi
+  
+  # Verificar si el archivo o directorio fue descargado
+  if [ -e "${file_path}" ]; then
+    dest="${base}/${file_path}"
+    dir_path=$(dirname "${dest}")
+    mkdir -p "${dir_path}"
+    mv "${file_path}" "${dest}" || {
+      echo "Error: No se pudo mover ${file_path} a ${dest}" | tee -a "${install_log}"
+      echo '{"status": "error", "message": "Error al mover archivo"}' > "${base}/inst.error"
+      exit 1
+    }
+    echo "Archivo descargado: ${file_path}" | tee -a "${install_log}"
+  else
+    echo "Error: ${file_path} no se encuentra en el repositorio" | tee -a "${install_log}"
+    echo '{"status": "error", "message": "'${file_path}' no encontrado en repositorio"}' > "${base}/inst.error"
+    echo "\n\n ----->  \n  error remoto !!!  \n\n"
+#    sleep 3
+#    exit 1
+  fi
+  cd "${base}"
+  rm -rf "${temp_repo}"
+done < "${gitup_file}"
+
+# Gestionar permisos de ejecución
+echo "Aplicando permisos de ejecución..."
+find "${base}" -type f \( -name "*.sh" -o \( ! -name "*.*" -exec grep -q '^#!' {} \; \) \) -size +0c -exec chmod +x {} \;
+
+# Crear archivo de instalación
+if [ $? -eq 0 ]; then
+  echo '{"status": "success", "message": "Instalación completada exitosamente"}' > "${base}/inst.ok"
+  echo '{"status": "success", "message": "Instalación completada exitosamente"}' | tee "${install_log}"
+else
+  echo '{"status": "error", "message": "Error durante la instalación"}' > "${base}/inst.error"
+  echo '{"status": "error", "message": "Error durante la instalación"}' | tee "${install_log}"
+  exit 1
+fi
+
+# Imprimir resumen en pantalla
+echo "Resumen de la instalación:"
+cat "${install_log}"
