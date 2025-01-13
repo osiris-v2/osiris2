@@ -1,4 +1,4 @@
-Package: osiris000
+Package: osiris2
 Version: 1.0
 Section: base
 Priority: optional
@@ -7,4 +7,3 @@ Depends: wget, git
 Maintainer: Tu Nombre <tuemail@ejemplo.com>
 Description: Instalador que descarga y configura la estructura desde GitHub.
  Este paquete descarga los archivos del programa desde GitHub y configurala  estructura de directorios necesaria en /var/www.
- 

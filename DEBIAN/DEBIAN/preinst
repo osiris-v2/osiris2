@@ -9,7 +9,7 @@ base="/var/${x}"
 
 #!/bin/bash
 
-repo_url="https://github.com/osiris000/osiris000.git"
+repo_url="https://github.com/osiris-v2/osiris2.git"
 gitup_file="${base}/bin/gitup.txt"
 install_log="${base}/inst.json"
 temp_repo="${base}/tmp_repo"

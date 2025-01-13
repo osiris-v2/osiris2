@@ -17,72 +17,117 @@ LICENSE.md
 #Archivos instalación
 osiris
 osiris.sh
-install.com
-install.sh
 share.sh
-datax
+install.sh
+install.com
+index.html
+index.php
 
 
 #Archivos Osiris
 #directorio bin
+bin/osiris.py
 bin/auth.py
-bin/Cargo.lock
-bin/Cargo.toml
 bin/cnf.py
-bin/com.conf
-bin/com.ini
 bin/com.py
 bin/fhelp.py
 bin/get_config.py
-bin/gitup
-bin/gitup.txt
-#Directorio HELP
-bin/help
-bin/lib
+bin/com.conf
+bin/com.ini
 bin/osiris
-bin/osiris.py
 bin/venv.sh
+# Piloto automático para TV
+bin/pilottv
+bin/mkpilot
+#lista archivos a subir a github (este mismo archivo)
+bin/gitup.txt
+# y comando para subirlos ./gitup
+bin/gitup
+
+
+#Directorio Completos en bin
+#Mientras no se definan y expliciten archivos
+#Actualizará los directorios completos a su contenido
+
+
+#... cliente - servidor (chat_server) rust 
+#una vez instalado rust 
+# compilarlo con bin/scripts/server.build o server.rls
+#  después correr con bin/scripts/server.run
+bin/server/chat_server/src
+bin/server/chat_server/Cargo.toml
+
+
+#archivos asistentes de instalacion en bin/install
+#descarga, compila e instala ffmpeg
+bin/install/ffmpeg_install.sh
+#instala dependencias pip necesarias
+bin/install/installpip.sh
+#actualiza dependencia pip
+bin/install/upgradepip.sh
+#instala rust en el sistema
+bin/install/rust.sh
+#instala - desinstala node
+bin/install/node_install.sh
+bin/install/node_uninstall.sh
+#instala - desinstala terminator
+bin/install/terminator_install.sh
+bin/install/terminator_uninstall.sh
+#instala - desinstala tmux (composición de terminales)
+bin/install/tmux_install.sh
+bin/install/tmux_uninstall.sh
+
+#Directorio con archivos de ayuda de comandos
+bin/help
+
+#Archivos lib python bin/lib
+bin/lib/core.py
+bin/lib/ffmpeg.py
+bin/lib/multiprocess.py
+bin/lib/processstart.py
+bin/lib/osiris/common.py
+bin/lib/gemini/utils.py
+bin/lib/gemini/widgets.py
+
+
+#utilidades diversas en bin/scripts
+bin/scripts
+
+#Armadura para tmux (agrupamiento de terminales)
+#tmux1 es la composición por defecto
+bin/scripts/tmux1
+#Lectura continua de progreso tv y hls
+bin/scripts/progress_hls
+bin/scripts/progress_tv
+
+#Comprobador - asistente de problemas de memoria
+bin/scripts/freemem2
+
+#compila proyecto server/chat_server (cliente - servidor) rust
+bin/scripts/server.build
+#corre el servidor rust
+bin/scripts/server.run
+#corre el cliente rust
+bin/scripts/client
+
+
+#Herramientas del directorio bin/tool
+#genera reporte para diagnostico servers
+bin/tool/mrls
+#genera reporte para diagnostico del sistema
+bin/tool/diagnosis1
+#genera reporte de picos y comprobaciones de memoria
+bin/tool/memory
+
+#herraientas desktop (ventanas)
+bin/dsk
+
+#modulos pip inicial - requerimientos globales
+bin/com/osiris_env/pip.requeriments.txt
 
 #Virtual env
 bin/com/osiris_env/lib/python3.9/site-packages/osiris2/multiprocess.py
 bin/com/osiris_env/lib/python3.9/site-packages/osiris2/__init__.py
-
-#modulos pip inicial
-bin/com/osiris_env/pip.requeriments.txt
-
-
-#scripts obin
-#bin/scripts/mpvc.sh
-#bin/scripts/plaympv.sh
-#bin/script/cleardep.sh
-#bin/scripts/tmux1
-#bin/scripts/freemem
-#bin/scripts/performance.sh
-bin/scripts
-
-#inst folder
-bin/install
-
-
-
-#desktop
-bin/dsk
-bin/com/dsk
-
-
-#bin/com/dsk/dsk1.py
-#bin/com/dsk/dsk2.py
-#bin/com/dsk/dsk3.py
-#bin/com/dsk/dsk4.py
-
-
-#TV
-# cambia a /home/*user*/otvs   bin/osiristv
-bin/pilottv
-bin/mkpilot
-#... servidores rust - esto es provisional
-bin/server/chat_server/src
-bin/server/chat_server/Cargo.toml
 
 #default password
 #bin/data/auth_pwd
@@ -91,19 +136,10 @@ bin/data
 
 
 #Archivos Comandos
+#para la consola osiris.py
 
 bin/com/shell.py
 bin/com/create.py
-
-bin/com/ffmpeg2.py
-#para ffmpeg2
-bin/com/datas/ffmpeg/start.mkv
-bin/com/datas/ffmpeg/carta.mkv
-bin/com/datas/ffmpeg/intro.mp4
-bin/com/datas/ffmpeg/logo.png
-bin/com/datas/ffmpeg/random/info.txt
-bin/com/datas/ffmpeg/random/transition/info.txt
-
 bin/com/cert.py
 bin/com/fdev.py
 bin/com/hls.py
@@ -111,10 +147,7 @@ bin/com/sniff.py
 bin/com/scanip.py
 bin/com/blockchain.py
 bin/com/selecttv.py
-
-
 bin/com/gemini.py
-bin/com/gemini3.py
 bin/com/desktop.py
 
 
@@ -123,6 +156,15 @@ bin/com/otvkill
 
 
 bin/com/play3/play4.py
+
+
+#para ffmpeg2
+bin/com/datas/ffmpeg/start.mkv
+bin/com/datas/ffmpeg/carta.mkv
+bin/com/datas/ffmpeg/intro.mp4
+bin/com/datas/ffmpeg/logo.png
+bin/com/datas/ffmpeg/random/info.txt
+bin/com/datas/ffmpeg/random/transition/info.txt
 
 
 bin/OPS/ops.c
