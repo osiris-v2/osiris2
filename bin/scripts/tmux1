@@ -1,4 +1,4 @@
-#!/bin/bash
+!/bin/bash
 source '/etc/environment'
 source $OSIRIS000_VENV_PATH/bin/activate
 
@@ -74,8 +74,10 @@ tmux attach-session -t "$SESSION_NAME"
 
 # Capturar las señales SIGINT (Ctrl+C) y SIGTERM (kill) para ejecutar la limpieza
 
-trap 'limpiar_tmux; exit 0' INT TERM
+XPID=$$
+echo "program PIS ${XPID}"
+
+trap 'limpiar_tmux; kill -9 ${XPID}; exit 0' INT TERM EXIT
 
 # Mantener el script ejecutandose (esto es importante para que la trampa funcione)
 wait
-

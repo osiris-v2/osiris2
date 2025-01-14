@@ -1,5 +1,5 @@
 #dpkg .deb package
-DEBIAN
+DEBIAN/
 
 #para directorio osirisp root
 
@@ -7,7 +7,7 @@ DEBIAN
 .gitignore
 
 #DOC MD
-DOCS
+DOCS/
 
 #README git
 README.md
@@ -78,7 +78,7 @@ bin/install/tmux_install.sh
 bin/install/tmux_uninstall.sh
 
 #Directorio con archivos de ayuda de comandos
-bin/help
+bin/help/
 
 #Archivos lib python bin/lib
 bin/lib/core.py
@@ -91,7 +91,7 @@ bin/lib/gemini/widgets.py
 
 
 #utilidades diversas en bin/scripts
-bin/scripts
+#bin/scripts/
 
 #Armadura para tmux (agrupamiento de terminales)
 #tmux1 es la composición por defecto
@@ -120,7 +120,7 @@ bin/tool/diagnosis1
 bin/tool/memory
 
 #herraientas desktop (ventanas)
-bin/dsk
+bin/dsk/
 
 #modulos pip inicial - requerimientos globales
 bin/com/osiris_env/pip.requeriments.txt
@@ -132,7 +132,7 @@ bin/com/osiris_env/lib/python3.9/site-packages/osiris2/__init__.py
 #default password
 #bin/data/auth_pwd
 #data bin
-bin/data
+bin/data/
 
 
 #Archivos Comandos
@@ -189,9 +189,9 @@ bin/OPS/ops
 #html/lib/js/wfcore3.js
 #html/lib/php/aconf.php
 #html/lib/php/lib.php
-html/lib
-html/img
-html/engines
+html/lib/
+html/img/
+html/engines/
 html/textos/info.txt
 
 #html/app
@@ -201,8 +201,8 @@ html/app/freedirectory/import.php
 
 
 
-html/app/mitv/js
-html/app/mitv/css
+html/app/mitv/js/
+html/app/mitv/css/
 html/app/mitv/tv/app.js
 html/app/mitv/tv/build.js
 html/app/mitv/tv/index.js
