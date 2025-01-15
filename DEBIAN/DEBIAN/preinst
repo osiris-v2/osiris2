@@ -210,6 +210,7 @@ if [ -e "${file_path}" ]; then
     echo "--------------------------------------------------------"
     echo " Advertencia: El archivo o directorio ${dest} ya existe."
     echo "      USE MODO REINSTALAR PARA SOBREESCRIBIRLOS         "
+    echo "     Sólo se instalarán Archivos nuevos - MODO UPDATE - "              "
     echo "--------------------------------------------------------"
     sleep 1.5 
     # Preguntar si está en modo actualización 

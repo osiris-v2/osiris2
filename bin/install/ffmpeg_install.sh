@@ -1,12 +1,14 @@
 #!/bin/bash
 
+source "/etc/environment"
 echo "Instalador avanzado de FFmpeg con configuraciones completas"
 
 # Variables de configuración
-install_dir="../com/osiris_env/ffmpeg"
+install_dir="/usr/local/osiris2/ffmpeg"
+default_dir="${OSIRIS000_BIN}/com/osiris_env/ffmpeg"
 
-default_dir="../com/osiris_env/ffmpeg"
-
+##mkdir -p $install_dir
+#mkdir -p $default_dir
 # Solicitar al usuario que ingrese un directorio de instalación
 read -p "Ingrese el directorio de instalación (por defecto: ${default_dir}): " install_dir
 
@@ -91,5 +93,8 @@ ffmpeg -version || { echo "FFmpeg no se instaló correctamente. Verifique las co
 # Confirmación final
 echo "FFmpeg instalado correctamente y está listo para usar."
 
+echo "instalado en $install_dir"
+echo "#################################"
+ls $install_dir
 cd $lastdir
 
