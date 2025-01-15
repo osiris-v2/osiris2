@@ -64,6 +64,7 @@ Suponiendo que el archivo sea osiris2.deb haga:
 
 **Herramientas**
 
+* **GIT**
 
 * **FFMPEG**
 
@@ -77,6 +78,12 @@ Las distintas versiones instaladas pueden hacer uso de el y tener configurados s
 Normalmente se usa una versión como host principal por defecto sin embargo esto es flexibe y se puede alternar fácilmente
 
 * **PHP-FPM**  
+
+* **CERTBOT**
+
+Permite crear certificados SSL para tus dominios web (host y hosts virtuales) (HTTPS)  
+Osiris proporciona herramientas específicas para facilitar y automatizar esa tarea.   
+
 
 * **MARIADB**  
 
