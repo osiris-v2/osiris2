@@ -177,40 +177,7 @@ while IFS= read -r line; do
   file_path="${line}"
   echo "Procesando: ${file_path}"
 
-  
-# Verificar si el archivo o directorio fue descargado
-if [ -e "${file_path}" ]; then
-  dest="${base}/${file_path}"
-  dir_path=$(dirname "${dest}")
-  mkdir -p "${dir_path}"
-
-  # Verificar si el archivo de destino ya existe
-  if [ -e "${dest}" ]; then
-    echo "--------------------------------------------------------"
-    echo " Advertencia: El archivo o directorio ${dest} ya existe."
-    echo "      USE MODO REINSTALAR PARA SOBREESCRIBIRLOS         "
-    echo "     Sólo se instalarán Archivos nuevos - MODO UPDATE - "              
-    echo "--------------------------------------------------------"
-    sleep 1.5 
-    # Preguntar si está en modo actualización 
-    answer="NO SOBREESCRIBIR - Modo install 0" 
-    if [[ "${answer}" =~ ^[Ss]$ ]]; then
-      echo "Sobrescribiendo ${dest}..."
-      mv -f "${file_path}" "${dest}" || {
-        echo "Error: No se pudo sobrescribir ${file_path} a ${dest}" | tee -a "${install_log}"
-        echo '{"status": "error", "message": "Error al mover archivo"}' > "${error_file}"
-        # exit 1
-      }
-      echo "Archivo sobrescrito: ${file_path}" | tee -a "${install_log}"
-    else
-      echo "No se sobrescribió ${dest}. Continuando con la instalación."
-    fi
-  else
-
-    # Si el archivo de destino no existe, descargar y mover sin preguntar
-    
-
-      # Verificar si el archivo existe en el repositorio
+  # Verificar si el archivo existe en el repositorio
   echo "Intentando descargar ${file_path} desde el repositorio base..."
   
   # Si es directorio, usar git sparse-checkout con --cone
@@ -230,9 +197,38 @@ if [ -e "${file_path}" ]; then
       exit 1
     }
   fi
-   
-    
-    
+
+  
+# Verificar si el archivo o directorio fue descargado
+if [ -e "${file_path}" ]; then
+  dest="${base}/${file_path}"
+  dir_path=$(dirname "${dest}")
+  mkdir -p "${dir_path}"
+
+  # Verificar si el archivo de destino ya existe
+  if [ -e "${dest}" ]; then
+    echo "--------------------------------------------------------"
+    echo " Advertencia: El archivo o directorio ${dest} ya existe."
+    echo "      USE MODO REINSTALAR PARA SOBREESCRIBIRLOS         "
+    echo "     Sólo se instalarán Archivos nuevos - MODO UPDATE - "
+    echo "--------------------------------------------------------"
+    sleep 1.5 
+    # Preguntar si está en modo actualización 
+    answer="NO SOBREESCRIBIR - Modo install 0" 
+    read -p "¿sobreescribir?" answer
+    if [[ "${answer}" =~ ^[Ss]$ ]]; then
+      echo "Sobrescribiendo ${dest}..."
+      mv -f "${file_path}" "${dest}" || {
+        echo "Error: No se pudo sobrescribir ${file_path} a ${dest}" | tee -a "${install_log}"
+        echo '{"status": "error", "message": "Error al mover archivo"}' > "${error_file}"
+        # exit 1
+      }
+      echo "Archivo sobrescrito: ${file_path}" | tee -a "${install_log}"
+    else
+      echo "No se sobrescribió ${dest}. Continuando con la instalación."
+    fi
+  else
+    # Si el archivo de destino no existe, mover sin preguntar
     mv "${file_path}" "${dest}" || {
       echo "Error: No se pudo mover ${file_path} a ${dest}" | tee -a "${install_log}"
       echo '{"status": "error", "message": "Error al mover archivo"}' > "${error_file}"
