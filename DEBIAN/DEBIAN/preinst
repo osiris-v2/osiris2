@@ -177,7 +177,26 @@ while IFS= read -r line; do
   file_path="${line}"
   echo "Procesando: ${file_path}"
 
-
+  # Verificar si el archivo existe en el repositorio
+  echo "Intentando descargar ${file_path} desde el repositorio base..."
+  
+  # Si es directorio, usar git sparse-checkout con --cone
+  if [[ "$file_path" == */ ]]; then
+    echo "Es un directorio, utilizando sparse-checkout con --cone para ${file_path}"
+    git sparse-checkout set --cone "${file_path}" || {
+      echo "Error: No se pudo configurar sparse-checkout para ${file_path}" | tee -a "${install_log}"
+      echo '{"status": "error", "message": "Error en sparse-checkout"}' > "${error_file}"
+      exit 1
+    }
+  else
+    # Si es archivo, hacer sparse-checkout de archivo específico
+    echo "Es un archivo, utilizando sparse-checkout para ${file_path}"
+    git sparse-checkout set --no-cone "/${file_path}" || {
+      echo "Error: No se pudo configurar sparse-checkout para ${file_path}" | tee -a "${install_log}"
+      echo '{"status": "error", "message": "Error en sparse-checkout"}' > "${error_file}"
+      exit 1
+    }
+  fi
 
 # Verificar si el archivo o directorio fue descargado
 if [ -e "${file_path}" ]; then
@@ -207,29 +226,6 @@ if [ -e "${file_path}" ]; then
       echo "No se sobrescribió ${dest}. Continuando con la instalación."
     fi
   else
-  
-    #El archivo no existe en destino
-    # Verificar si el archivo existe en el repositorio y descargar
-  echo "Intentando descargar ${file_path} desde el repositorio base..."
-  
-  # Si es directorio, usar git sparse-checkout con --cone
-  if [[ "$file_path" == */ ]]; then
-    echo "Es un directorio, utilizando sparse-checkout con --cone para ${file_path}"
-    git sparse-checkout set --cone "${file_path}" || {
-      echo "Error: No se pudo configurar sparse-checkout para ${file_path}" | tee -a "${install_log}"
-      echo '{"status": "error", "message": "Error en sparse-checkout"}' > "${error_file}"
-      exit 1
-    }
-  else
-    # Si es archivo, hacer sparse-checkout de archivo específico
-    echo "Es un archivo, utilizando sparse-checkout para ${file_path}"
-    git sparse-checkout set --no-cone "/${file_path}" || {
-      echo "Error: No se pudo configurar sparse-checkout para ${file_path}" | tee -a "${install_log}"
-      echo '{"status": "error", "message": "Error en sparse-checkout"}' > "${error_file}"
-      exit 1
-    }
-  fi
-  
     # Si el archivo de destino no existe, mover sin preguntar
     mv "${file_path}" "${dest}" || {
       echo "Error: No se pudo mover ${file_path} a ${dest}" | tee -a "${install_log}"
