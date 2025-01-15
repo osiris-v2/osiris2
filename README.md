@@ -88,7 +88,7 @@ Además de las composiciones predeterminadas, Osiris permite hacer diferentes co
 
 * **RUST**
 
-Osiris proporciona una herramienta que descarga e instala la útima versión del lenguaje **rust** en el sistema, el compilador **rustc** y el asistente de proyectos **cargo**
+Osiris proporciona una herramienta que descarga e instala la útima versión del lenguaje **rust** en el sistema, el compilador **rustc** y el asistente de proyectos **cargo**, además de las propias herramientas que osiris dispone para compilar/re-compilar/ejecutar las fuentes rust que osiris usa, fundamentalmente para herramientas como servidores y clientes.   
 
 
 <h2><u> Este README está en proceso de construcción  </u></h2>
