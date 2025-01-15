@@ -65,7 +65,7 @@ Al finalizar la descarga de archivos podrás completar la instalación instaland
 No es un requisito hacerlo desde el instalador ya que una vez descargados los archivos necesarios se puede hacer en cualquier momento.  
 
 Para hacerlo manualmente sitúese sobre el directorio **/var/VERSION**  
-y ejecute  ./osiris  o  ./install.sh  
+y ejecute  **./osiris**  o directamente  **./install.sh**  
 
 
 
