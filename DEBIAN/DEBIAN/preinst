@@ -22,7 +22,7 @@ temp_gitup="${base}/tmp_gitup"
 ok_file="${base}/inst.ok"
 error_file="${base}/inst.error"
 
-ls $base
+#ls $base
 
 # Comprobar si existen los archivos de instalaciones anteriores
 if [ -f "$ok_file" ] && [ -f "$error_file" ]; then
