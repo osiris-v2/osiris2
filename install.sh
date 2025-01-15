@@ -35,6 +35,10 @@ echo "Esta opción instala  xcblib librerias necesarias para usar Qt con python 
 check_command_installed /usr/bin/xcblib 
 
 
+echo "Esta opción instala  librerias necesarias para desarrollo con C "
+
+check_command_installed /usr/bin/cdevlibs 
+
 
 echo "Esta opción instala  pip "
 check_command_installed /usr/bin/pip --version

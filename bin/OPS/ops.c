@@ -131,6 +131,21 @@ void print_variable_value(const char *name) {
     printf("Variable not found: %s\n", name);
 }
 
+
+void exec_variable_value(const char *name) {
+    for (int i = 0; i < cdn_storage.count; i++) {
+        if (strcmp(cdn_storage.vars[i].name, name) == 0) {
+            execvp(cdn_storage.vars[i].value);  // execvp es correcto aquí
+            perror("Error al ejecutar el comando");
+            exit(EXIT_FAILURE);
+            printf(" Se ejecutó el comando: %s\n", cdn_storage.vars[i].value);
+            return;
+        }
+    }
+    printf("Variable not found: %s\n", name);
+}
+
+
 void print_variable_info(const char *name) {
     for (int i = 0; i < cdn_storage.count; i++) {
         if (strcmp(cdn_storage.vars[i].name, name) == 0) {
@@ -339,6 +354,11 @@ void execute_command(char **args) {
 
     if (args[0][0] == '$') {
         print_variable_value(args[0] + 1);
+        return;
+    }
+ 
+    if (args[0][0] == '@') {
+        exec_variable_value(args[0] + 1);
         return;
     }
 
