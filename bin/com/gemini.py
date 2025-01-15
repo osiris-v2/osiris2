@@ -1125,6 +1125,7 @@ def screen_shot():
     print(output)
     # Comprobación del formato de salida
     if len(output) < 3:
+        show_text_window(f"FALLO: {str(process)},{str(output)}")
         print("Fallo: la salida no tiene suficientes líneas.")
         return
     
@@ -1135,6 +1136,7 @@ def screen_shot():
 
     # Verificar que las líneas cumplen con el formato esperado
     if not coordinates_line.startswith("Coordinates:") or not image_path_line.startswith("ImagePath:"):
+        show_text_window(f"FALLO 1139 gmnipy: {str(process)},{str(output)}")
         print("Fallo: el formato de salida es incorrecto.")
         return
 

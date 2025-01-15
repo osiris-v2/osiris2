@@ -3,7 +3,20 @@
 echo "Instalador avanzado de FFmpeg con configuraciones completas"
 
 # Variables de configuración
-install_dir="/usr/local/ffmpeg"
+install_dir="../com/osiris_env/ffmpeg"
+
+default_dir="../com/osiris_env/ffmpeg"
+
+# Solicitar al usuario que ingrese un directorio de instalación
+read -p "Ingrese el directorio de instalación (por defecto: ${default_dir}): " install_dir
+
+# Usar el valor predeterminado si la entrada está en blanco
+install_dir=${install_dir:-$default_dir}
+
+echo "El directorio de instalación es: $install_dir"
+
+
+
 src_dir="/tmp/ffmpeg-src"
 num_cores=$(nproc)
 latest_ffmpeg_url="https://ffmpeg.org/releases/ffmpeg-7.0.1.tar.bz2"

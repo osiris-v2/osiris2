@@ -4,6 +4,8 @@ import random
 import string
 import os
 import subprocess
+import osiris2
+
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QTextEdit, QPushButton,
     QVBoxLayout, QHBoxLayout, QWidget, QFrame, QMessageBox
@@ -117,7 +119,7 @@ class ResizableRectangle(QMainWindow):
 
             # Use ffmpeg to capture the area
             command = [
-                "ffmpeg",
+                "o2ffmpeg",
                 "-video_size", f"{width}x{height}",
                 "-f", "x11grab",
                 "-i", f":0.0+{x},{y}",
