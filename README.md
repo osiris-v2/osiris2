@@ -72,7 +72,28 @@ Osiris2 es más que una simple herramienta de IA. Es una plataforma versátil y 
 
 * **APACHE2**
 
+* Osiris hace una una instalación global del servidor **Apache** para todo el sistema.
+* Las distintas versiones instaladas pueden hacer uso de el y tener configurados sus propios host virtuales compartidos
+* Normalmente se usa una versión como host principal por defecto sin embargo esto es flexibe y se puede alternar fácilmente
+
+* **PHP-FPM**
+
+* **MARIADB**
+
+* **TMUX**
+* Osiris dispone de herramientas para descargar y actualizar **tmux**
+* Tmux es un multiplexor de terminal que permite utilizar varias aplicaciones de forma simultánea.
+
+* **RUST**
+
+* OSiris proporciona una herramienta que descarga e instala la útima versión del lenguaje rust en el sistema
 
 
+
+
+<h2><u> Este README está en proceso de construcción  </u></h2>
+
+
+* **osiris.osscom@gmail.com**
 
 
