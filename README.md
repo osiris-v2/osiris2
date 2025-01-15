@@ -49,16 +49,16 @@ Osiris2 es más que una simple herramienta de IA. Es una plataforma versátil y 
 
 * **En el directorio** que lo descargaste instálalo ejecutando:
 
-* Suponiendo que el archivo sea osiris2.deb haga:
+Suponiendo que el archivo sea osiris2.deb haga:
 
 *    **sudo dpkg -i osiris2.deb**
 
-* El instalador actúa instalando los archivos bajo el directorio /var
-* El instalador provee de un nombre base para instalar el programa /var/VERSION por defecto
-* El instalador pide al inicio un nombre base por si se quiere crear una nueva base o actualizar una existente.
-* Si existe la base proporcionada el instalador puede actuar de distintas formas (Actualizar, Reinstalar,...) en función a sus estados de instalación anteriores.
-* Si no existe esa base simplemente la instala nueva e independiente de otras. 
-* Por lo tanto se pueden tener distintas versiones, algo así como /var/osiris2 /var/osiris21 /var/osirisXXX
+ El instalador actúa instalando los archivos bajo el directorio /var  
+ El instalador provee de un nombre base para instalar el programa /var/VERSION por defecto.  
+ El instalador pide al inicio un nombre base por si se quiere crear una nueva base o actualizar una existente.  
+ Si existe la base proporcionada el instalador puede actuar de distintas formas (Actualizar, Reinstalar,...) en función a sus estados de instalación anteriores.  
+ Si no existe esa base simplemente la instala nueva e independiente de otras.   
+ Por lo tanto se pueden tener distintas versiones, algo así como /var/osiris2 /var/osiris21 /var/osirisXXX  
 
 
 
@@ -67,28 +67,26 @@ Osiris2 es más que una simple herramienta de IA. Es una plataforma versátil y 
 
 * **FFMPEG**
 
-* Osiris proporciona herramientas para descargar diferentes versiones de ffmpeg y compilarlas automáticamente para cada versión instalada de osiris independientes unas de otras ya que las compila en el directorio /var/VERSION/bin/com/osiris_env/ffmpeg.
-* Sin embargo se puede generar un alias para usarlas globalmente de forma independiente, por ejemplo o2ffmpeg, ffmpeg-osiris, etc...
+Osiris proporciona herramientas para descargar diferentes versiones de ffmpeg y compilarlas automáticamente para cada versión instalada de osiris independientes unas de otras ya que las compila en el directorio /var/VERSION/bin/com/osiris_env/ffmpeg.  
+Sin embargo se puede generar un alias para usarlas globalmente de forma independiente, por ejemplo o2ffmpeg, ffmpeg-osiris, etc...  
 
 * **APACHE2**
 
-* Osiris hace una una instalación global del servidor **Apache** para todo el sistema.
-* Las distintas versiones instaladas pueden hacer uso de el y tener configurados sus propios host virtuales compartidos
-* Normalmente se usa una versión como host principal por defecto sin embargo esto es flexibe y se puede alternar fácilmente
+Osiris hace una una instalación global del servidor **Apache** para todo el sistema.  
+Las distintas versiones instaladas pueden hacer uso de el y tener configurados sus propios host virtuales compartidos.  
+Normalmente se usa una versión como host principal por defecto sin embargo esto es flexibe y se puede alternar fácilmente
 
 * **PHP-FPM**
 
 * **MARIADB**
 
 * **TMUX**
-* Osiris dispone de herramientas para descargar y actualizar **tmux**
-* Tmux es un multiplexor de terminal que permite utilizar varias aplicaciones de forma simultánea.
+Osiris dispone de herramientas para descargar y actualizar **tmux**  
+Tmux es un multiplexor de terminal que permite utilizar varias aplicaciones de forma simultánea.  
 
 * **RUST**
 
-* OSiris proporciona una herramienta que descarga e instala la útima versión del lenguaje rust en el sistema
-
-
+OSiris proporciona una herramienta que descarga e instala la útima versión del lenguaje rust en el sistema
 
 
 <h2><u> Este README está en proceso de construcción  </u></h2>
