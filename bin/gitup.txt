@@ -76,6 +76,7 @@ bin/install/terminator_uninstall.sh
 #instala - desinstala tmux (composición de terminales)
 bin/install/tmux_install.sh
 bin/install/tmux_uninstall.sh
+bin/install/osiris_env_sys_vars.sh
 
 #Directorio con archivos de ayuda de comandos
 bin/help/
