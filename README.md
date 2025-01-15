@@ -45,7 +45,7 @@ Osiris2 es más que una simple herramienta de IA. Es una plataforma versátil y 
 
 **INSTALACION:** 
 
-* Instalar Osiris es fácil usando el **Instalador General**. En la carpeta [DEBIAN](DEBIAN/) de este repositorio tienes un archivo .deb, al momento de escribir esto es **[osiris2.deb](/DEBIAN/osiris2.deb)** si bien podrá haber otros más adelante. Sólo tienes que descargarlo para empezar la instalación. 
+* Instalar Osiris es fácil usando el **Instalador General**. En la carpeta [DEBIAN](DEBIAN/) de este repositorio tienes un archivo .deb, al momento de escribir este manual es **[osiris2.deb](/DEBIAN/osiris2.deb)** si bien podrá haber otros más adelante. Sólo tienes que descargarlo para empezar la instalación. 
 
 * **Instálalo** Desde el directorio que lo descargaste ejecutando:
 
