@@ -211,7 +211,7 @@ if [ -e "${file_path}" ]; then
     echo "      USE MODO REINSTALAR PARA SOBREESCRIBIRLOS          "
     echo "     Sólo se instalarán Archivos nuevos - MODO UPDATE -  "
     echo "---------------------------------------------------------"
-    sleep 1.5 
+    sleep 0.3 
     # Preguntar si está en modo actualización 
     answer="NO SOBREESCRIBIR - Modo install 0" 
     if [[ "${answer}" =~ ^[Ss]$ ]]; then
