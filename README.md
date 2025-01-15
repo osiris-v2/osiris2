@@ -1,5 +1,5 @@
 
-<h3>OSIRIS2.0</h3>
+<h3>OSIRIS V2</h3>
 
 **Osiris:** Una Plataforma Modular para IA y Más Allá
 
