@@ -52,7 +52,11 @@ elif [ -f "$error_file" ]; then
     echo "Hubo un error en la instalación anterior."
     cat "$error_file"
 else
+
+    echo "##################################################################"
     echo "No se encontró ninguna instalación. Iniciando nueva instalación..."
+    echo " SELECCIONE LA OPCION 1   ########################################"
+    echo "##################################################################"
     # Aquí se puede llamar al script de instalación que ya tienes
 #    ./install_script.sh  # Suponiendo que el script de instalación se llama install_script.sh
 fi
