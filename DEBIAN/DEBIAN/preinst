@@ -183,7 +183,7 @@ while IFS= read -r line; do
     echo "      USE MODO REINSTALAR PARA SOBREESCRIBIRLOS          "
     echo " - MODO INSTALL++  → Sólo se instalarán Archivos nuevos  "
     echo "---------------------------------------------------------"
-  sleep 1
+  sleep 0.5
   continue
   fi
 
