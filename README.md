@@ -43,18 +43,20 @@ Osiris2 es más que una simple herramienta de IA. Es una plataforma versátil y 
 
 **INSTALACION:** 
 
-* Instalar Osiris es fácil. En la carpeta DEBIAN de este repositorio tienes un archivo .deb, al momento de escribir esto es osiris2.deb si bien podrá haber otros más adelante. Sólo tienes que descargarlo para empezar la instalación. 
+* Instalar Osiris es fácil. En la carpeta [Carpeta Scripts](DEBIAN/) de este repositorio tienes un archivo .deb, al momento de escribir esto es osiris2.deb si bien podrá haber otros más adelante. Sólo tienes que descargarlo para empezar la instalación. 
 
 * **Ejecuta**  En el directorio que lo descargaste instálalo ejecutando:
 
-*     sudo dpkg -i osiris2.deb
+* Suponiendo que el archivo sea osiris2.deb haga:
+
+*    sudo dpkg -i osiris2.deb
 
 * El instalador actúa instalando los archivos bajo el directorio /var
 * El instalador provee de un nombre base para instalar el programa /var/VERSION por defecto
 * El instalador pide al inicio un nombre base por si se quiere crear una nueva base o actualizar una existente.
 * Si existe la base proporcionada el instalador puede actuar de distintas formas en base a sus estados de instalación.
 * Si no existe esa base simplemente la instala nueva e independiente de otras. 
-*  Por lo tanto se pueden tener distintas versiones, algo así como /var/osiris2 /var/osiris21 /var/osirisXXX
+* Por lo tanto se pueden tener distintas versiones, algo así como /var/osiris2 /var/osiris21 /var/osirisXXX
 
 
 
