@@ -13,7 +13,9 @@ fi
 # Variables
 base="/var/${x}"
 repo_url="https://github.com/osiris-v2/osiris2.git"
-gitup_file="${base}/bin/gitup.txt"
+gitinstfn="gitup-release.txt"
+gitup_file="${base}/bin/${gitinstfn}"
+gitup_remote_inst="bin/${gitinstfn}"
 install_log="${base}/inst.json"
 temp_repo="${base}/tmp_repo"
 temp_gitup="${base}/tmp_gitup"
@@ -56,6 +58,8 @@ else
     echo "##################################################################"
     echo "No se encontró ninguna instalación. Iniciando nueva instalación..."
     echo " SELECCIONE LA OPCION 1   ########################################"
+    echo "##################################################################"
+    echo " INSTALANDO DE BASE:  ${gitinstfn}                                "
     echo "##################################################################"
     # Aquí se puede llamar al script de instalación que ya tienes
 #    ./install_script.sh  # Suponiendo que el script de instalación se llama install_script.sh
@@ -107,31 +111,31 @@ mkdir -p "${temp_repo}"
 mkdir -p "${temp_gitup}"
 
 
-# Descargar bin/gitup.txt del repositorio
-echo "Descargando bin/gitup.txt del repositorio..."
+# Descargar ${gitup_remote_inst} del repositorio
+echo "Descargando ${gitup_remote_inst} del repositorio..."
 git clone --depth 1 --filter=blob:none --sparse "${repo_url}" "${temp_repo}" || {
   echo "Error: No se pudo clonar el repositorio" | tee -a "${install_log}"
   echo '{"status": "error", "message": "No se pudo clonar el repositorio"}' > "${error_file}"
   exit 1
 }
 cd "${temp_repo}"
-git sparse-checkout set --no-cone "/bin/gitup.txt" || {
-  echo "Error: No se pudo configurar sparse-checkout para bin/gitup.txt" | tee -a "${install_log}"
-  echo '{"status": "error", "message": "Error en sparse-checkout para bin/gitup.txt"}' > "${error_file}"
+git sparse-checkout set --no-cone "/${gitup_remote_inst}" || {
+  echo "Error: No se pudo configurar sparse-checkout para ${gitup_remote_inst}" | tee -a "${install_log}"
+  echo '{"status": "error", "message": "Error en sparse-checkout para '.${gitup_remote_inst}.'}' > "${error_file}"
   exit 1
 }
 
 # Mover gitup.txt a $base/bin/
-if [ -f "bin/gitup.txt" ]; then
+if [ -f ${gitup_remote_inst} ]; then
   mv "bin/gitup.txt" "${temp_gitup}" || {
-    echo "Advertencia: No se pudo mover bin/gitup.txt a ${temp_gitup}" | tee -a "${install_log}"
-    echo '{"status": "warning", "message": "Error al mover gitup.txt"}' > "${error_file}"
+    echo "Advertencia: No se pudo mover ${gitup_remote_inst} a ${temp_gitup}" | tee -a "${install_log}"
+    echo '{"status": "warning", "message": "Error al mover '.${gitup_remote_inst}.'"}' > "${error_file}"
     #exit 1
   }
   echo "gitup.txt descargado y copiado a ${temp_gitup}"
 else
-  echo "Error: bin/gitup.txt no se encuentra en el repositorio" | tee -a "${install_log}"
-  echo '{"status": "error", "message": "bin/gitup.txt no encontrado"}' > "${error_file}"
+  echo "Error: ${gitup_remote_inst} no se encuentra en el repositorio" | tee -a "${install_log}"
+  echo '{"status": "error", "message": "'.${gitup_remote_inst}.' no encontrado"}' > "${error_file}"
   exit 1
 fi
 
@@ -140,19 +144,19 @@ cd "${base}"
 rm -rf "${temp_repo}"
 
 
-gitup_file="${temp_gitup}/gitup.txt"
+gitup_file="${temp_gitup}/${gitinstfn}"
 
 # Verificar existencia del archivo en $base/bin/
 if [ -f "${gitup_file}" ]; then
-  echo "gitup.txt está en ${gitup_file}. Procediendo con la instalación..." | tee -a "${install_log}"
+  echo "${gitinstfn} está en ${gitup_file}. Procediendo con la instalación..." | tee -a "${install_log}"
 else
   echo "Error: No se encuentra ${gitup_file} tras descargarlo del repositorio" | tee -a "${install_log}"
-  echo '{"status": "error", "message": "gitup.txt no encontrado tras moverlo"}' > "${error_file}"
+  echo '{"status": "error", "message": "'.${gitinstfn}.' no encontrado tras moverlo"}' > "${error_file}"
   exit 1
 fi
 
-# Verificar contenido de gitup.txt
-echo "Contenido de gitup.txt:"
+# Verificar contenido de ${gitinstfn}
+echo "Contenido de ${gitinstfn}:"
 cat "${gitup_file}"
 
 # Clonación inicial del repositorio para obtener archivos listados
@@ -165,8 +169,8 @@ cd "${temp_repo}"
 
 
 
-# Procesar archivos listados en gitup.txt
-echo "Procesando archivos listados en gitup.txt..."
+# Procesar archivos listados en ${gitinstfn}
+echo "Procesando archivos listados en ${gitinstfn} ..."
 
 while IFS= read -r line; do
   # Limpiar línea
