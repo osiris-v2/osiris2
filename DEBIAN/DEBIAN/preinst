@@ -176,7 +176,7 @@ while IFS= read -r line; do
   # Verificar si la entrada es un archivo o directorio
   file_path="${line}"
   echo "Procesando: ${file_path}"
-
+  dest="${base}/${file_path}"
   if [ -e "${dest}" ]; then
     echo "---------------------------------------------------------"
     echo "¡Advertencia:! El archivo o directorio ${dest} ya existe."
