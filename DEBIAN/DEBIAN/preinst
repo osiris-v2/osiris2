@@ -64,9 +64,9 @@ fi
 # Menú con opciones numéricas
 while true; do
     echo "Seleccione una opción:"
-    echo "1) Continuar con el script"
-    echo "2) Salir del script"
-    echo "3) Reiniciar el script"
+    echo "1) Continuar con la instalación"
+    echo "2) Salir de la instalación "
+    echo "3) Reiniciar el instalador"
 
     # Leer la respuesta del usuario
     read -p "Ingrese el número de la opción deseada: " resp
