@@ -1,11 +1,11 @@
 #!/bin/bash
-
-echo "OSIRIS UBIN"
+source '/etc/environment'
+echo "OSIRIS BIN"
 
 if [ "$1" = "-pilot" ]; then
-COMANDO="/var/www/osiris000/bin/pilottv"
+COMANDO="${OSIRIS000_BIN}/pilottv"
 else
-COMANDO="/var/www/osiris000/bin/osiristv"
+COMANDO="${OSIRIS000_BIN}/osiristv"
 fi
 
 
