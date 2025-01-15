@@ -67,6 +67,12 @@ Osiris2 es más que una simple herramienta de IA. Es una plataforma versátil y 
 
 * **FFMPEG**
 
+* Osiris proporciona herramientas para descargar diferentes versiones de ffmpeg y compilarlas automáticamente para cada versión instalada de osiris independientes unas de otras ya que las compila en el directorio /var/VERSION/bin/com/osiris_env/ffmpeg.
+* Sin embargo se puede generar un alias para usarlas globalmente de forma independiente, por ejemplo o2ffmpeg, ffmpeg-osiris, etc...
+
+* **APACHE2**
+
+
 
 
 
