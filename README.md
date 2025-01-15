@@ -76,13 +76,15 @@ Osiris hace una una instalación global del servidor **Apache** para todo el sis
 Las distintas versiones instaladas pueden hacer uso de el y tener configurados sus propios host virtuales compartidos.  
 Normalmente se usa una versión como host principal por defecto sin embargo esto es flexibe y se puede alternar fácilmente
 
-* **PHP-FPM**
+* **PHP-FPM**  
 
-* **MARIADB**
+* **MARIADB**  
 
-* **TMUX**
+* **TMUX**  
+
 Osiris dispone de herramientas para descargar y actualizar **tmux**  
 Tmux es un multiplexor de terminal que permite utilizar varias aplicaciones de forma simultánea.  
+Además de las composiciones predeterminadas, Osiris permite hacer diferentes composiciones diseñadas por el usuario según sus necesidades, usando las herramientes que osiris proporciona para ello.  
 
 * **RUST**
 
