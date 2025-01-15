@@ -111,9 +111,11 @@ Osiris proporciona una herramienta que descarga e instala la útima versión del
 Docker permite ejecutar distintas aplicaciones en contenedores aislados, esto es útil cuando se quieren aislar del resto del sistema y asignarle recursos limitados. Esta funcionalidad es útil para mejorar la estabilidad y rendimiento del sistema en determinadas ocasiones. Esta característica será uno de los ejes principales del desarrollo de **osiris2**  
 
 
-<h2><u> Este README está en proceso de construcción  </u></h2>
+
+* **Este sistema ha sido probado con éxito en gnu/linux debian 11 y debian 12**
 
 
+<h3><u> Este README está en proceso de construcción y no está aún completo </u></h3>
 
 
 

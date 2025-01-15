@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script para instalar Python 3.9, venv, y las dependencias de pip
+# Script para instalar Python 3.11, venv, y las dependencias de pip
 source /etc/environment
 # Asegurarse de que las variables de entorno están definidas
 if [ -z "$OSIRIS000_VENV_PATH" ] || [ -z "$OSIRIS000_VENV_NAME" ]; then
@@ -10,7 +10,7 @@ fi
 
 
 # Variables
-PYTHON_VERSION="3.9"
+PYTHON_VERSION="3.11"
 PIP_DEP_FILE="${OSIRIS000_BIN}/install/pip_dep"
 
 # Crear el directorio para el entorno virtual si no existe
@@ -20,7 +20,7 @@ mkdir -p "$OSIRIS000_VENV_PATH"
 echo "Actualizando lista de paquetes..."
 sudo apt-get update
 
-# Instalar Python 3.9, venv, y pip
+# Instalar Python 3.11, venv, y pip
 echo "Instalando Python ${PYTHON_VERSION}, venv, y pip..."
 sudo apt-get install -y python${PYTHON_VERSION} python${PYTHON_VERSION}-venv python3-pip
 
