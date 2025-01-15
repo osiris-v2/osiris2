@@ -56,8 +56,10 @@ bin/gitup-release.txt
 #una vez instalado rust 
 # compilarlo con bin/scripts/server.build o server.rls
 #  después correr con bin/scripts/server.run
-bin/server/chat_server/src
+
 bin/server/chat_server/Cargo.toml
+bin/server/chat_server/src/bin/client.rs
+bin/server/chat_server/src/bin/server.rs
 
 
 #archivos asistentes de instalacion en bin/install
