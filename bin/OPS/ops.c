@@ -14,6 +14,8 @@
 #define MAX_CDN_SIZE 100
 #define MAX_VAR_NAME_LENGTH 64  // Longitud máxima para el nombre de variable
 #define FILE_EXTENSION ".vars"
+#define MAX_ARGS 100 // para ejecutar variables almacenadas como comandos
+
 
 typedef struct {
     char *name;
@@ -135,7 +137,7 @@ void print_variable_value(const char *name) {
 
 
 
-#define MAX_ARGS 100
+
 
 // Función para dividir una cadena en argumentos respetando las comillas
 int split_args(const char *cmd, char **argv) {
@@ -469,17 +471,23 @@ void execute_command(char **args) {
         return;
     }
 
-    if (args[0][0] == '$') {
+    else if (args[0][0] == '$') {
         print_variable_value(args[0] + 1);
         return;
     }
  
-    if (args[0][0] == '@') {
+    else if (args[0][0] == '@') {
         exec_variable_value(args[0] + 1);
         return;
     }
 
-    if (strcmp(args[0], "ver") == 0) {
+
+    else if (args[0][0] == '~') {
+        print_variable_info(args[0] + 1);
+        return;
+    }
+
+    if (strcmp(args[0], "view") == 0) {
         if (args[1] != NULL && args[1][0] == '$') {
             print_variable_info(args[1] + 1);
         } else {
