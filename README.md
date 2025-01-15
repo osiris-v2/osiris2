@@ -106,7 +106,15 @@ Además de las composiciones predeterminadas, Osiris permite hacer diferentes co
 Osiris proporciona una herramienta que descarga e instala la útima versión del lenguaje **rust** en el sistema, el compilador **rustc** y el asistente de proyectos **cargo**, además de las propias herramientas que osiris dispone para compilar/re-compilar/ejecutar las fuentes rust que osiris usa, fundamentalmente para herramientas como servidores y clientes.   
 
 
+* **DOCKER**
+
+Docker permite ejecutar distintas aplicaciones en contenedores aislados, esto es útil cuando se quieren aislar del resto del sistema y asignarle recursos limitados. Esta funcionalidad es útil para mejorar la estabilidad y rendimiento del sistema en determinadas ocasiones. Esta característica será uno de los ejes principales del desarrollo de **osiris2**  
+
+
 <h2><u> Este README está en proceso de construcción  </u></h2>
+
+
+
 
 
 * **osiris.osscom@gmail.com**
