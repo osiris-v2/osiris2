@@ -8,6 +8,7 @@
 #include <readline/history.h>
 #include <signal.h>  // Necesario para SIGTERM
 
+
 #define MAX_LINE_LENGTH 1024
 #define MAX_ARGS 100
 #define MAX_CDN_SIZE 100
@@ -132,18 +133,134 @@ void print_variable_value(const char *name) {
 }
 
 
+
+
+#define MAX_ARGS 100
+
+// Función para dividir una cadena en argumentos respetando las comillas
+int split_args(const char *cmd, char **argv) {
+    const char *p = cmd;
+    int i = 0;
+    char *arg;
+    int len;
+    
+    while (*p) {
+        // Salto de espacios
+        while (*p && isspace(*p)) {
+            p++;
+        }
+
+        if (*p == '\0') {
+            break;
+        }
+
+        // Aquí estamos comenzando a leer un nuevo argumento
+        if (*p == '"' || *p == '\'' || *p == '`') {
+            // Detectar el tipo de comillas
+            char quote = *p;
+            p++;
+            arg = malloc(strlen(p) + 1); // Necesitamos memoria para el argumento
+
+            if (arg == NULL) {
+                perror("Error al asignar memoria para argumento");
+                return -1;
+            }
+
+            len = 0;
+            while (*p && *p != quote) {  // Leer hasta que encontremos la comilla correspondiente
+                arg[len++] = *p++;
+            }
+
+            if (*p == quote) {
+                p++;  // Salir de las comillas
+            }
+
+            arg[len] = '\0';  // Terminar el argumento
+            argv[i++] = arg;
+
+        } else {
+            // Argumento sin comillas
+            arg = malloc(strlen(p) + 1); // Necesitamos memoria para el argumento
+            if (arg == NULL) {
+                perror("Error al asignar memoria para argumento");
+                return -1;
+            }
+
+            len = 0;
+            while (*p && !isspace(*p)) { // Leer hasta el siguiente espacio
+                arg[len++] = *p++;
+            }
+
+            arg[len] = '\0'; // Terminar el argumento
+            argv[i++] = arg;
+        }
+
+        if (i >= MAX_ARGS) {
+            printf("Demasiados argumentos\n");
+            return -1;
+        }
+    }
+
+    argv[i] = NULL;  // Terminar con NULL, como espera execvp
+    return i;  // Devolvemos el número de argumentos
+}
+
+// Función para ejecutar el valor de la variable
 void exec_variable_value(const char *name) {
     for (int i = 0; i < cdn_storage.count; i++) {
         if (strcmp(cdn_storage.vars[i].name, name) == 0) {
-            execvp(cdn_storage.vars[i].value);  // execvp es correcto aquí
-            perror("Error al ejecutar el comando");
-            exit(EXIT_FAILURE);
-            printf(" Se ejecutó el comando: %s\n", cdn_storage.vars[i].value);
+            // Crear una copia del valor porque strtok_r modifica la cadena
+            char *cmd_copy = strdup(cdn_storage.vars[i].value);
+            if (cmd_copy == NULL) {
+                perror("Error duplicando la cadena del comando");
+                return;
+            }
+
+            // Array de argumentos con un tamaño máximo
+            char *argv[MAX_ARGS];
+            int argc = split_args(cmd_copy, argv);
+
+            if (argc == -1) {
+                free(cmd_copy);
+                return;  // Error en la tokenización
+            }
+
+            pid_t pid = fork();
+            if (pid < 0) {
+                perror("Error al hacer fork");
+                free(cmd_copy);
+                return;
+            }
+
+            if (pid == 0) { // Proceso hijo
+                // Ejecutar el comando en el proceso hijo
+                execvp(argv[0], argv);
+                perror("Error al ejecutar el comando");
+                free(cmd_copy);
+                exit(EXIT_FAILURE);  // Si execvp falla, salir del proceso hijo
+            } else { // Proceso padre
+                // Esperar a que el proceso hijo termine
+                int status;
+                waitpid(pid, &status, 0);
+                if (WIFEXITED(status)) {
+                    printf("El proceso terminó con código de salida %d\n", WEXITSTATUS(status));
+                } else {
+                    printf("El proceso terminó con un error\n");
+                }
+            }
+
+            // Liberar la memoria
+            free(cmd_copy);
             return;
         }
     }
+
+    // Si no se encuentra la variable
     printf("Variable not found: %s\n", name);
 }
+
+
+
 
 
 void print_variable_info(const char *name) {
