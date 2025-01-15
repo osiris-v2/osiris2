@@ -3,8 +3,8 @@ Version: 1.0
 Architecture: amd64
 Maintainer: Odev <osiris.osscom@gmail.com>
 Depends: bash (>= 5.0)
-Conflicts: osiris000
-Replaces: osiris000
-Provides: osiris000
+Conflicts:osiris000, osiris, osiris2tmux, osiristv
+Replaces: osiris000, osiris, osiris2tmux, osiristv
+Provides: osiris000, osiris, osiris2tmux, osiristv
 Description: Paquete Osiris2.
  Este es un paquete que instala Osiris2 y gestiona conflictos automáticamente.
