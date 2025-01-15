@@ -26,6 +26,10 @@ error_file="${base}/inst.error"
 
 #ls $base
 
+    echo "##################################################################"
+    echo " INSTALANDO DE BASE:  ${gitinstfn}                                "
+    echo "##################################################################"
+
 # Comprobar si existen los archivos de instalaciones anteriores
 if [ -f "$ok_file" ] && [ -f "$error_file" ]; then
     # Obtener las fechas de modificación de los archivos
@@ -127,12 +131,12 @@ git sparse-checkout set --no-cone "/${gitup_remote_inst}" || {
 
 # Mover gitup.txt a $base/bin/
 if [ -f ${gitup_remote_inst} ]; then
-  mv "bin/gitup.txt" "${temp_gitup}" || {
+  mv "${gitup_remote_inst}" "${temp_gitup}" || {
     echo "Advertencia: No se pudo mover ${gitup_remote_inst} a ${temp_gitup}" | tee -a "${install_log}"
     echo '{"status": "warning", "message": "Error al mover '.${gitup_remote_inst}.'"}' > "${error_file}"
     #exit 1
   }
-  echo "gitup.txt descargado y copiado a ${temp_gitup}"
+  echo "${gitinstfn} descargado y copiado a ${temp_gitup}"
 else
   echo "Error: ${gitup_remote_inst} no se encuentra en el repositorio" | tee -a "${install_log}"
   echo '{"status": "error", "message": "'.${gitup_remote_inst}.' no encontrado"}' > "${error_file}"
