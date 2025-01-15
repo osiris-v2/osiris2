@@ -1122,7 +1122,7 @@ El cometido de esta función es generar comandos en base a un propmt posterior p
 def screen_shot():
     process = subprocess.run(["python3", "com/screenshot.py"], capture_output=True, text=True)
     output = process.stdout.strip().splitlines()  # Limpiar y dividir en líneas
-    #print(output)
+    print(output)
     # Comprobación del formato de salida
     if len(output) < 3:
         print("Fallo: la salida no tiene suficientes líneas.")
