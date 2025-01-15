@@ -81,7 +81,7 @@ Normalmente se usa una versión como host principal por defecto sin embargo esto
 
 * **CERTBOT**
 
-Permite crear certificados SSL para tus dominios web (host y hosts virtuales) (HTTPS)  
+Permite crear certificados SSL para tus dominios web (host y hosts virtuales) (HTTPS) **Let's Encrypt**  
 Osiris proporciona herramientas específicas para facilitar y automatizar esa tarea.   
 
 
