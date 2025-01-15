@@ -117,12 +117,23 @@ class ResizableRectangle(QMainWindow):
             # Create a unique filename for the screenshot
             image_path = os.path.join(os.getcwd() , "com/tmp", f"{self.generate_filename()}.png")
 
+
+            display = os.environ.get("DISPLAY")
+
+            if display:
+                display = display
+                #print(f"El valor de $DISPLAY es: {display}")
+            else:
+                display=":0"
+                #print("La variable $DISPLAY no está configurada.")
+
+
             # Use ffmpeg to capture the area
             command = [
                 "o2ffmpeg",
                 "-video_size", f"{width}x{height}",
                 "-f", "x11grab",
-                "-i", f":0.0+{x},{y}",
+                "-i", f"{display}.0+{x},{y}",
                 "-frames:v", "1",
                 image_path
             ]

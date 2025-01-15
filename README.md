@@ -42,3 +42,23 @@ Osiris2 es una plataforma versátil y modular diseñada para la integración de 
 Osiris2 es más que una simple herramienta de IA. Es una plataforma versátil y modular que permite a los usuarios construir soluciones personalizadas y adaptadas a sus necesidades específicas. Su flexibilidad, rendimiento y capacidad de expansión la convierten en una opción ideal para aquellos que buscan una solución robusta y adaptable a largo plazo.
 
 
+
+
+
+
+**INSTALACION:** 
+
+* Instalar Osiris es fácil. En la carpeta DEBIAN de este repositorio tienes un archivo .deb, al momento de escribir esto es osiris2.deb si bien podrá haber otros más adelante. Sólo tienes que descargarlo para empezar la instalación. 
+
+* **Ejecuta**  En el directorio que lo descargaste instalalo ejecutando:
+
+*     dpkg -i osiris2.deb
+
+* 
+
+
+
+
+
+
+
