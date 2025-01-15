@@ -1,5 +1,7 @@
 
-**Título:** Osiris2: Una Plataforma Modular para IA y Más Allá
+<h3>OSIRIS2</h3>
+
+**Osiris:** Una Plataforma Modular para IA y Más Allá
 
 **Descripción General:**
 
