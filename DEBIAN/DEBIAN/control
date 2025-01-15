@@ -3,7 +3,8 @@ Version: 1.0
 Architecture: amd64
 Maintainer: TuNombre <tuemail@dominio.com>
 Depends: bash (>= 5.0)
+Conflicts: osiris000
 Replaces: osiris000
-Breaks: osiris000
-Description: Paquete Osiris2
+Provides: osiris000
+Description: Paquete Osiris2.
  Este es un paquete que instala Osiris2 y gestiona conflictos automáticamente.
