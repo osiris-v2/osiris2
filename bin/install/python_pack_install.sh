@@ -76,5 +76,30 @@ fi
 # Confirmar que las dependencias se instalaron
 echo "Dependencias instaladas. Para usar el entorno virtual, ejecute 'source ${VENV_DIR}/bin/activate'."
 
+echo "Instalando dependencias en el sistema"
+
+apt install python3-pillow
+
+echo "moviendo lib cores lib/lib/core"
+
+# Directorios a comprobar
+dir1="/usr/lib/python3/dist-packages"
+dir2=$(python3 -c "import site; print(site.USER_SITE)")
+
+# Comprobar si existe el directorio
+if [ -d "$dir1" ]; then
+    echo "El directorio $dir1 existe."
+    package_dir=$dir1
+else
+    echo "El directorio $dir1 no existe."
+    echo "Usando el directorio del usuario: $dir2"
+    package_dir=$dir2
+fi
+
+echo "Los paquetes se encuentran en: $package_dir"
+
+cp -r ${OSIRIS000_BIN}/lib $package_dir
+
+
 # Finalizar
 echo "Instalación completa."
