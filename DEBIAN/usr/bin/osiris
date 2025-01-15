@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "OSIRIS UBIN"
+
 if [ "$1" = "-pilot" ]; then
 COMANDO="/var/www/osiris000/bin/pilottv"
 else
