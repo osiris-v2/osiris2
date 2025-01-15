@@ -1,7 +1,7 @@
 Package: osiris2
 Version: 1.0
 Architecture: amd64
-Maintainer: TuNombre <tuemail@dominio.com>
+Maintainer: Odev <osiris.osscom@gmail.com>
 Depends: bash (>= 5.0)
 Conflicts: osiris000
 Replaces: osiris000
