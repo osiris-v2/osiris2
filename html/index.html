@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Osiris Index</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="initial-scale=1, maximum-scale=1">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<script src="/lib/js/wfcore3.js?v=1.801"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script type="text/javascript">
+
+loadIfApp({
+firefox : {
+ 	css: '/css/index.css',
+ 	js:"/engines/sources.index.js?d"
+ },
+
+ chrome : {
+ 	css: '/css/index.css',
+ 	js:"/engines/sources.index.js?s1ur3fd1ñklñ"
+ },
+  
+ default: {
+    css: '/css/index.css',
+ 	js:"/engines/sources.index.js?d"
+  }
+}
+)
+
+
+
+wfcore("xbody",{}).parseIni(`
+Main {style:"background:#000000;"}
+>*Nav0 
+>>menuApp {} 
+>>>*a1 {info:"Login"}
+>>>*a3
+>>>*a2 
+>>>*a4 {info:"Directorio"}
+>>>*a5 {info:"miTv"}
+>>>*a6 {info:"datasinfo"}
+>>>*a7 {info:"JSA"}
+>>>*a8 {info:"Artedit"}
+>>>*a9 {info:"Documentación"}
+>>>*a10 {info:"WebIRC"}
+>>*button0
+>>>img_btn0 {TAG:"img",src:"/img/menu-yel.png",style:"width:5vw;height:5vh;top:0px;position:absolute;"}
+>>IAI {TAG:"input", name:"iapn",id:"iap",type:"text",value:" ¿Tienes alguna pregunta ? ",spellcheck:"false"}
+>>IAVQ {TAG:"button",click:"display('IAR');",innerHTML:"ø"}
+>>IAR {info:"IA Response",className:"dispAppIA"}
+>Container {}
+>>MI
+>>>SMODEL {innerHTML:"<b style=''> Modelo </b> ",style:"border-top-right-radius: 20px 15px;background:#a2a2a2;display:block;padding:2px 0px 2px 8px;width:calc(50% - 10px);margin-top:10%;font-size:100%;"}
+>>CS {info:" Center  "}
+>>MB
+>>Inicio {className:"dispApp"}
+>>regInf {info:"Open Info", className:"dispApp"}
+>>Publicar {className:"dispApp"}
+>>Directorio {TAG:"iframe",className:"dispApp",src:"about:blank"}
+>>miTv {TAG:"iframe",className:"dispApp",src:"about:blank"}
+>>datasInfo {TAG:"iframe",className:"dispApp",src:"about:blank"}
+>>JSA {TAG:"iframe",className:"dispApp",src:"about:blank"}
+>>EDITORc21 {TAG:"iframe",className:"dispApp",src:"about:blank"}
+>>DOC {TAG:"iframe",className:"dispApp",src:"about:blank"}
+>>WEBIRC {TAG:"iframe",className:"dispApp",src:"about:blank"}
+Splash 
+
+`);
+
+
+//sources_js.src = "/engines/sources.index.js";
+//document.head.append(sources_js)
+
+
+
+xbody.style=`font-family:arial;margin:0;background:#000000;`
+
+
+a2.className = "lmenu"
+a3.className = "lmenu"
+
+
+//IAR.id = "IAR"
+
+
+Nav0.style=` 
+background:#000000;
+position:fixed;
+height:5vh;
+width:90%;float:right;z-index:665;paggin:0;margin:0;
+`
+button0.style=`height:5vh;top:0px;
+font-size:3vh;margin:0;padding:0;border:0;
+`
+
+
+Container.style=`
+background:#000000;
+position:fixed;height:95vh;
+margin-top:5vh;
+z-index:1;
+`
+
+
+MI.style = `display:block;
+background:#000000;
+ width:20vw;
+height:95vh;
+`
+
+WEBIRC.style = `
+ width: 80%;
+  height: 80%;
+margin:0% 5% 20% 5% ;
+background:#000000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`
+
+
+//button0.innerHTML=`Application`
+button0.onclick = function(){
+
+	alert(`List info`)
+
+}
+
+
+IAI.style = `
+
+padding:0px 2% 0px 1%;
+position:absolute;top:0;margin-left:10vw;width:80vw ;height:4.5vh;
+border:solid 2.3px #05124F;font-size:2vh;font-weight:700;font-family:ubuntu; ;
+`
+
+IAVQ.style = `
+position:absolute;width:5.6%;top:0;height:5vh;
+border:solid 2px #05124F;
+margin-left:calc(90vw + 3%);
+`
+
+
+SMODEL.innerHTML += `
+
+    <form id="miFormulario">
+        <input type="radio" name="opcion" value="text" id="opcion1" checked  onclick="selectModel()">
+        <label for="opcion1">Text</label><br>
+
+        <input type="radio" name="opcion" value="image" id="opcion2"  onclick="selectModel()">
+        <label for="opcion2">Image</label><br>
+
+        <!--button type="button" onclick="selectModel()"></button-->
+    </form>
+
+    <p id="resultado"></p>
+`
+
+        function selectModel() {
+            const opciones = document.querySelectorAll('input[name="opcion"]');
+            let opcionSeleccionada = null;
+
+            opciones.forEach(opcion => {
+                if (opcion.checked) {
+                    opcionSeleccionada = opcion.value;
+                }
+            });
+
+            const resultadoParrafo = document.getElementById('resultado');
+            if (opcionSeleccionada) {
+                resultadoParrafo.textContent = `  Using ${opcionSeleccionada}`;
+            } else {
+                 resultadoParrafo.textContent = 'Ninguna opción seleccionada.';
+            }
+		return opcionSeleccionada
+        }
+
+
+
+
+function paintIAR(){
+
+paint = `
+
+<div style="position:absolute;top:2px;margin:auto 0 auto 0; width:80%;height:20px;padding:3px;">
+<a href="javascript:void(0);" style="font-weight:bold;color:#DA3333;float:right" onclick="IAR.innerHTML=paintIAR()">Limpiar</a>
+<span style="float:right">&nbsp;&nbsp;</span>
+<a href="javascript:void(0);" style="font-weight:bold;color:#DA3333;float:right" onclick="IAR.style.display='none'">Cerrar</a>
+
+</div>
+
+
+`
+
+return paint
+
+}
+
+
+
+IAR.innerHTML = paintIAR()
+
+IAR.style=`
+padding:20px 2% 2% 2%;
+background:rgba(235,235,245,.85);
+position:absolute;z-index:665;
+margin-left:13%;
+width:80%;
+max-height:87vh;
+height:auto;
+display:none;
+overflow:auto;
+resize:both;
+border:solid 2px rgba(0,0,0,.6); justify-content:center; align-items:center;
+`
+
+
+
+menuApp.style = `
+z-index:666;
+display:none;position:fixed;
+width:auto;
+background:rgba(0,0,0,.85);
+color:#efefdc;
+height:100%;
+top:5vh;
+padding:1.4%;
+
+
+`
+
+//menuApp.innerHTML += `<hr>`
+
+
+regInf.info = `ShadowHost Link`
+regInf.style=`
+
+background:green;
+
+`
+
+// shadowHost.attachShadow({ mode: 'open' });
+
+
+//a1.href="javascript:void(0);"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+a2.onclick = function(){
+
+//	Publicar.innerHTML = "Publicar"
+dmenu('Publicar','dispApp')
+
+
+ajax({
+datas:"divid=Publicar&edit=article",
+id:false,
+location:"/engines/jcore.php",
+eval:true,
+handler:"2UNIKH",
+block:true,
+method:"POST"
+})
+
+
+}
+
+
+
+
+
+a2.innerHTML = "Publicar"
+a3.innerHTML = "Publicaciones"
+
+
+
+IAI.addEventListener("keydown", function(event) {
+  if (event.key === "Enter") {
+    // Aquí va el código que se ejecutará al presionar Enter
+ //   alert("Se presionó Enter");
+    // O, para un comportamiento más sofisticado:
+    realizarAccion();
+  }
+});
+
+
+iardiv = undefined;
+
+
+function createADiv(param="0"){
+//alert()
+randn  =  Math.floor(Math.random() * 9999999);
+iardiv = document.createElement("div")
+iardiv.xrand = randn
+iardiv.id = "iar_"+randn
+iardiv.style = "justify-content:center;border-radius:10px;font-weight:bold;border:solid 2px;background:#f1dfee;padding:15px 15px 15px 15px;font-size:16px;font-family:arial;";
+IAR.prepend(iardiv)
+
+
+
+
+if(param == 1){
+
+TTAD = document.createElement("div")
+TTAD.style="width:80%;text-align:right;"
+iardiv.prepend(TTAD)
+TTA = addPanel({TAG:"textarea"})
+TTA.value += IAI.value
+TTA.style="margin-top:10px;font-family:arial;border-radius:10px;border:solid 1px #bdfdcc;width:90%;padding:10px;overflow:auto;resize:vertical;"
+moveTag(TTA,TTAD)
+
+}
+
+
+
+rsdiv = document.createElement("div")
+rsdiv.id = "responsediv_"+randn
+rsdiv.innerHTML = "<b> Esperando Respuesta ... </b>"
+iardiv.prepend(rsdiv)
+
+
+
+
+}
+
+
+
+
+function realizarAccion() {
+  // Aquí puedes colocar el código que deseas ejecutar cuando se presione Enter.
+  // Por ejemplo, enviar los datos del input a un servidor, o realizar una búsqueda.
+
+
+IAI.value = IAI.value.trim()
+
+if(IAI.value==""){return}
+
+
+ajax({
+datas:"action=ask&question="+encodeURIComponent(IAI.value)+"&smodel="+selectModel(),
+method:"POST",
+location:"/engines/iask.php",
+eval:true,
+handler:"ASK_QUESTION",
+block:true,
+method:"POST",
+prejs:'createADiv(1)'
+});
+
+
+
+IAR.style.display = "block"
+
+}
+
+
+
+
+
+
+
+function iaini() {
+  // Aquí puedes colocar el código que deseas ejecutar cuando se presione Enter.
+  // Por ejemplo, enviar los datos del input a un servidor, o realizar una búsqueda.
+date = new Date()
+ajax({
+datas:"action=ask&question="+encodeURIComponent("Mensaje de Conexión cliente. Ha entrado en: "+window.location.hostname+"  -  con URL: "+window.location.href+" Hola Nuevo Cliente Entra a   \n"+date+"\n Saluda al cliente. \n"),
+method:"POST",
+location:"/engines/iask.php",
+eval:true,
+handler:"ASK_QUESTION",
+block:true,
+method:"POST",
+prejs:'createADiv(0)'
+});
+IAR.style.display = "block"
+}
+
+
+
+
+
+function mktparse(id,txt){
+ txt = marked.parse(txt)
+id.innerHTML = txt;
+}
+
+
+
+
+
+onload = function(){
+
+   iaini()
+
+inicio()
+
+Inicio.innerHTML += ` &nbsp; <h1>Últimas publicaciones  <br>  de acceso publico</h1>`
+
+
+selectModel()
+
+
+}
+
+
+
+a3.onclick = function(){
+	inicio()
+
+}
+
+
+
+
+function constmenu(){ return}
+
+
+
+
+
+function inicio(){
+
+     
+
+
+ajax({
+datas:"action=resumen",
+method:"POST",
+location:"/engines/jcore2.php",
+id:"Inicio",
+eval:false,
+handler:"UNIKH",
+block:true,
+method:"POST"
+});
+dmenu('Inicio','dispApp')
+}
+
+
+
+</script>
+</head>
+<body></body></html>

@@ -183,27 +183,23 @@ bin/OPS/ops
 
 
 
-#html
+#html - WWW
 
-#html/index.html
-#html/public.html
+html/index.html
+html/index.php
+html/robots.txt
+html/favicon.ico
 
-
-#js libs
-#html/lib/js/wfcore3.js
-#html/lib/php/aconf.php
-#html/lib/php/lib.php
 html/lib/
 html/img/
 html/engines/
 html/textos/info.txt
 
+#Aplicaciones WEB
 #html/app
 
 html/app/freedirectory/index.php
 html/app/freedirectory/import.php
-
-
 
 html/app/mitv/js/
 html/app/mitv/css/
@@ -217,16 +213,5 @@ html/app/mitv/tv/app.php
 html/app/mitv/tv/default.css
 html/app/mitv/tv/index.php
 html/app/mitv/tv/player2.php
-
-
-
-
-#html/conf2
-
-#clones
-#html/clones/observatoriospublicos.es
-
-
-
 
 #EOF
