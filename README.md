@@ -60,6 +60,14 @@ Suponiendo que el archivo sea osiris2.deb haga:
  Si no existe esa base simplemente la instala nueva e independiente de otras.   
  Por lo tanto se pueden tener distintas versiones, algo así como /var/osiris2 /var/osiris21 /var/osirisXXX  
 
+Al finalizar la descarga de archivos podrás completar la instalación instalando los programas y dependencias necesarias para que osiris funcione correctamente.  
+
+No es un requisito hacerlo desde el instalador ya que una vez descargados los archivos necesarios se puede hacer en cualquier momento.  
+
+Para hacerlo manualmente sitúese sobre el directorio **/var/VERSION**  
+y ejecute  ./osiris  o  ./install.sh  
+
+
 
 
 **Herramientas**
