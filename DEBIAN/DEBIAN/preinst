@@ -213,7 +213,7 @@ if [ -e "${file_path}" ]; then
     echo "--------------------------------------------------------"
     sleep 1.5 
     # Preguntar si está en modo actualización 
-    read -p "¿Desea sobrescribirlo? (s/n): " answer 
+    answer="NO SOBREESCRIBIR - Modo install 0" 
     if [[ "${answer}" =~ ^[Ss]$ ]]; then
       echo "Sobrescribiendo ${dest}..."
       mv -f "${file_path}" "${dest}" || {
