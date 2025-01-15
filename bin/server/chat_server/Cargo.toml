@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+hyper = { version = "0.14", features = ["full"] }
 tokio = { version = "1", features = ["full"] }
 tokio-tungstenite = "0.17"
 futures-util = "0.3"
@@ -15,6 +16,7 @@ env_logger = "0.10"
 [[bin]]
 name = "server"
 path = "src/bin/server.rs"
+
 
 [[bin]]
 name = "client"

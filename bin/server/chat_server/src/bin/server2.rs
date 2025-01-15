@@ -4,16 +4,17 @@ use futures_util::{StreamExt, SinkExt};
 use std::error::Error;
 use log::{info, error, warn}; // Importar la librería de logs
 
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     env_logger::init(); // Inicializar la librería de logs
 
-    let addr = "0.0.0.0:80";  // Dirección y puerto de escucha
+    let addr = "0.0.0.0:80";
     let listener = TcpListener::bind(addr).await?;
     info!("Servidor WebSocket escuchando en {}", addr);
 
     while let Ok((stream, _)) = listener.accept().await {
-        tokio::spawn(handle_connection(stream)); // Procesar cada conexión en un hilo separado
+        tokio::spawn(handle_connection(stream));
     }
 
     Ok(())
@@ -33,25 +34,25 @@ async fn handle_connection(stream: tokio::net::TcpStream) {
                             match handle_command(&text) {
                                 Ok(response) => {
                                     if response.is_empty() {
-                                        continue; // Ignora respuestas vacías
+                                        continue; // Ignora las respuestas vacías
                                     }
                                     if let Err(e) = write.send(Message::Text(response)).await {
                                         error!("Error al enviar respuesta: {}", e);
                                     }
                                 },
-                                Err(e) => {
-                                    error!("Error al procesar el comando: {}", e);
-                                    let _ = write.send(Message::Text(format!("Error del servidor: {}", e))).await;
+                                Err(e) => { // Manejo de errores reales (si handle_command retorna Err)
+                                   error!("Error al procesar el comando: {}", e);
+                                    let _ = write.send(Message::Text(format!("Error del servidor: {}", e))).await; // Ignore send errors here
                                 }
                             }
-                        },
+                        }
                         Message::Binary(_) => {
                             warn!("Mensaje binario recibido (no soportado)");
-                            let _ = write.send(Message::Text("Mensaje binario no soportado".to_string())).await;
-                        },
+                            let _ = write.send(Message::Text("Mensaje binario no soportado".to_string())).await; // Ignore send errors
+                        }
                         _ => {
                             warn!("Tipo de mensaje no soportado");
-                            let _ = write.send(Message::Text("Tipo de mensaje no soportado".to_string())).await;
+                            let _ = write.send(Message::Text("Tipo de mensaje no soportado".to_string())).await; // Ignore send errors
                         }
                     },
                     Err(e) => {
@@ -61,12 +62,11 @@ async fn handle_connection(stream: tokio::net::TcpStream) {
                 }
             }
             info!("Cliente WebSocket desconectado.");
-        },
-        Err(e) => {
-            error!("Error al aceptar la conexión WebSocket: {}", e);
         }
+        Err(e) => error!("Error al aceptar la conexión WebSocket: {}", e),
     }
 }
+
 
 fn handle_command(command: &str) -> Result<String, String> {
     match command {
@@ -76,7 +76,6 @@ fn handle_command(command: &str) -> Result<String, String> {
             "/date - Obtiene la fecha y hora actual.\n/hello - Saludo de bienvenida.\n/help - Muestra esta ayuda.".to_string()
         ),
         "" => Ok("".to_string()),
-        _ => Err(format!("Comando no reconocido: {} 🤔", command)),
+        _ => Err(format!("Comando no reconocido: {} 🤔", command)), // El error se devuelve como un Err
     }
 }
-
