@@ -177,6 +177,16 @@ while IFS= read -r line; do
   file_path="${line}"
   echo "Procesando: ${file_path}"
 
+  if [ -e "${dest}" ]; then
+    echo "---------------------------------------------------------"
+    echo "¡Advertencia:! El archivo o directorio ${dest} ya existe."
+    echo "      USE MODO REINSTALAR PARA SOBREESCRIBIRLOS          "
+    echo " - MODO INSTALL++  → Sólo se instalarán Archivos nuevos  "
+    echo "---------------------------------------------------------"
+  sleep 1
+  continue
+  fi
+
   # Verificar si el archivo existe en el repositorio
   echo "Intentando descargar ${file_path} desde el repositorio base..."
   
