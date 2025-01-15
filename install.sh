@@ -5,9 +5,11 @@ type check_command_installed >/dev/null 2>&1 || . osiris.sh
 # Comprobación de aplicaciones instaladas.
 
 
-check_command_installed  /usr/bin/date && /usr/bin/date -R 
+check_command_installed /usr/bin/date -R 
 
 sleep 4
+
+echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 
 #echo "Esta opción instala  python venv y pip"
 #check_command_installed /usr/bin/python3.9-venv --version
@@ -88,7 +90,8 @@ check_command_installed /usr/bin/certbot
 
 #check_command_installed /usr/bin/tor --version
 
-#check_command_installed /usr/sbin/apache2 -v
+check_command_installed /usr/bin/apache2 -v
+
 check_command_installed /usr/bin/php --version 
 check_command_installed /usr/bin/mariadb 
 #check_command_installed /usr/bin/ffmpeg -version
