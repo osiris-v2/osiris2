@@ -68,6 +68,14 @@ Para hacerlo manualmente sitúese sobre el directorio **/var/VERSION**
 y ejecute para acceder al **Instalador Interno** **./osiris**  o directamente  **./install.sh**  
 
 
+* Se añadió una nueva política de instalación. Los pasos anteriores están enfocados a una instación enfocada al desarrollo (menos estricta).  
+
+* Para instalar una versión más estable y estrica use el instalador [RELEASE](/osiris2release.deb)  
+
+La instalación release sólo usará los archivos listados en [Gitup-Release](/bin/gitup-release.txt)  
+Ese archivo contiene los archivos que ya han sido probados y testados suficientemente para pasarlos a producción.  
+
+La instalación en modo desarrollo puede contener archivos que se encuentren en distintas fases de implementación y podría no ser óptimo para un sistema en producción. Además su instalador en distintos mmentos podría no estar enfocado a la seguridad absoluta.  
 
 
 **Herramientas**
@@ -79,6 +87,9 @@ Además Osiris contiene herramientas para facilitar la gestión si quieres a par
 
 Osiris incorpora todas las herramientas necesarias para su implementación. Es en cierto modo un programa **autobuilding**  
 
+* **DOCKER**
+
+Docker permite ejecutar distintas aplicaciones en contenedores aislados, esto es útil cuando se quieren aislar del resto del sistema y asignarle recursos limitados. Esta funcionalidad es útil para mejorar la estabilidad y rendimiento del sistema en determinadas ocasiones. Esta característica será uno de los ejes principales del desarrollo de **osiris2**  
 
 * **FFMPEG**
 
@@ -93,11 +104,17 @@ Normalmente se usa una versión como host principal por defecto sin embargo esto
 
 * **PHP-FPM**  
 
-* **CERTBOT**
+FastCGI Process Manager. Esta versión de PHP logra por un lado reforzar la seguridad y por otro mejorar el rendimiento de aplicaciones Php. Se trata de separar cada aplicación la una de la otra asignándole un Pool de PhP diferente.
+
+* **NGINX**  
+
+Nginx es la herramienta ideal para trabajar con flujos de streaming HLS debido a su forma de manejar las conexiones, además de otras importantes características, es por ello que compartirá funciones HTTP con el servidor Apache dentro de Osiris, por ejemplo,
+ usando un puerto distinto al 80 para manejar transmisiones HLS corriendo tanto Nginx como Ffmpeg en contenedores Docker.
+
+* **CERTBOT**  
 
 Permite crear certificados SSL para tus dominios web (host y hosts virtuales) (HTTPS) **Let's Encrypt**  
 Osiris proporciona herramientas específicas para facilitar y automatizar esa tarea.   
-
 
 * **MARIADB**  
 
@@ -112,15 +129,11 @@ Además de las composiciones predeterminadas, Osiris permite hacer diferentes co
 Osiris proporciona una herramienta que descarga e instala la útima versión del lenguaje **rust** en el sistema, el compilador **rustc** y el asistente de proyectos **cargo**, además de las propias herramientas que osiris dispone para compilar/re-compilar/ejecutar las fuentes rust que osiris usa, fundamentalmente para herramientas como servidores y clientes.   
 
 
-* **DOCKER**
 
-Docker permite ejecutar distintas aplicaciones en contenedores aislados, esto es útil cuando se quieren aislar del resto del sistema y asignarle recursos limitados. Esta funcionalidad es útil para mejorar la estabilidad y rendimiento del sistema en determinadas ocasiones. Esta característica será uno de los ejes principales del desarrollo de **osiris2**  
-
+* **Este sistema ha sido probado con éxito en gnu/linux debian 12**
 
 
-* **Este sistema ha sido probado con éxito en gnu/linux debian 11 y debian 12**
-
-
+<h4> Todas estas aplicaciones y especificaciones forman parte de osiris o la formarán en futuras versiones.  </h4>
 <h3><u> Este README está en proceso de construcción y no está aún completo </u></h3>
 
 **Modelo dashboard**
