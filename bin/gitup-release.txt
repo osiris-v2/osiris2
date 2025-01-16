@@ -39,15 +39,23 @@ bin/venv.sh
 # Piloto automático para TV
 bin/pilottv
 bin/mkpilot
-#lista archivos a subir a github (este mismo archivo)
+#lista archivos a subir a github (este mismo archivo) (Versión testing+)
 bin/gitup.txt
 # y comando para subirlos ./gitup
 bin/gitup
 
+#Lista de archivos release para instaladores (Versión estable)
+bin/gitup-release.txt
 
 #Directorio Completos en bin
 #Mientras no se definan y expliciten archivos
 #Actualizará los directorios completos a su contenido
+
+
+#ODS  Osiris Dynamic Shell
+
+bin/OPS/ops.c
+bin/OPS/ops
 
 
 #... cliente - servidor (chat_server) rust 
@@ -59,6 +67,8 @@ bin/server/chat_server/Cargo.toml
 bin/server/chat_server/src/bin/client.rs
 bin/server/chat_server/src/bin/server.rs
 
+#Reply servers (P2P) - Net Resources List format
+bin/net/rserver.nrl
 
 #archivos asistentes de instalacion en bin/install
 #descarga, compila e instala ffmpeg
@@ -91,7 +101,8 @@ bin/lib/processstart.py
 bin/lib/osiris/common.py
 bin/lib/gemini/utils.py
 bin/lib/gemini/widgets.py
-
+bin/lib/osiris2/multiprocess.py
+bin/lib/osiris2/__init__.py
 
 #utilidades diversas en bin/scripts
 #bin/scripts/
@@ -126,19 +137,17 @@ bin/tool/memory
 bin/dsk/
 
 #modulos pip inicial - requerimientos globales
-bin/com/osiris_env/pip.requeriments.txt
-
-#Virtual env
-bin/com/osiris_env/lib/python3.9/site-packages/osiris2/multiprocess.py
-bin/com/osiris_env/lib/python3.9/site-packages/osiris2/__init__.py
+bin/com/osiris_env/osiris.pip.requeriments
+bin/com/osiris_env/info.txt
 
 #default password
 #bin/data/auth_pwd
 #data bin
 bin/data/
-#Instalador de aplicaciones
-bin/install/
 
+#Instalador de aplicaciones web (html installer)
+bin/install/www/html/index.html
+bin/install/www/tool/index.html
 
 
 #Archivos Comandos
@@ -147,7 +156,8 @@ bin/install/
 bin/com/shell.py
 bin/com/create.py
 bin/com/cert.py
-bin/com/fdev.py
+bin/com/install.py
+bin/com/fftv.py
 bin/com/hls.py
 bin/com/sniff.py
 bin/com/scanip.py
@@ -164,25 +174,13 @@ bin/com/otvkill
 bin/com/play3/play4.py
 
 
-#para ffmpeg2
+#para fftv
 bin/com/datas/ffmpeg/start.mkv
 bin/com/datas/ffmpeg/carta.mkv
 bin/com/datas/ffmpeg/intro.mp4
 bin/com/datas/ffmpeg/logo.png
 #bin/com/datas/ffmpeg/random/info.txt
 #bin/com/datas/ffmpeg/random/transition/info.txt
-
-
-bin/OPS/ops.c
-bin/OPS/ops
-#bin/com/lib
-
-
-#install default
-
-#install/webapp/default
-#install/sql
-
 
 
 #html - WWW
@@ -203,8 +201,17 @@ html/textos/info.txt
 html/app/freedirectory/index.php
 html/app/freedirectory/import.php
 
-html/app/mitv/js/
-html/app/mitv/css/
+html/app/mitv/js/app.js
+html/app/mitv/js/config.js
+html/app/mitv/js/index.js
+html/app/mitv/js/load.js
+html/app/mitv/js/paneles.js
+html/app/mitv/js/source.js
+html/app/mitv/js/wfcore2.js
+
+html/app/mitv/css/chrome.css
+html/app/mitv/css/firefox.css
+
 html/app/mitv/tv/app.js
 html/app/mitv/tv/build.js
 html/app/mitv/tv/index.js
@@ -217,3 +224,4 @@ html/app/mitv/tv/index.php
 html/app/mitv/tv/player2.php
 
 #EOF
+#RELEASE GENERADO EN 16-01-2025 04.39.00

@@ -201,8 +201,17 @@ html/textos/info.txt
 html/app/freedirectory/index.php
 html/app/freedirectory/import.php
 
-html/app/mitv/js/
-html/app/mitv/css/
+html/app/mitv/js/app.js
+html/app/mitv/js/config.js
+html/app/mitv/js/index.js
+html/app/mitv/js/load.js
+html/app/mitv/js/paneles.js
+html/app/mitv/js/source.js
+html/app/mitv/js/wfcore2.js
+
+html/app/mitv/css/chrome.css
+html/app/mitv/css/firefox.css
+
 html/app/mitv/tv/app.js
 html/app/mitv/tv/build.js
 html/app/mitv/tv/index.js
