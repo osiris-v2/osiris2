@@ -1,5 +1,4 @@
 #!/bin/bash
-source '/etc/environment'
 
 if [ "$(id -u)" -eq 0 ]; then
     echo "El usuario es root. Continuando con el script."
@@ -31,5 +30,5 @@ source install.sh
 SCRIPT_DIR=$(dirname "$(realpath "$0")")
 echo "SDP: ${SCRIPT_DIR}"
 python_osiris_index_file="osiris.py"
-cd $OSIRIS000_BIN
+cd bin
 python3 "$python_osiris_index_file"
