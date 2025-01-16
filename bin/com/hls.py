@@ -1,12 +1,20 @@
-import subprocess
+#import subprocess
 
+
+print("""
+
+Este módulo configurará canales y servicios HLS,
+Para Emitir en directo en un canal use “fdev”
+
+
+""")
 
 def main(args):
     print('Args dentro de hls', args)
-    try:
-        subprocess.call(["python3","com/play3/play3.py"])
-    except Exception as e:
-    	print("Eror:",e)
+#    try:
+#        subprocess.call(["python3","com/play3/play3.py"])
+#    except Exception as e:
+#    	print("Eror:",e)
 
 
 
