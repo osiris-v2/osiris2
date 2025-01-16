@@ -158,7 +158,8 @@ bin/install/www/tool/index.html
 bin/com/shell.py
 bin/com/create.py
 bin/com/cert.py
-bin/com/fdev.py
+bin/com/install.py
+bin/com/fftv.py
 bin/com/hls.py
 bin/com/sniff.py
 bin/com/scanip.py

@@ -33,7 +33,7 @@ def_editor="subl"
 nombre_venv = "osiris_env"
 
 # Comandos válidos
-valid_commands = ["hls", "shell", "blockchain", "desktop", "gemini3", "scanip", "sniff", "config", "fdev", "agenda", "install", "error", "chatgpt"]
+valid_commands = ["hls", "shell", "blockchain", "desktop", "gemini", "scanip", "sniff", "fftv", "install","cert"]
 
 # Diccionario para almacenar información sobre los módulos y sus funciones main
 module_info = {}
