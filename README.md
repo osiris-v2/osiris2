@@ -155,6 +155,13 @@ Puede usar NodeJs para algunos de sus proyectos si lo desea, osiris provee de he
 
 
 
+
+### Modo tmux
+
+ Inicie osiris con múltiples consolas [OSIRIS2TMUX](/DOCS/osiris2tmux.md)
+
+
+
 * **Este sistema ha sido probado con éxito en gnu/linux debian 12**  
 
 
