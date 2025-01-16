@@ -371,7 +371,7 @@ void load_variables_from_file(const char *filename, const char *mode) {
         return;
     }
 
-    if (strcmp(mode, "loadvars-") == 0) {
+    if (strcmp(mode, "load-") == 0) {
         // Eliminar todas las variables
         for (int i = 0; i < cdn_storage.count; i++) {
             free(cdn_storage.vars[i].name);
@@ -391,7 +391,7 @@ void load_variables_from_file(const char *filename, const char *mode) {
             int found = 0;
             for (int i = 0; i < cdn_storage.count; i++) {
                 if (strcmp(cdn_storage.vars[i].name, name) == 0) {
-                    if (strcmp(mode, "loadvars++") == 0) {
+                    if (strcmp(mode, "load++") == 0) {
                         free(cdn_storage.vars[i].value);
                         cdn_storage.vars[i].value = strdup(value);
                     }
@@ -502,16 +502,16 @@ void execute_command(char **args) {
         return;
     }
 
-    if (strcmp(args[0], "savevars") == 0) {
+    if (strcmp(args[0], "save") == 0) {
         if (args[1] != NULL) {
             save_variables_to_file(args[1]);
         } else {
-            printf("Usage: savevars <filename>\n");
+            printf("Usage: save <filename>\n");
         }
         return;
     }
 
-    if (strcmp(args[0], "loadvars+") == 0 || strcmp(args[0], "loadvars++") == 0 || strcmp(args[0], "loadvars-") == 0) {
+    if (strcmp(args[0], "load+") == 0 || strcmp(args[0], "load++") == 0 || strcmp(args[0], "load-") == 0) {
         if (args[1] != NULL) {
             load_variables_from_file(args[1], args[0]);
         } else {

@@ -234,5 +234,7 @@ osiris2release.deb
 #Archivos tmp release
 bin/com/tmp/zj91enedg3.png
 
+#Generado con la consola C  > ods>>
+bin/com.vars
 
 #EOF
