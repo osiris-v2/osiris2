@@ -141,10 +141,9 @@ bin/dsk/
 bin/com/osiris_env/osiris.pip.requeriments
 bin/com/osiris_env/info.txt
 
-#default password
-#bin/data/auth_pwd
-#data bin
-bin/data/
+#default password is “osiris”
+bin/data/auth_pwd
+#bin/data/command_history.pkl (disabled upload history)
 
 #Instalador de aplicaciones web (html installer)
 bin/install/www/html/index.html
