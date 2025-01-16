@@ -1,2 +1,4 @@
 
-Aquí se instalarán las dependencias para el entorno virtual de este paquete y programas dedicados. Para hacerlo use el instalador interno de osiris.
+Aquí se instalarán las dependencias para el entorno virtual de este paquete y programas dedicados.
+
+Para hacerlo use el instalador interno de osiris.
