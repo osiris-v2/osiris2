@@ -74,6 +74,12 @@ y ejecute para acceder al **Instalador Interno** **./osiris**  o directamente  *
 
 * **GIT**
 
+El instalador .deb de **osiris** usa GIT para descargar, instalar y actualizar el programa. 
+Además Osiris contiene herramientas para facilitar la gestión si quieres a partir de osiris crear distintas versiones personalizadas y publicarlas en tus sitios de Github.  
+
+Osiris incorpora todas las herramientas necesarias para su implementación. Es en cierto modo un programa **autobuilding**  
+
+
 * **FFMPEG**
 
 Osiris proporciona herramientas para descargar diferentes versiones de ffmpeg y compilarlas automáticamente para cada versión instalada de osiris independientes unas de otras ya que las compila en el directorio /var/VERSION/bin/com/osiris_env/ffmpeg.  
