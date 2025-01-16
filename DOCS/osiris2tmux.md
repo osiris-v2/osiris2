@@ -1,9 +1,9 @@
 
 ## osiris2tmux
 
-###**Organización y gestión de terminales:**
+### **Organización y gestión de terminales:**
 
-####Características (Inferencia AI):
+#### Características (Inferencia AI):
 
 *   **Múltiples Paneles:** `osiris2tmux` permite dividir la terminal en múltiples paneles, lo que facilita la realización de varias tareas simultáneamente y el monitoreo de diferentes procesos en un único espacio. Esto se puede ver en la captura donde hay varios paneles abiertos.
 *   **Contextos de Trabajo:** Los paneles parecen estar enfocados en diferentes tareas (ej: interacción con servidor, ejecución de comandos, gestión de código), lo cual contribuye a un flujo de trabajo organizado y evita la mezcla de información.
