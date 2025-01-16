@@ -128,6 +128,19 @@ Osiris dispone de herramientas para descargar y actualizar **tmux**
 Tmux es un multiplexor de terminal que permite utilizar varias aplicaciones de forma simultánea.  
 Además de las composiciones predeterminadas, Osiris permite hacer diferentes composiciones diseñadas por el usuario según sus necesidades, usando las herramientes que osiris proporciona para ello.  
 
+
+* **PYTHON**
+
+Python es ideal para aplicaciones cuyo rendimiento no es crítico y aplicaciones gráficas asistentes, y provee de una gran cantidad de librerías que facilitan sus implementaciones.  
+
+Los comando de la consola osiris son implementaciones en este lenguaje principalmente.  
+
+Revise la guía sobre como crear comandos y sus requisitos [En Esta Guía](/DOCS/com.create.md)   
+
+Osiris dispone de un entorno virtual independiente al resto del sistema.  
+
+Si tiene más de un proyecto osiris en el sistema, cada uno de ellos provee de su entorno virtual independiente de manera automática.  
+
 * **RUST**  
 
 Osiris proporciona una herramienta que descarga e instala la útima versión del lenguaje **rust** en el sistema, el compilador **rustc** y el asistente de proyectos **cargo**, además de las propias herramientas que osiris dispone para compilar/re-compilar/ejecutar las fuentes rust que osiris usa, fundamentalmente para herramientas como servidores y clientes.   
