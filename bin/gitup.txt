@@ -67,6 +67,8 @@ bin/server/chat_server/Cargo.toml
 bin/server/chat_server/src/bin/client.rs
 bin/server/chat_server/src/bin/server.rs
 
+#Reply servers (P2P) - Net Resources List format
+bin/net/rserver.nrl
 
 #archivos asistentes de instalacion en bin/install
 #descarga, compila e instala ffmpeg
