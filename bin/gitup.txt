@@ -232,7 +232,7 @@ html/app/mitv/tv/player2.php
 osiris2release.deb
 
 #Archivos tmp release
-/var/osiris2/bin/com/tmp/zj91enedg3.png
+bin/com/tmp/zj91enedg3.png
 
 
 #EOF
