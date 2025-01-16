@@ -22,3 +22,10 @@
 
 En resumen, `osiris2tmux` es una herramienta potente para gestionar múltiples tareas en terminal, organizar procesos y facilita la interacción con un sistema o servidor, todo dentro de un ambiente persistente.
 
+
+![Osiris2Tmux1](/bin/com/tmp/zj91enedg3.png)
+
+
+
+
+
