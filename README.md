@@ -174,7 +174,7 @@ Puede usar NodeJs para algunos de sus proyectos si lo desea, osiris provee de he
 **Modelo dashboard**  
 !["Imagen Osiris Final"](https://www.compostela21.com/videojs/elementos/_0_NIM/9yjEUNRxHE.png)
 
-**Contacto:**  **osiris.osscom@gmail.com**  
+**--**  **osiris.osscom@gmail.com**  
 
 
 
