@@ -152,7 +152,7 @@ Osiris proporciona una herramienta que descarga e instala la útima versión del
 
 * **NODEJS** 
 
-Puede usar NodeJs para algunos de sus proyectos si lo desea, osiris provee de heramientas para su instalación y uso.  
+Puedes usar NodeJs para algunos de sus proyectos si lo deseas, osiris provee de heramientas para su instalación y uso.  
 
 
 
