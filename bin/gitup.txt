@@ -199,6 +199,9 @@ html/textos/info.txt
 #Aplicaciones WEB
 #html/app
 
+html/app/widgets/hlstv.html
+html/app/widgets/webirc.html
+
 html/app/freedirectory/index.php
 html/app/freedirectory/import.php
 
