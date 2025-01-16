@@ -137,8 +137,8 @@ bin/tool/memory
 bin/dsk/
 
 #modulos pip inicial - requerimientos globales
-bin/com/osiris_env/pip.requeriments.txt
-
+bin/com/osiris_env/osiris.pip.requeriments
+bin/com/osiris_env/info.txt
 
 #default password
 #bin/data/auth_pwd
