@@ -89,6 +89,7 @@ bin/install/terminator_uninstall.sh
 bin/install/tmux_install.sh
 bin/install/tmux_uninstall.sh
 bin/install/osiris_env_sys_vars.sh
+bin/install/python_pack_install.sh
 
 #Directorio con archivos de ayuda de comandos
 bin/help/
