@@ -128,6 +128,11 @@ Osiris dispone de herramientas para descargar y actualizar **tmux**
 Tmux es un multiplexor de terminal que permite utilizar varias aplicaciones de forma simultánea.  
 Además de las composiciones predeterminadas, Osiris permite hacer diferentes composiciones diseñadas por el usuario según sus necesidades, usando las herramientes que osiris proporciona para ello.  
 
+* **TERMINATOR**  
+
+Terminator es un emulador de terminal vitaminizado que te permite potenciar la clásica terminal con muchísimas opciones. Terminator nos permitirá sacarle más jugo a nuestra terminal linux y facilitarnos algunas tareas.  
+
+Terminator integrado con tmux ofrece una amplia gama de posibilidades  
 
 * **PYTHON**
 
