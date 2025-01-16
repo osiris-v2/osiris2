@@ -77,6 +77,7 @@ Ese archivo contiene los archivos que ya han sido probados y testados suficiente
 
 La instalación en modo desarrollo puede contener archivos que se encuentren en distintas fases de implementación y podría no ser óptimo para un sistema en producción. Además su instalador en distintos mmentos podría no estar enfocado a la seguridad absoluta.  
 
+En el futuro habrá distintas orientaciones y opciones de instalación y actualización basándose en archivos de listados. Podrá usar instaladores dedicados o seleccionarlas en el previsto instalador general.  
 
 **Herramientas**
 
