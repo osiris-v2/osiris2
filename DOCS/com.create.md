@@ -9,7 +9,7 @@ Este manual describe el proceso para crear comandos personalizados para Osiris. 
 **Requisitos:**
 
 1.  **Conocimientos básicos de Python:** Debes tener conocimientos sobre sintaxis, funciones y manejo de variables en Python.
-2.  **Entorno de desarrollo Osiris:** Debes tener acceso al sistema de archivos de Osiris (directorio `osiris/`).
+2.  **Entorno de desarrollo Osiris:** Debes tener acceso al sistema de archivos de Osiris (directorio `/var/osiris/`).
 3.  **Uso de `create`:** Es necesario saber cómo utilizar el comando `create` de Osiris.
 
 **Estructura Básica de un Comando:**
@@ -81,7 +81,8 @@ Para usarlo:
 1.  Crea el archivo con `create mycommand --create`.
 2.  Edita el archivo con el contenido del código de arriba.
 3.  Ejecuta `use mycommand` para establecerlo como comando en uso.
-4.  Escribe  `arg1 arg2 arg3` y se imprimirá la salida del comando.
+4.  Ejecuta `mount mycommand` para montarlo como comando en uso si no está en la lista `use`.
+5.  Escribe  `arg1 arg2 arg3` y se imprimirá la salida del comando.
 
 **Aspectos a Considerar:**
 
