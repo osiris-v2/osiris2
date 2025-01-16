@@ -52,6 +52,12 @@ bin/gitup-release.txt
 #Actualizará los directorios completos a su contenido
 
 
+#ODS  Osiris Dynamic Shell
+
+bin/OPS/ops.c
+bin/OPS/ops
+
+
 #... cliente - servidor (chat_server) rust 
 #una vez instalado rust 
 # compilarlo con bin/scripts/server.build o server.rls
@@ -174,17 +180,6 @@ bin/com/datas/ffmpeg/intro.mp4
 bin/com/datas/ffmpeg/logo.png
 #bin/com/datas/ffmpeg/random/info.txt
 #bin/com/datas/ffmpeg/random/transition/info.txt
-
-
-bin/OPS/ops.c
-bin/OPS/ops
-#bin/com/lib
-
-
-#install default
-
-#install/webapp/default
-#install/sql
 
 
 #html - WWW
