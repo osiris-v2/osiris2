@@ -119,16 +119,21 @@ Osiris proporciona herramientas específicas para facilitar y automatizar esa ta
 
 * **MARIADB**  
 
+Maria-DB es el gestor de bases de datos Libre derivado de MYSQL. Es un servidor de bases de datos  potente, flexible y de alto rendimiento.  
+
 * **TMUX**  
 
 Osiris dispone de herramientas para descargar y actualizar **tmux**  
 Tmux es un multiplexor de terminal que permite utilizar varias aplicaciones de forma simultánea.  
 Además de las composiciones predeterminadas, Osiris permite hacer diferentes composiciones diseñadas por el usuario según sus necesidades, usando las herramientes que osiris proporciona para ello.  
 
-* **RUST**
+* **RUST**  
 
 Osiris proporciona una herramienta que descarga e instala la útima versión del lenguaje **rust** en el sistema, el compilador **rustc** y el asistente de proyectos **cargo**, además de las propias herramientas que osiris dispone para compilar/re-compilar/ejecutar las fuentes rust que osiris usa, fundamentalmente para herramientas como servidores y clientes.   
 
+* **NODEJS** 
+
+Puede usar NodeJs para algunos de sus proyectos si lo desea, osiris provee de heramientas para su instalación y uso.  
 
 
 * **Este sistema ha sido probado con éxito en gnu/linux debian 12**
@@ -139,9 +144,6 @@ Osiris proporciona una herramienta que descarga e instala la útima versión del
 
 **Modelo dashboard**
 !["Imagen Osiris Final"](https://www.compostela21.com/videojs/elementos/_0_NIM/9yjEUNRxHE.png)
-
-
-
 
 * **osiris.osscom@gmail.com**
 
