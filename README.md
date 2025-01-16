@@ -137,12 +137,18 @@ Osiris proporciona una herramienta que descarga e instala la útima versión del
 Puede usar NodeJs para algunos de sus proyectos si lo desea, osiris provee de heramientas para su instalación y uso.  
 
 
+
+<h3><u> Este README está en proceso de construcción y no está aún completo </u></h3>  
+
+
+
 * **Este sistema ha sido probado con éxito en gnu/linux debian 12**  
 
 
 <h4> Todas las aplicaciones, especificaciones y funcionalidades descritas forman parte de osiris o la formarán en un futuro.  </h4>  
 
-<h3><u> Este README está en proceso de construcción y no está aún completo </u></h3>  
+
+
 
 **Modelo dashboard**  
 !["Imagen Osiris Final"](https://www.compostela21.com/videojs/elementos/_0_NIM/9yjEUNRxHE.png)
