@@ -225,7 +225,7 @@ html/app/mitv/tv/player2.php
 
 
 ##RELEASE GENERADO EN 16-01-2025 04.39.00
-osiris2deb
+osiris2release.deb
 
 
 #EOF
