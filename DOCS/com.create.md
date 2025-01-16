@@ -80,8 +80,8 @@ Para usarlo:
 
 1.  Crea el archivo con `create mycommand --create`.
 2.  Ejecuta `use mycommand` para establecerlo como comando en uso.
-4.  Use `mount mycommand` para montarlo si no está en lista `use`   
-    que es lo habitual al crear un comando nuevo.
+4.  Vuelva a inicio con `use` y haga `mount mycommand` para montarlo si no está en lista `use`   
+    que es lo habitual en un comando nuevo.
 3.  Edita el archivo con el contenido del código de arriba.
     Puedes editarlo directamente, primero montándolo  
     y despues ejecutando `--edit` en la consola  
