@@ -1631,6 +1631,7 @@ def main(args):
             #Abre una ventana de dialogo para enviar una pregunta al modelo de IA seleccionado
             dtext = win.dialog_window()
             if dtext != "":
+                dtext = str(dtext)
                 print(" → ",dtext)
                 response_text = generate_response(dtext)
                 print(" → ",response_text)

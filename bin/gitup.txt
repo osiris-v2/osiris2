@@ -138,8 +138,9 @@ bin/com/osiris_env/lib/python3.9/site-packages/osiris2/__init__.py
 #bin/data/auth_pwd
 #data bin
 bin/data/
-#Instalador de aplicaciones
-bin/install/
+
+#Instalador de aplicaciones web (html installer)
+bin/install/html/index.html
 
 
 
