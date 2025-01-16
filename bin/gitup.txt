@@ -140,8 +140,8 @@ bin/com/osiris_env/lib/python3.9/site-packages/osiris2/__init__.py
 bin/data/
 
 #Instalador de aplicaciones web (html installer)
-bin/install/html/index.html
-
+bin/install/www/html/index.html
+bin/install/www/tool/index.html
 
 
 #Archivos Comandos
