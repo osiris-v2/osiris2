@@ -79,10 +79,13 @@ if __name__ == "__main__":
 Para usarlo:
 
 1.  Crea el archivo con `create mycommand --create`.
-2.  Edita el archivo con el contenido del código de arriba.
-3.  Ejecuta `use mycommand` para establecerlo como comando en uso.
-4.  Ejecuta `mount mycommand` para montarlo como comando en uso si no está en la lista `use`.
-5.  Escribe  `arg1 arg2 arg3` y se imprimirá la salida del comando.
+2.  Ejecuta `use mycommand` para establecerlo como comando en uso.
+4.  Use `mount mycommand` para montarlo si no está en lista `use`   
+    que es lo habitual al crear un comando nuevo.
+3.  Edita el archivo con el contenido del código de arriba.
+    Puedes editarlo directamente, primero montándolo  
+    y despues ejecutando `--edit` en la consola  
+4.  Escribe  `arg1 arg2 arg3` y se imprimirá la salida del comando.
 
 **Aspectos a Considerar:**
 
@@ -121,7 +124,7 @@ if __name__ == "__main__":
 Para usarlo:
 
 1.  Crea el archivo con `create dialog_test --create`.
-2.  Edita el archivo con el contenido del código de arriba.
+2.  Edita el archivo con el contenido del código de arriba.  
 3.  Ejecuta `use dialog_test`.
 4.  Escribe lo que sea y se mostrará por pantalla en la terminal.
 
