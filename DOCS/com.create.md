@@ -1,4 +1,4 @@
-<h3> Crear comandos para la consola Osiris </h3>
+# Crear comandos para la consola Osiris </h3>
 
 Manual detallado sobre cómo crear comandos para Osiris, incluyendo los requisitos, la estructura del código y ejemplos. Este manual se centrará en la creación de comandos utilizando `create.py`, y abordará aspectos prácticos para el desarrollo de comandos funcionales dentro del sistema Osiris.
 
