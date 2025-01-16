@@ -53,7 +53,7 @@ Suponiendo que el archivo sea osiris2.deb haga:
 
 *    **sudo dpkg -i osiris2.deb**
 
- El instalador actúa instalando los archivos bajo el directorio /var  
+ El instalador actúa instalando los archivos en el directorio /var  
  El instalador provee de un nombre base para instalar el programa /var/VERSION por defecto.  
  El instalador pide al inicio un nombre base por si se quiere crear una nueva base o actualizar una existente.  
  Si existe la base proporcionada el instalador puede actuar de distintas formas (Actualizar, Reinstalar,...) en función a sus estados de instalación anteriores.  
@@ -75,7 +75,7 @@ y ejecute para acceder al **Instalador Interno** **./osiris**  o directamente  *
 La instalación release sólo usará los archivos listados en [Gitup-Release](/bin/gitup-release.txt)  
 Ese archivo contiene los archivos que ya han sido probados y testados suficientemente para pasarlos a producción.  
 
-La instalación en modo desarrollo puede contener archivos que se encuentren en distintas fases de implementación y podría no ser óptimo para un sistema en producción. Además su instalador en distintos mmentos podría no estar enfocado a la seguridad absoluta.  
+La instalación en modo desarrollo puede contener archivos que se encuentren en distintas fases de implementación y podría no ser óptimo para un sistema en producción. Además su instalador en distintos momentos podría no estar enfocado a la seguridad absoluta.  
 
 En el futuro habrá distintas orientaciones y opciones de instalación y actualización basándose en archivos de listados. Podrá usar instaladores dedicados o seleccionarlas en el previsto instalador general.  
 
@@ -86,7 +86,8 @@ En el futuro habrá distintas orientaciones y opciones de instalación y actuali
 El instalador .deb de **osiris** usa GIT para descargar, instalar y actualizar el programa. 
 Además Osiris contiene herramientas para facilitar la gestión si quieres a partir de osiris crear distintas versiones personalizadas y publicarlas en tus sitios de Github.  
 
-Osiris incorpora todas las herramientas necesarias para su implementación. Es en cierto modo un programa **autobuilding**  
+Osiris incorpora todas las herramientas necesarias para su implementación.  
+Osiris está diseñado con un enfoque  **autobuilding**  
 
 * **DOCKER**
 
