@@ -101,7 +101,8 @@ bin/lib/processstart.py
 bin/lib/osiris/common.py
 bin/lib/gemini/utils.py
 bin/lib/gemini/widgets.py
-
+bin/lib/osiris2/multiprocess.py
+bin/lib/osiris2/__init__.py
 
 #utilidades diversas en bin/scripts
 #bin/scripts/
@@ -138,9 +139,6 @@ bin/dsk/
 #modulos pip inicial - requerimientos globales
 bin/com/osiris_env/pip.requeriments.txt
 
-#Virtual env
-bin/com/osiris_env/lib/python3.9/site-packages/osiris2/multiprocess.py
-bin/com/osiris_env/lib/python3.9/site-packages/osiris2/__init__.py
 
 #default password
 #bin/data/auth_pwd
