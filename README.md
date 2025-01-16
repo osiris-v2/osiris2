@@ -130,7 +130,7 @@ Además de las composiciones predeterminadas, Osiris permite hacer diferentes co
 
 * **TERMINATOR**  
 
-Terminator es un emulador de terminal vitaminizado que te permite potenciar la clásica terminal con muchísimas opciones. Terminator nos permitirá sacarle más jugo a nuestra terminal linux y facilitarnos algunas tareas.  
+Terminator es un emulador de terminal vitaminizado que permite potenciar la clásica terminal con muchísimas opciones. Terminator nos permite sacarle más jugo a nuestra terminal y facilitarnos algunas tareas.  
 
 Terminator integrado con tmux ofrece una amplia gama de posibilidades  
 
