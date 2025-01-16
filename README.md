@@ -68,7 +68,7 @@ Para hacerlo manualmente sitúese sobre el directorio **/var/VERSION**
 y ejecute para acceder al **Instalador Interno** **./osiris**  o directamente  **./install.sh**  
 
 
-* Se añadió una nueva política de instalación. Los pasos anteriores están enfocados a una instación enfocada al desarrollo (menos estricta).  
+**Se añadió una nueva política de instalación.** Los pasos anteriores están enfocados a una instación enfocada al desarrollo (menos estricta).  
 
 * Para instalar una versión más estable y estrica use el instalador [RELEASE](/osiris2release.deb)  
 
