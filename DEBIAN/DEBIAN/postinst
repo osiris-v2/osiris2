@@ -6,8 +6,12 @@ set -e
 #  echo "El archivo /usr/bin/osiris000 ya existe. Ignorándolo."
 #fi
 
+
 echo "Post Install File"
+
+
 echo "END OF INSTALLER"
+
 
 exit 0
 

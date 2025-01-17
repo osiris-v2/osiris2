@@ -285,3 +285,17 @@ fi
 echo "Resumen de la instalación:"
 cat "${install_log}"
 
+
+echo "¿Deseas iniciar osiris ahora? (s/n)"
+read -p "Tu elección: " choice
+
+if [[ "$choice" == "s" || "$choice" == "S" ]]; then
+    echo "Ejecutando el script..."
+    # Aquí llamas a tu script o comando
+    
+    ./${base}/bin/osiris
+else
+    echo "Saliendo del instalador."
+    exit 0
+fi
+

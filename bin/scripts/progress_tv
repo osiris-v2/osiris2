@@ -1,10 +1,13 @@
 #!/bin/bash
-
-FILE="${OSIRIS000_BIN}/com/datas/ffmpeg/progress_process.txt"
+source '/etc/environment'
+FILE="${OSIRIS000_BIN}/com/datas/ffmpeg/progress_tv.txt"
 >$FILE
-echo "Progress TV" > $FILE
+chmod 0777 $FILE
+echo "PROGRESS TV" > $FILE 
 while true; do
+echo "PROGRESS TV"
 clear
-reset
+echo "PROGRESS TV"
+sleep 0.5
 tail -n 10 -f $FILE
 done
