@@ -3,14 +3,17 @@ name = "rust_user_input"
 version = "0.1.0"
 edition = "2021"
 
+
 [dependencies]
 hyper = { version = "0.14", features = ["full"] }
 tokio = { version = "1", features = ["full"] }
 tokio-tungstenite = "0.17"
 futures-util = "0.3"
-chrono = "0.4"  # Añade esta línea para la biblioteca chrono
-log = "0.4"
+chrono = "0.4"
 env_logger = "0.10"
+log = "0.4"
+uuid = { version = "1", features = ["v4"] }
+
 
 
 [[bin]]
