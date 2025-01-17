@@ -43,7 +43,7 @@ if [ -f /tmp/osiris2_install_vars ]; then
            echo "Ejecute: .${BASE_ARCHIVO}                       "                
            echo "  Para lanzar el instalador interno de osiris   "
            echo "################################################"
-           ./osiris.inst 
+           ./osiris.inst "--from-deb"
            disown
            exit 0
         else
