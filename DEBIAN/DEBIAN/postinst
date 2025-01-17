@@ -33,16 +33,17 @@ if [ -f /tmp/osiris2_install_vars ]; then
             echo "Entrando en osiris"
             echo "Directorio actual: $PWD"
 
+
+           cd  $base || exit 1  # Cambiar al directorio bin, saliendo si falla
+           chmod +x $BASE_ARCHIVO
+           chmod 0777 $BASE_ARCHIVO
             cd $base
             ls -m
-          #  cd  || exit 1  # Cambiar al directorio bin, saliendo si falla
-           chmod +x $BASE_ARCHIVO
            echo "################################################"
            echo "Ejecute: .${BASE_ARCHIVO}                       "                
            echo "  Para lanzar el instalador interno de osiris   "
            echo "################################################"
-           cd $base
-           . ./osiris.inst 
+           ./osiris.inst 
            disown
            exit 0
         else
