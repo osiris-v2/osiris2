@@ -38,6 +38,7 @@ MODE="UPDATE"
     echo "##################################################################"
     echo " INSTALANDO DE BASE:  ${gitinstfn}                                " 
     echo "  COMO: $x_bind                                                   "
+    echo " Fuente: ${repo_url}                                              "
     echo "##################################################################"
 
 # Comprobar si existen los archivos de instalaciones anteriores
