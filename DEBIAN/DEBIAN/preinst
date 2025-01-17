@@ -26,6 +26,9 @@ temp_gitup="${base}/tmp_gitup"
 ok_file="${base}/inst.ok"
 error_file="${base}/inst.error"
 
+
+FORCEUPGRADEMODE="False"
+
 #ls $base
 
     echo "##################################################################"
@@ -98,8 +101,8 @@ while true; do
             exec "$0" "$@"  # Reejecutar el script
             ;;
         4)
-            read -p "Opción aún no disponible. Pulse enter para seleccionar opción ..."  UPGRADEMODE
-
+            read -p "Continuar con el Mode Force Upgrade  ..."  UPGRADEMODE
+            FORCEUPGRADEMODE="True"
             ;;
         *)
             echo "Opción no válida. Por favor, seleccione una opción entre 1 y 3."
@@ -194,13 +197,30 @@ while IFS= read -r line; do
   echo "Procesando: ${file_path}"
   dest="${base}/${file_path}"
   if [ -e "${dest}" ]; then
+  
+    if [[ $FORCEUPGRADEMODE == "True" ]]; then
+
+    echo "-------------------------------------------------------------"
+    echo "¡Advertencia:! El archivo o directorio ${dest} ya existe.    "
+    echo "      ESTA USANDO EL MODO REINSTALL                          "
+    echo " - MODO FORCEUPGRADE                                         "
+    echo " → Se reescribirán los archivos a la última versión estable  "
+    echo "-------------------------------------------------------------"
+      
+    else  
+    
     echo "---------------------------------------------------------"
     echo "¡Advertencia:! El archivo o directorio ${dest} ya existe."
     echo "      USE MODO REINSTALAR PARA SOBREESCRIBIRLOS          "
     echo " - MODO INSTALL++  → Sólo se instalarán Archivos nuevos  "
     echo "---------------------------------------------------------"
+  
+   fi
+  
   sleep 0.1
   continue
+  
+   
   fi
 
   # Verificar si el archivo existe en el repositorio
