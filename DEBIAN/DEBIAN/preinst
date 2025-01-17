@@ -101,6 +101,9 @@ while true; do
             exec "$0" "$@"  # Reejecutar el script
             ;;
         4)
+            echo " Modo Upgrade Activado  "
+            echo " Pulse ENTER y Seleccione 1 (continuar con la instalación) "
+            echo " Para actualizar Versión: ${x} "
             read -p "Continuar con el Mode Force Upgrade  ..."  UPGRADEMODE
             FORCEUPGRADEMODE="True"
             ;;
@@ -258,14 +261,16 @@ while IFS= read -r line; do
       echo "Sobrescribiendo ${dest}..."
     echo 
     echo " #####$$$$$$######"
-      cp -f "${file_path}" "${dest}" || {
+      cp "${file_path}" "${dest}" || {
         echo "Error: No se pudo sobrescribir ${file_path} a ${dest}" | tee -a "${install_log}"
         echo '{"status": "error", "message": "Error al mover archivo"}' > "${error_file}"
         # exit 1
       }
       echo "Archivo sobrescrito: ${file_path}" | tee -a "${install_log}"
+      continue
     else
       echo "No se sobrescribió ${dest}. Continuando con la instalación."
+      continue
     fi
 
 
