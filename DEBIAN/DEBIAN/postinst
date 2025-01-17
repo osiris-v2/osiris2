@@ -39,7 +39,9 @@ if [ -f /tmp/osiris2_install_vars ]; then
            chmod +x $BASE_ARCHIVO
            echo "Ejecute: .${BASE_ARCHIVO} : Para lanzar el instalador interno de osiris "
            export DISPLAY=:0
-           cd $base && gnome-terminal -- bash -c "./osiris.inst; exec bash" 
+           cd $base
+           xterm
+           gnome-terminal -- bash -c "./osiris.inst; exec bash" 
            disown
            exit 0
         else
