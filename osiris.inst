@@ -23,6 +23,10 @@ echo "Finalice el instalador general y Ejecute: ./osiris.inst"
 
 read -p  "FINALIZAR INSTALADOR GENERAL"  EXITP
 
+echo "KILLING $2 "
+
+kill -9 $2
+
 exit 0
 
 fi
