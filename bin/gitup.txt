@@ -26,6 +26,7 @@ index.php
 
 #Archivos Osiris
 #directorio bin
+bin/osiris.inst
 bin/osiris.py
 bin/auth.py
 bin/cnf.py

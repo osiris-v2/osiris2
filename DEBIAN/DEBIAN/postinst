@@ -2,29 +2,20 @@
 
 set -e
 
-#if [ -f /usr/bin/osiris000 ]; then
-#  echo "El archivo /usr/bin/osiris000 ya existe. Ignorándolo."
-#fi
-
-
 echo "Post Install File"
-
-
-
-cat /tmp/osiris2_install_vars 
 
 # Verificar si el archivo temporal existe
 if [ -f /tmp/osiris2_install_vars ]; then
     echo "Leyendo Mensaje Preinstall ..."
     
-    # Leer el contenido del archivo
-    VARIABLE_RECIBIDA=$(sed -n '1p' /tmp/osiris2_install_vars)
+    # Leer la primera y segunda línea
+    IFS=$'\n' read -d '' -r -a lines < /tmp/osiris2_install_vars
 
     # Verificar si la primera línea es "EXEC"
-    if [[ $VARIABLE_RECIBIDA == "EXEC" ]]; then
+    if [[ ${lines[0]} == "EXEC" ]]; then
         
-        # Leer la segunda línea para obtener el archivo a ejecutar
-        BASE_ARCHIVO=$(sed -n '2p' /tmp/osiris2_install_vars)
+        # Obtener el archivo de la segunda línea
+        BASE_ARCHIVO=${lines[1]}
 
         # Verificar si la base del archivo no está vacía y si el archivo existe
         if [[ -n "$BASE_ARCHIVO" && -f "$BASE_ARCHIVO" ]]; then
@@ -35,8 +26,8 @@ if [ -f /tmp/osiris2_install_vars ]; then
 
             cd . || exit 1  # Cambiar al directorio bin, saliendo si falla
             echo "Ejecutando archivo: $BASE_ARCHIVO"
-            ./$BASE_ARCHIVO  # Ejecutar el archivo especificado
-
+            cd $BASE_ARCHIVO  # Ejecutar el archivo especificado
+            ./osiris.inst
         else
             echo "El archivo especificado en la segunda línea no existe o está vacío."
         fi
@@ -52,22 +43,5 @@ fi
 
 echo "END OF INSTALLER"
 
-
-
-
-
-
-
-
-
-
-
-
-
-echo "END OF INSTALLER"
-
-
 exit 0
-
-
 
