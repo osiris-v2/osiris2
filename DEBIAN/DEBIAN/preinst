@@ -78,6 +78,7 @@ while true; do
     echo "1) Continuar con la instalación"
     echo "2) Salir de la instalación "
     echo "3) Reiniciar el instalador"
+    echo "4) REINSTALAR - UPGRADE"
 
     # Leer la respuesta del usuario
     read -p "Ingrese el número de la opción deseada: " resp
@@ -95,6 +96,10 @@ while true; do
         3)
             echo "Reiniciando el script..."
             exec "$0" "$@"  # Reejecutar el script
+            ;;
+        4)
+            read -p "Opción aún no disponible. Pulse enter para seleccionar opción ..."  UPGRADEMODE
+
             ;;
         *)
             echo "Opción no válida. Por favor, seleccione una opción entre 1 y 3."
