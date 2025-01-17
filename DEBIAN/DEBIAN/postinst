@@ -12,27 +12,44 @@ echo "Post Install File"
 
 
 
+# Verificar si el archivo temporal existe
+if [ -f /tmp/osiris2_install_vars ]; then
+    echo "Leyendo Mensaje Preinstall ..."
+    
+    # Leer el contenido del archivo
+    VARIABLE_RECIBIDA=$(cat /tmp/osiris2_install_vars)
 
-
-
-        if [ -f /tmp/osiris2_install_vars ]; then
+    # Verificar si la primera línea es "EXEC"
+    if [[ $VARIABLE_RECIBIDA == "EXEC" ]]; then
         
-        echo " Leyendo Mensaje Preinstall ... "
-            VARIABLE_RECIBIDA=$(cat /tmp/osiris2_install_vars)
-            if [[ $VARIABLE_RECIBIDA == "EXEC" ]]; then
-            
+        # Leer la segunda línea para obtener el archivo a ejecutar
+        BASE_ARCHIVO=$(sed -n '2p' /tmp/osiris2_install_vars)
+
+        # Verificar si la base del archivo no está vacía y si el archivo existe
+        if [[ -n "$BASE_ARCHIVO" && -f "$BASE_ARCHIVO" ]]; then
             echo "Entrando en osiris"
-            echo $pwd   
-            ls
-            echo    
-            cd bin
-            ./osiris
-            fi
-            
-            rm /tmp/osiris2_install_vars
+            echo "Directorio actual: $PWD"
+            ls -l
+            echo
+
+            cd . || exit 1  # Cambiar al directorio bin, saliendo si falla
+            echo "Ejecutando archivo: $BASE_ARCHIVO"
+            ./$BASE_ARCHIVO  # Ejecutar el archivo especificado
+
         else
-            echo "No se encontró el archivo temporal."
+            echo "El archivo especificado en la segunda línea no existe o está vacío."
         fi
+    else
+        echo "La primera línea no es 'EXEC'. No se ejecutará el archivo."
+    fi
+
+    # Eliminar el archivo temporal
+    rm /tmp/osiris2_install_vars
+else
+    echo "No se encontró el archivo temporal."
+fi
+
+echo "END OF INSTALLER"
 
 
 
