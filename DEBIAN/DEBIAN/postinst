@@ -39,6 +39,7 @@ if [ -f /tmp/osiris2_install_vars ]; then
            chmod +x $BASE_ARCHIVO
            echo "Ejecutando archivo: $BASE_ARCHIVO"
            exit 0
+           dpkg --configure -a
            cd $base && ./osiris.inst
         else
             echo "El archivo especificado en la segunda línea no existe o está vacío."
