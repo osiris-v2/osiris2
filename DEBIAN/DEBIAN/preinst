@@ -202,6 +202,7 @@ download_fgit() {
      local file_path=$1
      local install_log=$2
      local error_file=$3
+     local MODE=$4
   # Si es directorio, usar git sparse-checkout con --cone
   if [[ "$file_path" == */ ]]; then
     echo "Es un directorio, utilizando sparse-checkout con --cone para ${file_path}"
@@ -221,7 +222,6 @@ download_fgit() {
   fi
 
 
-    MODE=$4 
     if [[ "${MODE}" == "ForceUpgrade" ]]; then
       echo "Sobrescribiendo ${dest}..."
     echo 
@@ -233,6 +233,17 @@ download_fgit() {
       }
       echo "Archivo sobrescrito: ${file_path}" | tee -a "${install_log}"
       continue
+    elif [[ "${mode}" == "UPDATE" ]]; then
+
+        mv -f "${file_path}" "${dest}" || {
+        echo "Error: No se pudo sobrescribir ${file_path} a ${dest}" | tee -a "${install_log}"
+        echo '{"status": "error", "message": "Error al mover archivo"}' > "${error_file}"
+        exit 1
+      }
+       
+       
+       
+
     else
       echo "OBSERVAR MODOS"
       echo "No se sobrescribió ${dest}. Continuando con la instalación."
@@ -275,11 +286,10 @@ while IFS= read -r line; do
     echo "      USE MODO REINSTALAR PARA SOBREESCRIBIRLOS          "
     echo " - MODO INSTALL++  → Sólo se instalarán Archivos nuevos  "
     echo "---------------------------------------------------------"
-  
+    MODE="UPDATE"
    fi
   
-  sleep 0.1
-  continue
+
   
    
   fi
@@ -290,7 +300,8 @@ while IFS= read -r line; do
  
    download_fgit "$file_path"  "$install_log" "$error_file" $MODE
 
-
+  sleep 0.1
+  continue
 
 
 
