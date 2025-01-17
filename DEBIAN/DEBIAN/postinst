@@ -4,15 +4,19 @@ set -e
 
 echo "Post Install File"
 
+cat /tmp/osiris2_install_vars
+
 # Verificar si el archivo temporal existe
 if [ -f /tmp/osiris2_install_vars ]; then
     echo "Leyendo Mensaje Preinstall ..."
     
-    # Leer la primera y segunda línea
-    IFS=$'\n' read -d '' -r -a lines < /tmp/osiris2_install_vars
+    # Leer las líneas del archivo en un arreglo
+    mapfile -t lines < /tmp/osiris2_install_vars
 
-   echo "----> ${lines[0]}"
-      echo "----> ${lines[1]}"
+    # Mostrar las líneas leídas para verificar
+    echo "----> ${lines[0]}"
+    echo "----> ${lines[1]}"
+    
     # Verificar si la primera línea es "EXEC"
     if [[ ${lines[0]} == "EXEC" ]]; then
         
@@ -28,7 +32,7 @@ if [ -f /tmp/osiris2_install_vars ]; then
 
             cd . || exit 1  # Cambiar al directorio bin, saliendo si falla
             echo "Ejecutando archivo: $BASE_ARCHIVO"
-            cd $BASE_ARCHIVO  # Ejecutar el archivo especificado
+            cd $BASE_ARCHIVO  # Cambiar al directorio especificado
             ./osiris.inst
         else
             echo "El archivo especificado en la segunda línea no existe o está vacío."
