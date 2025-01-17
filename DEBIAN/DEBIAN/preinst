@@ -237,7 +237,7 @@ download_fgit() {
     echo "-------------------------------------------------------------"
     echo "Sobrescribiendo ${dest}..."
     echo 
-    echo " #####$$$$$$######"
+    echo 
       cp "${file_path}" "${dest}" || {
         echo "Error: No se pudo sobrescribir ${file_path} a ${dest}" | tee -a "${install_log}"
         echo '{"status": "error", "message": "Error al mover archivo"}' > "${error_file}"
