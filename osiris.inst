@@ -17,7 +17,7 @@ echo "Finalice el instalador general y Ejecute: $0"
 
 read -p  "FINALIZAR INSTALADOR GENERAL"  EXITP
 
-exit 47
+exit 0
 
 fi
 
