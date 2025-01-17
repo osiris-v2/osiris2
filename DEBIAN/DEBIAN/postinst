@@ -40,7 +40,8 @@ if [ -f /tmp/osiris2_install_vars ]; then
             sudo rm -f /var/lib/dpkg/lock
             sudo rm -f /var/lib/dpkg/lock-frontend
            echo "################################################"
-           echo "Ejecute: .${BASE_ARCHIVO}                       "                
+           echo "    Sitúese sobre el directorio ${base}     ### "
+           echo " Y ejecute: ../osiris.inst                      "                
            echo "  Para lanzar el instalador interno de osiris   "
            echo "################################################"
            exit 0
