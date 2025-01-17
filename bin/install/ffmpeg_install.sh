@@ -1,5 +1,4 @@
 #!/bin/bash
-
 source "/etc/environment"
 echo "Instalador avanzado de FFmpeg con configuraciones completas"
 

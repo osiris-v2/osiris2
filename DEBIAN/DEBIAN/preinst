@@ -303,7 +303,7 @@ while IFS= read -r line; do
        echo "######################################################" 
        echo " Ya existe ${file_path}                               "
        echo " Seleccione Modo FORCEUPGRADE                         "
-       echo " Para reescribit Archivos Existentes                  "
+       echo " Para reescribir los Archivos Existentes              "
        echo "######################################################"
      fi
 

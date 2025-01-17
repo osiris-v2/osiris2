@@ -101,7 +101,7 @@ check_command_installed /usr/bin/mariadb
 #check_command_installed /usr/bin/ffmpeg -version
 #check_command_installed /usr/bin/transmission-cli --version 
 #check_command_installed /usr/bin/port-audio 
-check_command_installed /usr/bin/tcptrack --version 
+check_command_installed /usr/bin/tcptrack -v 
 #check_command_installed /usr/bin/yt-dlp --version
 #check_command_installed /usr/bin/rustc "--version -v"
 #check_command_installed /usr/bin/docker 
