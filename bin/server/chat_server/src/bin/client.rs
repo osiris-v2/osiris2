@@ -16,7 +16,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     loop {
         let mut input = String::new();
 
-        print!("$>>> ");
+        print!(">>>$ ");
         std::io::stdout().flush().unwrap(); // Uso de flush síncrono
 
         if let Err(e) = stdin_reader.read_line(&mut input).await {

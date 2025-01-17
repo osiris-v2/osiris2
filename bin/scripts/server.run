@@ -41,7 +41,7 @@ serversPath=$OSIRIS000_BIN/server/chat_server
 
 cd $serversPath/target/release
 clear
-./server
+sudo ./server
 
 #cargo
 

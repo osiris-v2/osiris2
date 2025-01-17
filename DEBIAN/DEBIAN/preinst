@@ -28,7 +28,7 @@ error_file="${base}/inst.error"
 
 
 FORCEUPGRADEMODE="False"
-MODE="DEFAULT"
+MODE="UPDATE"
 
 #Archivo temporal de instalación
 > /tmp/osiris2_install_vars
@@ -94,7 +94,7 @@ while true; do
    fi
 
     echo "Seleccione una opción:"
-    echo "1) Continuar con la instalación"
+    echo "1) Continuar con la instalación (${MODE}) "
     echo "2) Salir de la instalación "
     echo "3) Reiniciar el instalador"
     echo "4) REINSTALAR - UPGRADE"

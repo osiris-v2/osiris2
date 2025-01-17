@@ -92,9 +92,9 @@ ffmpeg -version || { echo "FFmpeg no se instaló correctamente. Verifique las co
 
 # Confirmación final
 echo "FFmpeg instalado correctamente y está listo para usar."
-
-echo "instalado en $install_dir"
+echo "instalado en ${install_dir} "
 echo "#################################"
 ls $install_dir
+echo "#################################"
 cd $lastdir
 

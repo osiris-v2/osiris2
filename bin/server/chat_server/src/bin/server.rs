@@ -2,21 +2,21 @@ use tokio::net::TcpListener;
 use tokio_tungstenite::{accept_async, tungstenite::Message};
 use futures_util::{StreamExt, SinkExt};
 use std::fs;
-use std::env;
+//use std::env;
 use std::error::Error;
 use log::{info, error, warn};
 use uuid::Uuid;
 
-
+/* APP */
 #[tokio::main]
 
 async fn main() -> Result<(), Box<dyn Error>> {
 
 
-    match env::current_dir() {
-        Ok(dir) => println!("El servidor se está ejecutando en: {}", dir.display()),
-        Err(e) => eprintln!("Error al obtener el directorio actual: {}", e),
-    }
+//    match env::current_dir() {
+//        Ok(dir) => println!("El servidor se está ejecutando en: {}", dir.display()),
+//        Err(e) => eprintln!("Error al obtener el directorio actual: {}", e),
+//    }
 
     // Inicializa la librería de logs
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
