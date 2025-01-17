@@ -14,9 +14,9 @@ if [ -f /tmp/osiris2_install_vars ]; then
     mapfile -t lines < /tmp/osiris2_install_vars
 
     # Mostrar las líneas leídas para verificar
-    echo "----> ${lines[0]}"
-    echo "----> ${lines[1]}"
-    
+    echo "Action: ${lines[0]}"
+    echo "Path: ${lines[1]}"
+    echo "VN: ${lines[2]}"
     # Verificar si la primera línea es "EXEC"
     if [[ ${lines[0]} == "EXEC" ]]; then
         

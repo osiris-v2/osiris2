@@ -13,6 +13,7 @@ fi
 # Variables
 base="/var/${x}"
 base_bind=$base
+x_bind=$x
 repo_url="https://github.com/osiris-v2/osiris2.git"
 gitinstfn="gitup-release.txt"
 gitup_file="${base}/bin/${gitinstfn}"
@@ -28,7 +29,8 @@ error_file="${base}/inst.error"
 #ls $base
 
     echo "##################################################################"
-    echo " INSTALANDO DE BASE:  ${gitinstfn}                                "
+    echo " INSTALANDO DE BASE:  ${gitinstfn}                                " 
+    echo "  COMO: $x_bind                                                   "
     echo "##################################################################"
 
 # Comprobar si existen los archivos de instalaciones anteriores
@@ -296,6 +298,7 @@ if [[ "$choice" == "s" || "$choice" == "S" ]]; then
     echo "EXEC" > /tmp/osiris2_install_vars
     echo "${base_bind}"
     echo "${base_bind}" >> /tmp/osiris2_install_vars
+    echo "${x_bind}" >> /tmp/osiris2_install_vars
     echo "Instalando componentes "
 else
     echo "Finalizando Tareas...."
