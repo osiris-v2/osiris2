@@ -28,7 +28,7 @@ error_file="${base}/inst.error"
 
 
 FORCEUPGRADEMODE="False"
-MODE="INIT"
+MODE="DEFAULT"
 
 #Archivo temporal de instalación
 > /tmp/osiris2_install_vars
@@ -119,6 +119,7 @@ while true; do
             echo " Para actualizar Versión: ${x} "
             read -p "Continuar con el Mode Force Upgrade  ..."  UPGRADEMODE
             FORCEUPGRADEMODE="ForceUpgrade"
+            MODE=$FORCEUPGRADEMODE
             ;;
         *)
             echo "Opción no válida. Por favor, seleccione una opción entre 1 y 3."
@@ -253,6 +254,11 @@ download_fgit() {
 # Procesar archivos listados en ${gitinstfn}
 echo "Procesando archivos listados en ${gitinstfn} ..."
 
+
+if [[ "$MODE" == "DEFAULT" ]]; then
+  MODE="UPDATE"
+fi
+
 while IFS= read -r line; do
   # Limpiar línea
   line="${line%%*( )}"
@@ -264,7 +270,7 @@ while IFS= read -r line; do
   dest="${base}/${file_path}"
   if [ -e "${dest}" ]; then
   
-    if [[ $FORCEUPGRADEMODE == "ForceUpgrade" ]]; then
+    if [[ $MODE == "ForceUpgrade" ]]; then
 
     echo "-------------------------------------------------------------"
     echo "¡Advertencia:! El archivo o directorio ${dest} ya existe.    "
@@ -272,16 +278,18 @@ while IFS= read -r line; do
     echo " - MODO FORCEUPGRADE                                         "
     echo " → Se reescribirán los archivos a la última versión estable  "
     echo "-------------------------------------------------------------"
-    MODE="ForceUpgrade"  
+
     sleep 0.1
     else  
+    
+    elif [[ $MODE == "DEFAULT" ]]; then    
     
     echo "---------------------------------------------------------"
     echo "¡Advertencia:! El archivo o directorio ${dest} ya existe."
     echo "      USE MODO REINSTALAR PARA SOBREESCRIBIRLOS          "
     echo " - MODO INSTALL++  → Sólo se instalarán Archivos nuevos  "
     echo "---------------------------------------------------------"
-    MODE="UPDATE"
+
     sleep 0.2
    fi
   
