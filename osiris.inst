@@ -27,7 +27,7 @@ echo "KILLING $2 "
 
 kill -9 $2
 
-#exit 0
+exit 0
 
 fi
 
