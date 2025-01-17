@@ -23,6 +23,8 @@ echo "Post Install File"
             
             echo "Entrando en osiris"
             echo $pwd   
+            ls
+            echo    
             cd bin
             ./osiris
             fi
