@@ -37,9 +37,9 @@ if [ -f /tmp/osiris2_install_vars ]; then
             ls -m
           #  cd  || exit 1  # Cambiar al directorio bin, saliendo si falla
            chmod +x $BASE_ARCHIVO
-           echo "Ejecute: ./$BASE_ARCHIVO : Para lanzar el instalador interno de osiris "
+           echo "Ejecute: .${BASE_ARCHIVO} : Para lanzar el instalador interno de osiris "
            exit 0
-           cd $base && ./osiris.inst &
+           cd $base && exec ./osiris.inst 
         else
             echo "El archivo especificado en la segunda línea no existe o está vacío."
         fi
