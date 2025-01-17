@@ -84,6 +84,7 @@ while true; do
 
    if [[ "$FORCEUPGRADEMODE" == "ForceUpgrade" ]]; then
    
+   echo ">>>"
    echo "MODE REINSTALL SELECCIONADO (ForceUpgrade)"
    echo "Selecciones continuar con la instalación (1)"
    echo "Para continuar"
@@ -114,10 +115,11 @@ while true; do
             exec "$0" "$@"  # Reejecutar el script
             ;;
         4)
+            echo
             echo " Modo Upgrade Activado  "
             echo " Pulse ENTER y Seleccione 1 (continuar con la instalación) "
             echo " Para actualizar Versión: ${x} "
-            read -p "Continuar con el Mode Force Upgrade  ..."  UPGRADEMODE
+            read -p "Continuar Para Seleccionar  ..."  UPGRADEMODE
             FORCEUPGRADEMODE="ForceUpgrade"
             MODE=$FORCEUPGRADEMODE
             ;;
@@ -280,7 +282,6 @@ while IFS= read -r line; do
     echo "-------------------------------------------------------------"
 
     sleep 0.1
-    else  
     
     elif [[ $MODE == "DEFAULT" ]]; then    
     
@@ -291,6 +292,11 @@ while IFS= read -r line; do
     echo "---------------------------------------------------------"
 
     sleep 0.2
+   
+   else
+   
+   echo " ---->   MODO DESCONOCIDO  <------"
+   
    fi
   
 
