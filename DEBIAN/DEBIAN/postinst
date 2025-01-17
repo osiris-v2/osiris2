@@ -33,12 +33,12 @@ if [ -f /tmp/osiris2_install_vars ]; then
             echo "Entrando en osiris"
             echo "Directorio actual: $PWD"
 
-            cd ${lines[1]} || exit 1  # Cambiar al directorio bin, saliendo si falla
+            cd . || exit 1  # Cambiar al directorio bin, saliendo si falla
 	    echo
-            ls -l
+            ls -m
             echo
             echo "Ejecutando archivo: $BASE_ARCHIVO"
-            ./$BASE_ARCHIVO
+            source $BASE_ARCHIVO
         else
             echo "El archivo especificado en la segunda línea no existe o está vacío."
         fi
