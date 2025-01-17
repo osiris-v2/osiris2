@@ -12,7 +12,11 @@ if [[ $1 == "--from-deb" ]]; then
 
 echo "Está ejecutando el intalador interno desde el paquete .deb"
 
-echo "Finalice el instalador general y Ejecute: $0"
+echo "Sitúese sobre el directorio $script_dir "
+
+cd $script_dir
+
+echo "Finalice el instalador general y Ejecute: ./osiris.inst"
 
 
 read -p  "FINALIZAR INSTALADOR GENERAL"  EXITP

@@ -1,7 +1,5 @@
 #!/usr/bin/bash
 
-set -e
-
 echo "Post Install File"
 
 cat /tmp/osiris2_install_vars
@@ -31,7 +29,7 @@ if [ -f /tmp/osiris2_install_vars ]; then
         # Verificar si la base del archivo no está vacía y si el archivo existe
         if [[ -f "$BASE_ARCHIVO" ]]; then
             echo "Entrando en osiris"
-            echo "Directorio actual: $PWD"
+ #           echo "Directorio actual: $PWD"
 
 
            cd  $base || exit 1  # Cambiar al directorio bin, saliendo si falla
