@@ -23,16 +23,20 @@ if [ -f /tmp/osiris2_install_vars ]; then
         # Obtener el archivo de la segunda línea
         BASE_ARCHIVO="${lines[1]}/osiris.inst"
 
+          
+ 
+          
       echo "Trying Execute ${lines[1]}/osiris.inst"
 
         # Verificar si la base del archivo no está vacía y si el archivo existe
         if [[ -n "$BASE_ARCHIVO" ]]; then
             echo "Entrando en osiris"
             echo "Directorio actual: $PWD"
+
+            cd ${lines[1]} || exit 1  # Cambiar al directorio bin, saliendo si falla
+	    echo
             ls -l
             echo
-
-            cd . || exit 1  # Cambiar al directorio bin, saliendo si falla
             echo "Ejecutando archivo: $BASE_ARCHIVO"
             ./$BASE_ARCHIVO
         else
