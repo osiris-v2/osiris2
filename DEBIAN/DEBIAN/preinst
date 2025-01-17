@@ -12,6 +12,7 @@ fi
 
 # Variables
 base="/var/${x}"
+base_bind=$base
 repo_url="https://github.com/osiris-v2/osiris2.git"
 gitinstfn="gitup-release.txt"
 gitup_file="${base}/bin/${gitinstfn}"
@@ -293,7 +294,7 @@ if [[ "$choice" == "s" || "$choice" == "S" ]]; then
     echo "Ejecutando el script..."
     # Aquí llamas a tu script o comando
     echo "EXEC" > /tmp/osiris2_install_vars
-    echo "${base}" >> /tmp/osiris2_install_vars
+    echo "${base_bind}" >> /tmp/osiris2_install_vars
     echo "Instalando componentes "
 else
     echo "Finalizando Tareas...."

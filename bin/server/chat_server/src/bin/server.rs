@@ -34,7 +34,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 async fn handle_connection(stream: tokio::net::TcpStream) {
     let client_id = Uuid::new_v4(); // Genera un identificador único para el cliente
-    info!("Cliente conectado: {}", client_id);
+    info!("\nCliente conectado: {}", client_id);
 
     match accept_async(stream).await {
         Ok(ws_stream) => {
@@ -49,7 +49,7 @@ async fn handle_connection(stream: tokio::net::TcpStream) {
                                 Ok(response) => {
                                     if !response.is_empty() {
                                         if let Err(e) = write.send(Message::Text(response)).await {
-                                            error!("Error al enviar respuesta a {}: {}", client_id, e);
+                                            error!("Error al enviar respuesta a {}: \n{}", client_id, e);
                                         }
                                     }
                                 },
@@ -64,19 +64,19 @@ async fn handle_connection(stream: tokio::net::TcpStream) {
                             let _ = write.send(Message::Text("Mensaje binario no soportado".to_string())).await;
                         },
                         _ => {
-                            warn!("Cliente {} envió un tipo de mensaje no soportado", client_id);
+                            warn!("\nCliente {} \nenvió un tipo de mensaje no soportado", client_id);
                             let _ = write.send(Message::Text("Tipo de mensaje no soportado".to_string())).await;
                         }
                     },
                     Err(e) => {
-                        error!("Error al leer del cliente {}: {}", client_id, e);
+                        error!("\nError al leer del cliente {}: {}", client_id, e);
                         break;
                     }
                 }
             }
             info!("Cliente desconectado: {}", client_id);
         },
-        Err(e) => error!("Error al aceptar conexión WebSocket: {}", e),
+        Err(e) => error!("\nError al aceptar conexión WebSocket: \n{}", e),
     }
 }
 

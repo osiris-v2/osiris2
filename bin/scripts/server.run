@@ -1,5 +1,7 @@
 #!/bin/bash
 clear
+reset
+clear
 
 my_pid=$$
 
