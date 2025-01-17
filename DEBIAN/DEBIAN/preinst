@@ -28,6 +28,10 @@ error_file="${base}/inst.error"
 
 
 FORCEUPGRADEMODE="False"
+MODE="INIT"
+
+#Archivo temporal de instalación
+> /tmp/osiris2_install_vars
 
 #ls $base
 
@@ -77,6 +81,15 @@ fi
 
 # Menú con opciones numéricas
 while true; do
+
+   if [[ $FORCEUPGRADEMODE == "ForceUpgrade" ]; then
+   
+   echo "MODE REINSTALL SELECCIONADO (ForceUpgrade)"
+   echo "Selecciones continuar con la instalación (1)"
+   echo "Para continuar"
+   
+   fi
+
     echo "Seleccione una opción:"
     echo "1) Continuar con la instalación"
     echo "2) Salir de la instalación "
@@ -105,7 +118,7 @@ while true; do
             echo " Pulse ENTER y Seleccione 1 (continuar con la instalación) "
             echo " Para actualizar Versión: ${x} "
             read -p "Continuar con el Mode Force Upgrade  ..."  UPGRADEMODE
-            FORCEUPGRADEMODE="True"
+            FORCEUPGRADEMODE="ForceUpgrade"
             ;;
         *)
             echo "Opción no válida. Por favor, seleccione una opción entre 1 y 3."
@@ -207,6 +220,29 @@ download_fgit() {
     }
   fi
 
+
+    MODE=$4 
+    if [[ "${MODE}" == "ForceUpgrade" ]]; then
+      echo "Sobrescribiendo ${dest}..."
+    echo 
+    echo " #####$$$$$$######"
+      cp "${file_path}" "${dest}" || {
+        echo "Error: No se pudo sobrescribir ${file_path} a ${dest}" | tee -a "${install_log}"
+        echo '{"status": "error", "message": "Error al mover archivo"}' > "${error_file}"
+        # exit 1
+      }
+      echo "Archivo sobrescrito: ${file_path}" | tee -a "${install_log}"
+      continue
+    else
+      echo "OBSERVAR MODOS"
+      echo "No se sobrescribió ${dest}. Continuando con la instalación."
+      continue
+    fi
+
+
+
+
+
 }
 
 # Procesar archivos listados en ${gitinstfn}
@@ -223,7 +259,7 @@ while IFS= read -r line; do
   dest="${base}/${file_path}"
   if [ -e "${dest}" ]; then
   
-    if [[ $FORCEUPGRADEMODE == "True" ]]; then
+    if [[ $FORCEUPGRADEMODE == "ForceUpgrade" ]]; then
 
     echo "-------------------------------------------------------------"
     echo "¡Advertencia:! El archivo o directorio ${dest} ya existe.    "
@@ -231,7 +267,7 @@ while IFS= read -r line; do
     echo " - MODO FORCEUPGRADE                                         "
     echo " → Se reescribirán los archivos a la última versión estable  "
     echo "-------------------------------------------------------------"
-      
+    MODE="ForceUpgrade"  
     else  
     
     echo "---------------------------------------------------------"
@@ -252,26 +288,10 @@ while IFS= read -r line; do
   echo "Intentando descargar ${file_path} desde el repositorio base..."
  
  
-   download_fgit "$file_path"  "$install_log" "$error_file"
+   download_fgit "$file_path"  "$install_log" "$error_file" $MODE
 
 
 
-    answer=$FORCEUPGRADEMODE 
-    if [[ "${answer}" == "True" ]]; then
-      echo "Sobrescribiendo ${dest}..."
-    echo 
-    echo " #####$$$$$$######"
-      cp "${file_path}" "${dest}" || {
-        echo "Error: No se pudo sobrescribir ${file_path} a ${dest}" | tee -a "${install_log}"
-        echo '{"status": "error", "message": "Error al mover archivo"}' > "${error_file}"
-        # exit 1
-      }
-      echo "Archivo sobrescrito: ${file_path}" | tee -a "${install_log}"
-      continue
-    else
-      echo "No se sobrescribió ${dest}. Continuando con la instalación."
-      continue
-    fi
 
 
 

@@ -3,7 +3,7 @@ clear
 reset
 clear
 
-rm -f /var/lib/dpkg/lock
+#rm -f /var/lib/dpkg/lock
 rm -f /var/lib/dpkg/lock-frontend
 
 script_dir=$(dirname "$(readlink -f "$0")")
@@ -20,6 +20,8 @@ read -p  "FINALIZAR INSTALADOR GENERAL" - EXITP
 exit
 
 fi
+
+
 # Verificar si se proporcionó un argumento
 
 if [ $# -eq 1 ]; then
