@@ -232,7 +232,6 @@ download_fgit() {
         # exit 1
       }
       echo "Archivo sobrescrito: ${file_path}" | tee -a "${install_log}"
-      continue
     elif [[ "${mode}" == "UPDATE" ]]; then
 
         mv -f "${file_path}" "${dest}" || {
@@ -247,12 +246,7 @@ download_fgit() {
     else
       echo "OBSERVAR MODOS"
       echo "No se sobrescribió ${dest}. Continuando con la instalación."
-      continue
     fi
-
-
-
-
 
 }
 
