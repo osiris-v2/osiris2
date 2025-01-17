@@ -1,0 +1,55 @@
+#!/bin/bash
+source '/etc/environment'
+# Nombre del archivo de salida
+logfile="${OSIRIS000_BIN}/com/datas/memory.gemini.ctrl"
+
+# Limpia el archivo de log antes de comenzar
+> "$logfile"
+
+# Número de iteraciones
+num_iteraciones=5
+
+
+echo "Monitoreo de Recursos del Sistema"
+echo "---------------------------------"
+
+BT=3
+
+# Bucle principal
+for i in $(seq 1 $num_iteraciones); do
+  clear
+  echo "Tomando Datos. Iteracción:  ${i} en iteracciones de ${BT} segundos" >> "$logfile"
+  # Redirecciona la salida de top a un archivo temporal
+  top -bn1 | head -n 20 | tee top_output.tmp
+  # Redirecciona la salida de free a un archivo temporal
+  free -h | tee free_output.tmp
+
+  #Agrega marca de tiempo antes de agregar cada seccion
+  echo "$(date +"%Y-%m-%dT%H:%M:%S") Top:" >> "$logfile"
+  cat top_output.tmp >> "$logfile"
+  echo "$(date +"%Y-%m-%dT%H:%M:%S") Free:" >> "$logfile"
+  cat free_output.tmp >> "$logfile"
+
+  # Elimina los archivos temporales
+  rm top_output.tmp free_output.tmp
+  echo "Datos Tomados En Iteracción: ${i}"
+  echo "Esperando ${BT} Segundos"
+  sleep $BT
+done
+
+echo "Recogiendo Datos de Disco"
+
+  # Redirecciona la salida de df a un archivo temporal
+  df -h | tee df_output.tmp
+  echo "$(date +"%Y-%m-%dT%H:%M:%S") DF:" >> "$logfile"
+  cat df_output.tmp >> "$logfile"
+
+echo "Recogiendo Datos de Freemem2"
+
+  tail -n 60 $OSIRIS000_BIN/com/datas/freemem.log | tee freemem_output.tmp
+  echo "$(date +"%Y-%m-%dT%H:%M:%S") Freemem2:" >> "$logfile"
+  cat freemem_output.tmp >> "$logfile"
+
+echo "Monitoreo finalizado. Los datos se han guardado en $logfile"
+
+  rm freemem_output.tmp df_output.tmp

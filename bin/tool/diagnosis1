@@ -1,0 +1,38 @@
+#!/bin/bash
+source '/etc/environment'
+# Configuraciones
+MAX_LINES=50 # Máximo de líneas por log
+OUTPUT_FILE="${OSIRIS000_BIN}/com/datas/system_info.gemini.ctrl"
+> $OUTPUT_FILE
+# Función para agregar información al archivo con límite de líneas
+add_info() {
+  local section="$1"
+  local command="$2"
+  echo "#################################" >> "$OUTPUT_FILE"
+  echo "# $section" >> "$OUTPUT_FILE"
+  echo "#################################" >> "$OUTPUT_FILE"
+  eval "$command" | head -n "$MAX_LINES" >> "$OUTPUT_FILE"
+}
+
+# Información del sistema (concisa)
+add_info "Información del Sistema" "uname -a; hostname; lsb_release -a; df -h; free -h; ps aux | awk '{print \$1,\$2,\$3,\$4,\$11}' | sort -rk +4 -h | head -n $MAX_LINES"
+
+# Información de la red (concisa)
+add_info "Información de Red" "ip addr show; ifconfig; netstat -tulnp | head -n $MAX_LINES; ss -tulnp | head -n $MAX_LINES"
+
+# Información de los logs (fragmentos, con límite de líneas)
+add_info "Logs del Sistema (Fragmentos)" "dmesg | tail -n $MAX_LINES"
+add_info "Logs del Sistema (Fragmentos - journalctl)" "journalctl -xe | tail -n $MAX_LINES"
+
+# Información de los procesos (necesita sudo, concisa)
+add_info "Información de Procesos (sudo)" "sudo ps aux | awk '{print \$1,\$2,\$3,\$4,\$11}' | sort -rk +4 -h | head -n $MAX_LINES"
+
+# Información de USB (necesita sudo, concisa)
+add_info "Información USB (sudo)" "sudo lsusb"
+
+# Información de Fontconfig (concisa)
+add_info "Información de Fontconfig" "fc-cache -fv; head -n $MAX_LINES /etc/fonts/fonts.conf"
+
+
+echo "Información del sistema guardada en $OUTPUT_FILE"
+echo "Recuerda enviarme el archivo $OUTPUT_FILE para un mejor diagnóstico."

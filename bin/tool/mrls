@@ -1,0 +1,86 @@
+#!/bin/bash
+
+# Nombre del script: auditoria_logs_servidores_mejorado.sh
+
+# Descripción: Crea un resumen de logs del sistema y de servidores para análisis por IA.
+#             El resultado se guarda en un archivo de texto en el directorio especificado.
+#             Se incluyen logs adicionales y un formato más informativo.
+source '/etc/environment'
+# Directorio donde se guardará el archivo
+DIRECTORIO="${OSIRIS000_BIN}/com/datas"
+
+# Nombre del archivo de salida
+NOMBRE_ARCHIVO="rls.gemini.ctrl"
+
+# Ruta completa del archivo de salida
+RUTA_ARCHIVO="$DIRECTORIO/$NOMBRE_ARCHIVO"
+> $RUTA_ARCHIVO
+# Crea el directorio si no existe
+mkdir -p "$DIRECTORIO"
+
+# Crea el archivo de salida y redirige la salida del script
+echo "## Resumen de Logs del Sistema para Auditoría de Rendimiento y Solución de Errores" > "$RUTA_ARCHIVO"
+
+# Logs de servicios específicos 
+echo "### Logs de Servicios Específicos:" >> "$RUTA_ARCHIVO"
+echo "" >> "$RUTA_ARCHIVO"
+
+# Logs del servidor web Apache
+echo "#### Logs del Servidor Web Apache error.log:" >> "$RUTA_ARCHIVO"
+if [ -f "/var/log/apache2/error.log" ]; then
+  tail -n 15 /var/log/apache2/error.log >> "$RUTA_ARCHIVO"
+else
+  echo "Error: El archivo '/var/log/apache2/error.log' no existe o no se tienen permisos de lectura." >> "$RUTA_ARCHIVO"
+fi
+
+echo "#### Logs del Servidor Web Apache access.log:" >> "$RUTA_ARCHIVO"
+if [ -f "/var/log/apache2/access.log" ]; then
+  tail -n 15 /var/log/apache2/access.log >> "$RUTA_ARCHIVO"
+else
+  echo "Error: El archivo '/var/log/apache2/access.log' no existe o no se tienen permisos de lectura." >> "$RUTA_ARCHIVO"
+fi
+
+echo "#### Logs del php-fpm:" >> "$RUTA_ARCHIVO"
+if [ -f "/var/log/php8.2-fpm.log" ]; then
+  tail -n 15 /var/log/php8.2-fpm.log >> "$RUTA_ARCHIVO"
+else
+  echo "Error: El archivo '/var/log/php8.2-fpm.log' no existe o no se tienen permisos de lectura." >> "$RUTA_ARCHIVO"
+fi
+
+
+
+# Logs del servidor web Nginx
+echo "#### Logs del Servidor Web Nginx:" >> "$RUTA_ARCHIVO"
+if [ -f "/var/log/nginx/error.log" ]; then
+  tail -n 5 /var/log/nginx/error.log >> "$RUTA_ARCHIVO"
+else
+  echo "Error: El archivo '/var/log/nginx/error.log' no existe o no se tienen permisos de lectura." >> "$RUTA_ARCHIVO"
+fi
+
+# Logs de MySQL
+echo "#### Logs de MySQL:" >> "$RUTA_ARCHIVO"
+if [ -f "/var/log/mysql/error.log" ]; then
+  tail -n 10 /var/log/mysql/error.log >> "$RUTA_ARCHIVO"
+else
+  echo "Error: El archivo '/var/log/mysql/error.log' no existe o no se tienen permisos de lectura." >> "$RUTA_ARCHIVO"
+fi
+echo "" >> "$RUTA_ARCHIVO"
+
+# Información de la configuración del sistema (opcional)
+echo "### Información de la configuración del sistema:" >> "$RUTA_ARCHIVO"
+
+#cat /etc/fstab  >> "$RUTA_ARCHIVO"
+
+
+# Instrucciones para la IA
+echo >> "$RUTA_ARCHIVO"
+echo "## Instrucciones para la IA:" >> "$RUTA_ARCHIVO"
+echo "- Este resumen de logs proporciona información sobre el funcionamiento de los servicios implicados." >> "$RUTA_ARCHIVO"
+echo "- La IA puede analizar estos logs para identificar posibles problemas de rendimiento, errores" >> "$RUTA_ARCHIVO"
+echo "- o cualquier otra condición que requiera atención." >> "$RUTA_ARCHIVO"
+echo "- La IA puede sugerir soluciones o acciones basadas en su análisis de los logs." >> "$RUTA_ARCHIVO"
+echo "- Es importante proporcionar contexto a la IA sobre el sistema y sus aplicaciones" >> "$RUTA_ARCHIVO"
+echo "- para que pueda realizar un análisis preciso." >> "$RUTA_ARCHIVO"
+
+echo "El resumen de logs se ha guardado en: $RUTA_ARCHIVO \n \n --arls IA Resumen Logs del Sistema "
+
