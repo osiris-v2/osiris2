@@ -182,7 +182,29 @@ git clone --depth 1 --filter=blob:none --sparse "${repo_url}" "${temp_repo}" || 
 }
 cd "${temp_repo}"
 
+download_fgit() { 
+     local file_path=$1
+     local install_log=$2
+     local error_file=$3
+  # Si es directorio, usar git sparse-checkout con --cone
+  if [[ "$file_path" == */ ]]; then
+    echo "Es un directorio, utilizando sparse-checkout con --cone para ${file_path}"
+    git sparse-checkout set --cone "${file_path}" || {
+      echo "Error: No se pudo configurar sparse-checkout para ${file_path}" | tee -a "${install_log}"
+      echo '{"status": "error", "message": "Error en sparse-checkout"}' > "${error_file}"
+      exit 1
+    }
+  else
+    # Si es archivo, hacer sparse-checkout de archivo específico
+    echo "Es un archivo, utilizando sparse-checkout para ${file_path}"
+    git sparse-checkout set --no-cone "/${file_path}" || {
+      echo "Error: No se pudo configurar sparse-checkout para ${file_path}" | tee -a "${install_log}"
+      echo '{"status": "error", "message": "Error en sparse-checkout"}' > "${error_file}"
+      exit 1
+    }
+  fi
 
+}
 
 # Procesar archivos listados en ${gitinstfn}
 echo "Procesando archivos listados en ${gitinstfn} ..."
@@ -225,24 +247,13 @@ while IFS= read -r line; do
 
   # Verificar si el archivo existe en el repositorio
   echo "Intentando descargar ${file_path} desde el repositorio base..."
-  
-  # Si es directorio, usar git sparse-checkout con --cone
-  if [[ "$file_path" == */ ]]; then
-    echo "Es un directorio, utilizando sparse-checkout con --cone para ${file_path}"
-    git sparse-checkout set --cone "${file_path}" || {
-      echo "Error: No se pudo configurar sparse-checkout para ${file_path}" | tee -a "${install_log}"
-      echo '{"status": "error", "message": "Error en sparse-checkout"}' > "${error_file}"
-      exit 1
-    }
-  else
-    # Si es archivo, hacer sparse-checkout de archivo específico
-    echo "Es un archivo, utilizando sparse-checkout para ${file_path}"
-    git sparse-checkout set --no-cone "/${file_path}" || {
-      echo "Error: No se pudo configurar sparse-checkout para ${file_path}" | tee -a "${install_log}"
-      echo '{"status": "error", "message": "Error en sparse-checkout"}' > "${error_file}"
-      exit 1
-    }
-  fi
+ 
+ 
+   download_fgit "$file_path"  "$install_log" "$error_file"
+
+
+
+
 
 # Verificar si el archivo o directorio fue descargado
 if [ -e "${file_path}" ]; then
@@ -259,14 +270,17 @@ if [ -e "${file_path}" ]; then
     echo "---------------------------------------------------------"
     sleep 0.3 
     # Preguntar si está en modo actualización 
-    answer="NO SOBREESCRIBIR - Modo install 0" 
-    if [[ "${answer}" =~ ^[Ss]$ ]]; then
+    answer=$FORCEUPGRADEMODE 
+    if [[ "${answer}" == "True" ]]; then
       echo "Sobrescribiendo ${dest}..."
-      mv -f "${file_path}" "${dest}" || {
-        echo "Error: No se pudo sobrescribir ${file_path} a ${dest}" | tee -a "${install_log}"
-        echo '{"status": "error", "message": "Error al mover archivo"}' > "${error_file}"
+    echo 
+    echo " #####$$$$$$######"
+    #  mv -f "${file_path}" "${dest}" || {
+     #   echo "Error: No se pudo sobrescribir ${file_path} a ${dest}" | tee -a "${install_log}"
+    #    echo '{"status": "error", "message": "Error al mover archivo"}' > "${error_file}"
         # exit 1
-      }
+     # }
+
       echo "Archivo sobrescrito: ${file_path}" | tee -a "${install_log}"
     else
       echo "No se sobrescribió ${dest}. Continuando con la instalación."
