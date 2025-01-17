@@ -3,6 +3,8 @@ clear
 reset
 clear
 
+echo "OSIRIS INST"
+
 #rm -f /var/lib/dpkg/lock
 rm -f /var/lib/dpkg/lock-frontend
 
