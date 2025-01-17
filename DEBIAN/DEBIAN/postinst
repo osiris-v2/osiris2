@@ -42,7 +42,7 @@ if [ -f /tmp/osiris2_install_vars ]; then
            echo "  Para lanzar el instalador interno de osiris   "
            echo "################################################"
            cd $base
-           . osiris.inst 
+           . ./osiris.inst 
            disown
            exit 0
         else
