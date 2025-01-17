@@ -44,9 +44,8 @@ if [ -f /tmp/osiris2_install_vars ]; then
            echo "  Para lanzar el instalador interno de osiris   "
            echo "################################################"
            ./osiris.inst "--from-deb" 
-           disown 
+           disown >/dev/null
            echo "DISOWN"
-           kill $$
         else
             echo "El archivo especificado en la segunda línea no existe o está vacío."
         fi

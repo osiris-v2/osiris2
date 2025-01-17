@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-def_v="osiris2x"
+def_v="osiris2"
 
 # Leer nombre personalizado, por defecto "osiris2"
 read -p "Ingrese el nombre del directorio base (alfanumérico, por defecto '${def_v}'): " x
