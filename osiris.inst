@@ -6,18 +6,18 @@ clear
 #rm -f /var/lib/dpkg/lock
 rm -f /var/lib/dpkg/lock-frontend
 
-script_dir=$(dirname "$(readlink -f "${$0}")")
+script_dir=$(dirname "$(readlink -f "$0")")
 
 if [[ $1 == "--from-deb" ]]; then
 
 echo "Está ejecutando el intalador interno desde el paquete .deb"
 
-echo "Finalice el instalador general y Ejecute: ${$0}"
+echo "Finalice el instalador general y Ejecute: $0"
 
 
 read -p  "FINALIZAR INSTALADOR GENERAL" - EXITP
 
-exit
+exit 1
 
 fi
 
