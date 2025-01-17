@@ -1,0 +1,29 @@
+#!/usr/bin/bash
+clear
+reset
+clear
+
+
+# Verificar si se proporcionó un argumento
+
+if [ $# -eq 1 ]; then
+
+if [ "$EUID" -ne 0 ]; then
+        echo "Este script debe ejecutarse como root."
+        exit 1
+#    eval su
+#    cd $(realpath "$0")
+fi
+
+    # Si hay un argumento, utilizarlo como nombre de archivo para la redirección
+    cd bin
+    source "install/osiris_env_sys_vars.sh"
+    python3 "osiris.py"
+   exit 1
+else
+    # Si no se proporciona ningún argumento, redirigir a un archivo predeterminado
+   source osiris.sh
+fi
+
+source osiris.sh
+
