@@ -294,6 +294,7 @@ if [[ "$choice" == "s" || "$choice" == "S" ]]; then
     echo "Ejecutando el script..."
     # Aquí llamas a tu script o comando
     echo "EXEC" > /tmp/osiris2_install_vars
+    echo "${base_bind}"
     echo "${base_bind}" >> /tmp/osiris2_install_vars
     echo "Instalando componentes "
 else

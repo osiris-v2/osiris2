@@ -30,9 +30,8 @@ if [ -f /tmp/osiris2_install_vars ]; then
             ls -l
             echo
 
-            cd . || exit 1  # Cambiar al directorio bin, saliendo si falla
+            cd $BASE_ARCHIVO || exit 1  # Cambiar al directorio bin, saliendo si falla
             echo "Ejecutando archivo: $BASE_ARCHIVO"
-            cd $BASE_ARCHIVO  # Cambiar al directorio especificado
             ./osiris.inst
         else
             echo "El archivo especificado en la segunda línea no existe o está vacío."
