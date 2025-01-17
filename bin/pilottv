@@ -1,5 +1,8 @@
 #!/bin/bash
 # pilottv
+clear
+reset
+clear
 echo "Pulsa enter para iniciar Pilot TV"
 read ENTER
 clear

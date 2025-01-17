@@ -2,6 +2,10 @@
 #Habilita la salida al encontrar errores, pero con excepciones para comandos no críticos.
 #set -e  #Comentado para un manejo de errores más granular.
 source '/etc/environment'
+clear
+reset
+clear
+
 # Recibe OSIRIS000_BIN como argumento
 #OSIRIS000_BIN="$1"
 

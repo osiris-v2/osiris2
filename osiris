@@ -1,4 +1,7 @@
 #!/usr/bin/bash
+clear
+reset
+clear
 
 
 # Verificar si se proporcionó un argumento
