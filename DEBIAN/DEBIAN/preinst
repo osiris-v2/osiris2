@@ -279,6 +279,7 @@ while IFS= read -r line; do
     echo " → Se reescribirán los archivos a la última versión estable  "
     echo "-------------------------------------------------------------"
     MODE="ForceUpgrade"  
+    sleep 0.1
     else  
     
     echo "---------------------------------------------------------"
@@ -287,6 +288,7 @@ while IFS= read -r line; do
     echo " - MODO INSTALL++  → Sólo se instalarán Archivos nuevos  "
     echo "---------------------------------------------------------"
     MODE="UPDATE"
+    sleep 0.2
    fi
   
 
@@ -299,13 +301,6 @@ while IFS= read -r line; do
  
  
    download_fgit "$file_path"  "$install_log" "$error_file" $MODE
-
-  sleep 0.1
-  continue
-
-
-
-
 
 
 # Verificar si el archivo o directorio fue descargado
