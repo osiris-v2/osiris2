@@ -16,7 +16,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     loop {
         let mut input = String::new();
 
-        print!("Introduce un mensaje: ");
+        print!("$>>> ");
         std::io::stdout().flush().unwrap(); // Uso de flush síncrono
 
         if let Err(e) = stdin_reader.read_line(&mut input).await {
@@ -36,7 +36,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         if let Some(message) = read.next().await {
             match message {
-                Ok(Message::Text(text)) => println!("Respuesta del servidor: {}", text),
+                Ok(Message::Text(text)) => println!("\n{}", text),
                 Ok(msg) => println!("Respuesta del servidor: {:?}", msg),
                 Err(e) => eprintln!("Error al recibir mensaje: {:?}", e),
             }
