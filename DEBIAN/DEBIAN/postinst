@@ -10,6 +10,38 @@ set -e
 echo "Post Install File"
 
 
+
+
+
+
+
+        if [ -f /tmp/osiris2_install_vars ]; then
+            VARIABLE_RECIBIDA=$(cat /tmp/osiris2_install_vars)
+            if [[ $VARIABLE_RECIBIDA == "EXEC" ]]; then
+            
+            echo "Entrando en osiris"
+            echo $pwd   
+            cd bin
+            ./osiris
+            fi
+            
+            rm /tmp/osiris2_install_vars
+        else
+            echo "No se encontró el archivo temporal."
+        fi
+
+
+
+
+
+
+
+
+
+
+
+
+
 echo "END OF INSTALLER"
 
 

@@ -292,10 +292,10 @@ read -p "Tu elección: " choice
 if [[ "$choice" == "s" || "$choice" == "S" ]]; then
     echo "Ejecutando el script..."
     # Aquí llamas a tu script o comando
-    
-    ./${base}/bin/osiris
+    echo "EXEC" > /tmp/osiris2_install_vars
+    echo "Instalando componentes "
 else
-    echo "Saliendo del instalador."
+    echo "Finalizando Tareas...."
     exit 0
 fi
 
