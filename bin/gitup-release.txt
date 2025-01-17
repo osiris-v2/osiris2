@@ -16,6 +16,7 @@ LICENSE.md
 
 #Archivos instalación
 osiris
+osiris.inst
 osiris.sh
 share.sh
 install.sh
@@ -133,6 +134,7 @@ bin/tool/mrls
 bin/tool/diagnosis1
 #genera reporte de picos y comprobaciones de memoria
 bin/tool/memory
+
 
 #herraientas desktop (ventanas)
 bin/dsk/
