@@ -11,6 +11,8 @@ if [ -f /tmp/osiris2_install_vars ]; then
     # Leer la primera y segunda línea
     IFS=$'\n' read -d '' -r -a lines < /tmp/osiris2_install_vars
 
+   echo "----> ${lines[0]}"
+      echo "----> ${lines[1]}"
     # Verificar si la primera línea es "EXEC"
     if [[ ${lines[0]} == "EXEC" ]]; then
         
