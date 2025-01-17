@@ -84,10 +84,12 @@ while true; do
 
    if [[ "$FORCEUPGRADEMODE" == "ForceUpgrade" ]]; then
    
+   echo
    echo ">>>"
    echo "MODE REINSTALL SELECCIONADO (ForceUpgrade)"
-   echo "Selecciones continuar con la instalación (1)"
+   echo "Seleccione continuar con la instalación (1)"
    echo "Para continuar"
+   echo 
    
    fi
 
@@ -96,7 +98,7 @@ while true; do
     echo "2) Salir de la instalación "
     echo "3) Reiniciar el instalador"
     echo "4) REINSTALAR - UPGRADE"
-
+   
     # Leer la respuesta del usuario
     read -p "Ingrese el número de la opción deseada: " resp
 
@@ -226,16 +228,31 @@ download_fgit() {
 
 
     if [[ "${MODE}" == "ForceUpgrade" ]]; then
-      echo "Sobrescribiendo ${dest}..."
+    
+    echo "-------------------------------------------------------------"
+    echo "¡Advertencia:! El archivo o directorio ${dest} ya existe.    "
+    echo "      ESTA USANDO EL MODO REINSTALL                          "
+    echo " - MODO FORCEUPGRADE                                         "
+    echo " → Se reescribirán los archivos a la última versión estable  "
+    echo "-------------------------------------------------------------"
+    echo "Sobrescribiendo ${dest}..."
     echo 
     echo " #####$$$$$$######"
-      cp -R"${file_path}" "${dest}" || {
+      cp "${file_path}" "${dest}" || {
         echo "Error: No se pudo sobrescribir ${file_path} a ${dest}" | tee -a "${install_log}"
         echo '{"status": "error", "message": "Error al mover archivo"}' > "${error_file}"
         # exit 1
       }
       echo "Archivo sobrescrito: ${file_path}" | tee -a "${install_log}"
     elif [[ "${mode}" == "UPDATE" ]]; then
+
+
+    echo "-------------------------------------------------------------"
+    echo "¡Advertencia:! El archivo o directorio ${dest} ya existe.    "
+    echo "      ESTA USANDO EL MODO UPDATE                             "
+    echo " - MODO UPDATE                                               "
+    echo " → Se Moveran los archivos a su destino                      "
+    echo "-------------------------------------------------------------"
 
         mv -f "${file_path}" "${dest}" || {
         echo "Error: No se pudo sobrescribir ${file_path} a ${dest}" | tee -a "${install_log}"
@@ -271,45 +288,27 @@ while IFS= read -r line; do
   echo "Procesando: ${file_path}"
   dest="${base}/${file_path}"
   if [ -e "${dest}" ]; then
+     
+      # Verificar si el archivo existe en el repositorio
+    echo "Intentando descargar ${file_path} desde el repositorio base..."
+ 
+
+
+   download_fgit "$file_path"  "$install_log" "$error_file" "$MODE"
+    
   
-    if [[ $MODE == "ForceUpgrade" ]]; then
-
-    echo "-------------------------------------------------------------"
-    echo "¡Advertencia:! El archivo o directorio ${dest} ya existe.    "
-    echo "      ESTA USANDO EL MODO REINSTALL                          "
-    echo " - MODO FORCEUPGRADE                                         "
-    echo " → Se reescribirán los archivos a la última versión estable  "
-    echo "-------------------------------------------------------------"
-
-    sleep 0.1
-    
-    elif [[ $MODE == "DEFAULT" ]]; then    
-    
-    echo "---------------------------------------------------------"
-    echo "¡Advertencia:! El archivo o directorio ${dest} ya existe."
-    echo "      USE MODO REINSTALAR PARA SOBREESCRIBIRLOS          "
-    echo " - MODO INSTALL++  → Sólo se instalarán Archivos nuevos  "
-    echo "---------------------------------------------------------"
-
-    sleep 0.2
-   
    else
    
-   echo " ---->   MODO DESCONOCIDO  <------"
-   
+
+
+   download_fgit "$file_path"  "$install_log" "$error_file" "UPDATE"
+
+
+
    fi
   
-
-  
+   continue
    
-  fi
-
-  # Verificar si el archivo existe en el repositorio
-  echo "Intentando descargar ${file_path} desde el repositorio base..."
- 
- 
-   download_fgit "$file_path"  "$install_log" "$error_file" $MODE
-
 
 # Verificar si el archivo o directorio fue descargado
 if [ -e "${file_path}" ]; then
