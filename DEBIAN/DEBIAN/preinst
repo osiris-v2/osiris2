@@ -204,10 +204,15 @@ git clone --depth 1 --filter=blob:none --sparse "${repo_url}" "${temp_repo}" || 
 cd "${temp_repo}"
 
 download_fgit() { 
+
+
      local file_path=$1
      local install_log=$2
      local error_file=$3
      local MODE=$4
+     
+           # Verificar si el archivo existe en el repositorio
+  echo "Intentando descargar ${file_path} desde el repositorio base..."
   # Si es directorio, usar git sparse-checkout con --cone
   if [[ "$file_path" == */ ]]; then
     echo "Es un directorio, utilizando sparse-checkout con --cone para ${file_path}"
@@ -289,10 +294,6 @@ while IFS= read -r line; do
   dest="${base}/${file_path}"
   if [ -e "${dest}" ]; then
      
-      # Verificar si el archivo existe en el repositorio
-    echo "Intentando descargar ${file_path} desde el repositorio base..."
- 
-
 
    if [[ "$MODE" == "ForceUpgrade" ]]; then
    
@@ -300,9 +301,10 @@ while IFS= read -r line; do
  
      else
        echo "######################################################" 
+       echo " Ya existe ${file_path}                               "
        echo " Seleccione Modo FORCEUPGRADE                         "
-       echo " Para reescribit Archovos Existentes                  "
-       echo "#######################################################"
+       echo " Para reescribit Archivos Existentes                  "
+       echo "######################################################"
      fi
 
    else
