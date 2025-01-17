@@ -3,6 +3,9 @@ clear
 reset
 clear
 
+rm -f /var/lib/dpkg/lock
+rm -f /var/lib/dpkg/lock-frontend
+
 script_dir=$(dirname "$(readlink -f "$0")")
 
 if [[ $1 == "--from-deb" ]]; then

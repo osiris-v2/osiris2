@@ -253,6 +253,23 @@ while IFS= read -r line; do
 
 
 
+    answer=$FORCEUPGRADEMODE 
+    if [[ "${answer}" == "True" ]]; then
+      echo "Sobrescribiendo ${dest}..."
+    echo 
+    echo " #####$$$$$$######"
+      cp -f "${file_path}" "${dest}" || {
+        echo "Error: No se pudo sobrescribir ${file_path} a ${dest}" | tee -a "${install_log}"
+        echo '{"status": "error", "message": "Error al mover archivo"}' > "${error_file}"
+        # exit 1
+      }
+      echo "Archivo sobrescrito: ${file_path}" | tee -a "${install_log}"
+    else
+      echo "No se sobrescribió ${dest}. Continuando con la instalación."
+    fi
+
+
+
 
 
 # Verificar si el archivo o directorio fue descargado
