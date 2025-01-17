@@ -11,13 +11,14 @@ echo "Post Install File"
 
 
 
+cat /tmp/osiris2_install_vars 
 
 # Verificar si el archivo temporal existe
 if [ -f /tmp/osiris2_install_vars ]; then
     echo "Leyendo Mensaje Preinstall ..."
     
     # Leer el contenido del archivo
-    VARIABLE_RECIBIDA=$(cat /tmp/osiris2_install_vars)
+    VARIABLE_RECIBIDA=$(sed -n '1p' /tmp/osiris2_install_vars)
 
     # Verificar si la primera línea es "EXEC"
     if [[ $VARIABLE_RECIBIDA == "EXEC" ]]; then
