@@ -82,7 +82,7 @@ fi
 # Menú con opciones numéricas
 while true; do
 
-   if [[ $FORCEUPGRADEMODE == "ForceUpgrade" ]; then
+   if [[ $FORCEUPGRADEMODE == "ForceUpgrade" ]]; then
    
    echo "MODE REINSTALL SELECCIONADO (ForceUpgrade)"
    echo "Selecciones continuar con la instalación (1)"
