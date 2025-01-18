@@ -3,6 +3,8 @@ Pillow
 datetime
 requests
 cryptography
+cffi
+pyOpenSSL
 pyperclip
 PyQt5
 PyQt6

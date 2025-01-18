@@ -29,27 +29,22 @@ tor 				apt install tor
 
 port-audio     			apt install portaudio19-dev
 
-xcblib    apt install libxcb-xinerama0 libxcb1 libx11-xcb1 libxcb-glx0 libxcb-shape0 libxcb-render0 libxcb-render-util0 libxcb-xfixes0 libxcb-sync1 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-util1 libxcb-xkb1
+xcblib    			apt install libxcb-xinerama0 libxcb1 libx11-xcb1 libxcb-glx0 libxcb-shape0 libxcb-render0 libxcb-render-util0 libxcb-xfixes0 libxcb-sync1 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-util1 libxcb-xkb1
 
-cdevlibs apt install libreadline-dev  libncurses-dev
-
-
-pip.requeriments.install . bin/install/installpip.sh 
-pip.requeriments.upgrade . bin/install/upgradepip.sh 
-
-install.rust . bin/install/rust.sh
-
-depend pip install python-bitcoinlib Flask
-depend /usr/sbin/a2enmod ssl rewrite
-depend apt install whois
-
-terminator-Opack  . bin/install/terminator_install.sh
-ffmpeg-pack . bin/install/ffmpeg_install.sh
-tmux-pack . bin/install/tmux_install.sh
+cdevlibs 			apt install libreadline-dev  libncurses-dev
 
 
+apache2.enmod 			a2enmod ssl rewrite
 
+pip.requeriments.install 	. bin/install/installpip.sh 
+pip.requeriments.upgrade 	. bin/install/upgradepip.sh 
 
-node-Opack eval . bin/install/node_install.sh
+install.rust 			. bin/install/rust.sh
+
+terminator-Opack  		. bin/install/terminator_install.sh
+ffmpeg-pack 			. bin/install/ffmpeg_install.sh
+tmux-pack 			. bin/install/tmux_install.sh
+
+node-Opack eval 		. bin/install/node_install.sh
 
 #END

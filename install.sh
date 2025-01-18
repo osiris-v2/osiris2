@@ -95,6 +95,8 @@ check_command_installed /usr/bin/certbot
 #check_command_installed /usr/bin/tor --version
 
 check_command_installed /usr/bin/apache2 -v
+check_command_installed /usr/bin/apache2.enmod -v
+
 
 check_command_installed /usr/bin/php --version 
 check_command_installed /usr/bin/mariadb 
