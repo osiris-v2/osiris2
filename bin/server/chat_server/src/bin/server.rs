@@ -21,7 +21,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // Inicializa la librería de logs
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
 
-    let addr = "0.0.0.0:80";  // Dirección y puerto de escucha
+    let addr = "0.0.0.0:8081";  // Dirección y puerto de escucha
     let listener = TcpListener::bind(addr).await?;
     info!("Servidor WebSocket escuchando en {}", addr);
 
