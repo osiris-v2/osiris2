@@ -179,8 +179,8 @@ bin/com/datas/ffmpeg/start.mkv
 bin/com/datas/ffmpeg/carta.mkv
 bin/com/datas/ffmpeg/intro.mp4
 bin/com/datas/ffmpeg/logo.png
-#bin/com/datas/ffmpeg/random/info.txt
-#bin/com/datas/ffmpeg/random/transition/info.txt
+bin/com/datas/ffmpeg/random/info.txt
+bin/com/datas/ffmpeg/random/intro.mp4
 
 
 #html - WWW

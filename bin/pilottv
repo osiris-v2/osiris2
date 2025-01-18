@@ -7,26 +7,28 @@ echo "Pulsa enter para iniciar Pilot TV"
 read ENTER
 clear
 source '/etc/environment'
+script_dir=$(dirname "$(readlink -f "$0")")
+cd $script_dir
 echo "STARTING PILOTTV"
 # Variables de configuración
 SCRIPT_NAME="pilottv"
 PREFIX_TV="osiris-pilot-tv"
 PREFIX_SCREEN="osiristvscreen"
-def_input="0.optimo.ts"
-ext="ts"
-exts=("mp4" "ts" "mkv")
-ffmpegDir="${OSIRIS000_BIN}/com/datas/ffmpeg"
-randomDir="${OSIRIS000_BIN}/com/datas/ffmpeg/random/youtube2/youtube3"
-datasDir="${OSIRIS000_BIN}/com/datas"
+def_input="intro.mp4"
+ext=false
+exts=("mp4" "ts" "mkv" "webm")
+ffmpegDir="com/datas/ffmpeg"
+randomDir="com/datas/ffmpeg/random"
+datasDir="com/datas"
 profundidad="1"
 INSPECTOR_TIME=${2:-0.3}
 OUTPUT_URL=${1:-"rtmp://a.rtmp.youtube.com/live2/svvb-yk73-asfv-0krs-5v57"}
 #OUTPUT_URL=${2:-"rtmp://rtmp.rumble.com/live/r-3enppr-kk9w-l1xl-1abb59"}
-FFMPEG_FILE_PILOT="${OSIRIS000_BIN}/com/datas/ffmpeg/intro.mp4"
-progress_file="${ffmpegDir}/progress_process.txt"
+FFMPEG_FILE_PILOT="com/datas/ffmpeg/intro.mp4"
+progress_file="${datasDir}/progress_tv.txt"
 # Obtener la ruta completa del script
 SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
-logoTv="$ffmpegDir/logos/mtosierratv-m.png"
+logoTv="$ffmpegDir/logos/logo.png"
 sinput=" Input File "
 input_file=$sinput
 # Cambiar al directorio del script
@@ -90,24 +92,31 @@ audiofilter="aresample=async=1,loudnorm=I=-16:TP=-1.5:LRA=11"
 loglevel="warning"
 
 
-/usr/bin/ffmpeg -y -re \
-  -i $input_file \
-  -i "$logoTv" \
-  -filter_complex "[0:v]scale=-2:540[v];[1:v]scale=iw*0.3:-1[logo];[v][logo]overlay=15:20:enable='between(t,0,inf)'" \
-  -loglevel $loglevel -preset ultrafast -b:a 128k \
-  -crf 28 \
-  -bf 2 \
-  -coder 1 \
-  -tune zerolatency \
-  -b:v 0  -bufsize 3000k -c:v h264 -c:a aac \
-  -bsf:v h264_mp4toannexb -bsf:a aac_adtstoasc -movflags +faststart -af "$audiofilter" \
-  -pix_fmt yuv420p -g 12 -r 24 -maxrate 1500k \
-  -s 856x540 \
-  -cpu-used 0 \
-  -progress "$progress_file" \
-  -metadata "text='$PREFIX_TV'" \
-  -fflags '+genpts+igndts+discardcorrupt' \
-  -f flv "$OUTPUT_URL" >$datasDir/pilottv.log 2>&1 &
+(
+  com/osiris_env/ffmpeg/bin/ffmpeg -y -re \
+    -i "$input_file" \
+    -i "$logoTv" \
+    -filter_complex "[0:v]scale=-2:540[v];[1:v]scale=iw*0.3:-1[logo];[v][logo]overlay=15:20:enable='between(t,0,inf)'" \
+    -loglevel "$loglevel" -preset ultrafast -b:a 128k \
+    -crf 28 \
+    -bf 2 \
+    -coder 1 \
+    -tune zerolatency \
+    -b:v 0 -bufsize 3000k -c:v h264 -c:a aac \
+    -bsf:v h264_mp4toannexb -bsf:a aac_adtstoasc -movflags +faststart -af "$audiofilter" \
+    -pix_fmt yuv420p -g 12 -r 24 -maxrate 1500k \
+    -s 856x540 \
+    -cpu-used 0 \
+    -progress "$progress_file" \
+    -metadata "text='$PREFIX_TV'" \
+    -fflags '+genpts+igndts+discardcorrupt' \
+    -f flv "$OUTPUT_URL"  > "$datasDir/pilottv.log" 2>&1 & 
+  ) || {
+  echo "Error al ejecutar ffmpeg. Mensaje de error:"
+  cat "$datasDir/pilottv.log"
+  sleep 1
+}  &
+
 
 echo $t_input
 
@@ -165,7 +174,7 @@ while true; do
     if [ "$pid_count" -eq 0 ]; then
         echo "0 SCREEN 0"
         if [ -z "$pilot_pids" ]; then
-            echo "0 PILOT 0 - Iniciando..."
+            echo "0 PILOT 0 -  ${sinput} "
             sinput=$(start_ffmpeg)
             echo $sinput
            sleep 0.2
