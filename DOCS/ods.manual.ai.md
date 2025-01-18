@@ -1,5 +1,5 @@
 
-```markdown
+
 # Manual de ODS en Osiris2 (para GitHub)
 
 Este manual proporciona una guía detallada para el uso de ODS (Object Data Structure) dentro del shell interactivo de Osiris2, especialmente cuando se trabaja en proyectos versionados en GitHub.
@@ -194,7 +194,7 @@ ODS es una herramienta que ayuda a entender y depurar el código en Osiris2. La 
 ---
 
 **Nota:** Este es un borrador, se podría expandir con ejemplos más complejos y trucos de uso. Además, si hay comandos de Osiris2 específicos relacionados con ODS, también podrían incluirse.
-```
+
 
 **Cambios en el Manual:**
 
