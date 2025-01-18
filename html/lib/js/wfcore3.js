@@ -54,7 +54,8 @@ const ajax = function (ajax, auto_index = $ajax.length) {
         eval: ajax.eval || false,
         handler: auto_index,
         block: ajax.block || false,
-        end: false
+        end: false,
+        prejs:ajax.prejs || false,
     };
 
     if ($ajax[auto_index].method.toUpperCase() == "GET") {
@@ -63,12 +64,24 @@ const ajax = function (ajax, auto_index = $ajax.length) {
 
     $ajax[auto_index].xhr[0].open($ajax[auto_index].method, $ajax[auto_index].location, $ajax[auto_index].async);
 
+
+           if($ajax[auto_index].prejs != false){
+            
+            //  PREJS
+            
+             console.log("Ejecutando Js:",$ajax[auto_index].prejs)
+             new Function($ajax[auto_index].prejs)();
+           
+           
+           }
+ 
+
     $ajax[auto_index].xhr[0].onreadystatechange = function () {
         console.log("ID" + $ajax[auto_index].id);
         console.log("Ready State:" + $ajax[auto_index].xhr[0].readyState);
 
 
-        if ($ajax[auto_index].xhr[0].readyState == 4) {
+          if ($ajax[auto_index].xhr[0].readyState == 4) {
                         
 
            if($ajax[auto_index].eval == true){        
