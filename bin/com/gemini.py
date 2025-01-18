@@ -1552,8 +1552,11 @@ def main(args):
             return
 
         elif command == "--ls" or command == "--listfiles":
-            print("Listando archivos en com/datas:")
-            for filename in os.listdir("com/datas"):
+            if len(args) < 2:
+                args.append(".")
+            print("Listando archivos en com/datas/"+str(args[1]))
+            
+            for filename in os.listdir("com/datas/"+str(args[1])):
                 print(" -", filename)
             return
 
@@ -1646,19 +1649,48 @@ def main(args):
                 print("DECODE")
             return
         elif command == "--tvl" or command == "--tvideol":
+
+#                return
+
+
+            if len(args) == 2:
+                Context = []
+                if args[1] == "--dialog":
+                    print("DIALOG")
+                    dialog_h = win.dialog_window()
+                    Context = dialog_h.split()
+                    args = Context
+                    argsx = []
+                    if len(args) > 1:
+                        print("Procesando....")
+                        for  zx in  args: 
+                            if zx.startswith("@") : 
+                                argsx.append(zx)
+                    video_translate(Context[0]," Automatic @def  ",argsx)
+                    
+#                    main(["--tvl",Context[0],argsx])
+                    return
             if len(args) > 2:
+                Context = []
+                if args[2] == "--dialog":
+                    del args[2]
+                    print("DIALOG")
+                    dialog_h = win.dialog_window()
+                    Context = [dialog_h]
+
+                    
                 prompt = " ".join(args[2:])
-            else:
-                prompt = ""
+ 
+ 
+            argsx = []
             if len(args) > 1:
                 print("Procesando....")
-#                return
-                argsx = []
                 for  zx in  args: 
                     if zx.startswith("@") : 
                         argsx.append(zx)
-                    
+
                 video_translate(args[1],prompt,argsx)
+
 
             else:
                 print("Es necesario parametro de video")
