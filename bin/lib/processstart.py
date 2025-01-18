@@ -8,7 +8,7 @@ import sys
 import multiprocessing
 import random
 
-print("Import module processstart")
+#print("Import module processstart")
 
 prueba = False
 estado_proceso = False

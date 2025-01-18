@@ -24,7 +24,7 @@ endif;
 */
 
 if(!isset($_SESSION["REGUSER"]) || !$_SESSION['REGUSER']) die("<center><h1 style='background:black;'>Inicie Sesión Para Comenzar</h1>
-<center><img src='/img/oluz.png' style='width:60%;height:auto'></center>
+<center><img src='/img/oluz.png' style='width:auto;height:auto;;max-height:80vh'></center>
   ");
 $mysqli = new mysqli($mysql_host, $mysql_usr, $mysql_psd, $mysql_bd);
 

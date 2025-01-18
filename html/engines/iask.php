@@ -45,7 +45,7 @@ $ask_dec = htmlentities(base64_decode($ask));
 echo<<<JS
 constmenu(iardiv.id);
 mktparse(rsdiv,`$response`);
-iardiv.style = `overflow:auto;margin:5px;margin-top:10px;border-radius:10px;font-weight:500;border:solid 2px;background:#fdffde;padding:15px;font-size:15.2px;line-height:19.5px;word-spacing:1.5px;letter-spacing:1.00px;font-family:Roboto;`;
+iardiv.style = `overflow:auto;margin:5px;margin-top:10px;border-radius:10px;font-weight:500;border:solid 2px;background:#fdffde;padding:15px;font-size:15.2px;line-height:19.5px;word-spacing:1.5px;letter-spacing:1.00px;font-family:Roboto;`
 JS;
 endif;
 

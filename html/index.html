@@ -53,7 +53,7 @@ Main {style:"background:#000000;"}
 >>>SMODEL {innerHTML:"<b style=''> Modelo </b> ",style:"border-top-right-radius: 20px 15px;background:#a2a2a2;display:block;padding:2px 0px 2px 8px;width:calc(50% - 10px);margin-top:10%;font-size:100%;"}
 >>CS {info:" Center  "}
 >>MB
->>Inicio {className:"dispApp"}
+>>Inicio {className:"dispApp",style:"background:#000000;"}
 >>regInf {info:"Open Info", className:"dispApp"}
 >>Publicar {className:"dispApp"}
 >>Directorio {TAG:"iframe",className:"dispApp",src:"about:blank"}
@@ -186,9 +186,10 @@ paint = `
 <a href="javascript:void(0);" style="font-weight:bold;color:#DA3333;float:right" onclick="IAR.innerHTML=paintIAR()">Limpiar</a>
 <span style="float:right">&nbsp;&nbsp;</span>
 <a href="javascript:void(0);" style="font-weight:bold;color:#DA3333;float:right" onclick="IAR.style.display='none'">Cerrar</a>
-
 </div>
 
+<div id="ResizeIAR" style="position: absolute;right:0;bottom:0;color:gold;font-size:11px; font-weight:bold;">
+Resize Here →<div style="background:white;font-family:impact;font-size:13px;display:inline-block;width:10px;height:7px;margin:0;padding:0;"></div></div>
 
 `
 
@@ -197,12 +198,24 @@ return paint
 }
 
 
+function ResizeAIR(){
+
+RAIAR = document.getElementById("ResizeIAR").style
+
+const rc = setInterval(function(){
+RAIAR.bottom = "0px"
+RAIAR.right = "0px"
+}, 3000);
+}
+
+
+
 
 IAR.innerHTML = paintIAR()
 
 IAR.style=`
 padding:20px 2% 2% 2%;
-background:rgba(235,235,245,.85);
+background:rgba(5,5,2,.4);
 position:absolute;z-index:665;
 margin-left:13%;
 width:80%;
@@ -211,7 +224,7 @@ height:auto;
 display:none;
 overflow:auto;
 resize:both;
-border:solid 2px rgba(0,0,0,.6); justify-content:center; align-items:center;
+border:solid 4px rgba(222,220,220,.6); justify-content:center; align-items:center;
 `
 
 
@@ -409,6 +422,8 @@ Inicio.innerHTML += ` &nbsp; <h1>Últimas publicaciones  <br>  de acceso publico
 
 
 selectModel()
+
+ResizeAIR()
 
 
 }
