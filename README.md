@@ -160,16 +160,15 @@ Puedes usar NodeJs para algunos de sus proyectos si lo deseas, osiris provee de 
 
 
 
-<h2>ODS</h2>
-
-* **Osiris Dynamic Shell** Es un shell en lenguaje C para ayudar en la gestión, configuración y autmatización del mismo.
+<h2>ODS</h2> 
+**Osiris Dynamic Shell** Es un shell en lenguaje C para ayudar en la gestión, configuración y autmatización del mismo.
 
 [DESCUBRE COMO FUNCIONA ODSc](/DOCS/osiris.ods.man)
 
 
 ### Modo tmux
 
- Inicie osiris en múltiples consolas [DOC OSIRIS2TMUX](/DOCS/osiris2tmux.md)
+ * **Inicie** osiris en múltiples consolas [DOC OSIRIS2TMUX](/DOCS/osiris2tmux.md)
 
 ![Osiris2Tmux1](/bin/com/tmp/zj91enedg3.png)
 
