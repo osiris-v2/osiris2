@@ -164,7 +164,7 @@ Puedes usar NodeJs para algunos de sus proyectos si lo deseas, osiris provee de 
 
 * **Osiris Dynamic Shell** Es una consola shell en lenguaje C para ayudar en la gestión, configuración y automatización del sistema en múltiples tareas.
 
-[DESCUBRE COMO FUNCIONA ODSc](/DOCS/osiris.ods.man)
+[DESCUBRE COMO FUNCIONA ODSc](/DOCS/osiris.ods.man.md)
 
 
 <h2> Modo tmux</h2>
