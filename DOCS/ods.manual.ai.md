@@ -1,6 +1,3 @@
-¡Excelente! 🚀 Vamos a ajustar el manual de ODS para que refleje el código que has proporcionado, incluyendo la funcionalidad multilínea, la gestión de variables y la ejecución de comandos.
-
-Aquí tienes el manual actualizado en Markdown, listo para ser usado en GitHub:
 
 ```markdown
 # Manual de ODS en Osiris2 (para GitHub)
@@ -214,5 +211,5 @@ ODS es una herramienta que ayuda a entender y depurar el código en Osiris2. La 
 2.  Visualiza el archivo en un visor Markdown para comprobar el resultado.
 3.  Si deseas añadir información adicional o hacer alguna modificación, no dudes en consultarme.
 
-¡Espero que este manual te sea útil ! 😊
+¡Espero que este manual te sea útil! 😊
 
