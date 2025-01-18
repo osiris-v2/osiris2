@@ -23,8 +23,8 @@ endif;
 
 */
 
-if(!isset($_SESSION["REGUSER"]) || !$_SESSION['REGUSER']) die("<center><h1 style='background:white;'>Inicie Sesión Para Comenzar</h1>
-<center><img src='../app/freedirectory/promos/im/osiris3.png' style='width:60%;height:auto'></center>
+if(!isset($_SESSION["REGUSER"]) || !$_SESSION['REGUSER']) die("<center><h1 style='background:black;'>Inicie Sesión Para Comenzar</h1>
+<center><img src='/img/oluz.png' style='width:60%;height:auto'></center>
   ");
 $mysqli = new mysqli($mysql_host, $mysql_usr, $mysql_psd, $mysql_bd);
 
