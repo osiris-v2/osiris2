@@ -214,5 +214,5 @@ ODS es una herramienta que ayuda a entender y depurar el código en Osiris2. La 
 2.  Visualiza el archivo en un visor Markdown para comprobar el resultado.
 3.  Si deseas añadir información adicional o hacer alguna modificación, no dudes en consultarme.
 
-¡Espero que este manual te sea útil y refleje correctamente el comportamiento de tu programa! 😊
+¡Espero que este manual te sea útil ! 😊
 
