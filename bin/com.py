@@ -170,9 +170,11 @@ def command_line():
                 args.insert(0, set_com)
 
             if args[0] == "--reload":
+                print("RELOAD ENV")
                 # Código de recarga del entorno
                 continue
 
+               
             handle_command(args)
         except Exception as e:
             print(f"Exception ERROR 175:\n {e}  \nEscriba o pulse Enter para reentrar\n")            
@@ -183,6 +185,9 @@ def command_line():
 def handle_command(args):
     global use_command, set_com
     
+    
+
+            
     if args[0] == "mount" and len(args) > 1:   #mount para cargar (montar) comandos fuera de la lista
         if args[1] not in valid_commands:
             valid_commands.append(args[1])
