@@ -217,9 +217,17 @@ create_apache_conf() {
     local cert_path="/etc/letsencrypt/live/$domain" #RUTA FIJA
 
     if [[ -f "$conf_file" ]]; then
-       error_exit "Ya existe un archivo de configuración para este dominio: $conf_file"
+        read -r -p "El archivo de configuración '$conf_file' ya existe. ¿Desea sobrescribirlo? (s/n): " overwrite
+        case "$overwrite" in
+            [sS]|[sS][iI] ) 
+            echo "Sobreescribiendo el archivo de configuración '$conf_file'."
+             ;;
+           *) 
+             echo "No se sobrescribirá el archivo de configuración '$conf_file'."
+           return 0;
+             ;;
+       esac
     fi
-
 
   cat << EOF > "$conf_file"
 <VirtualHost *:80>
@@ -265,6 +273,23 @@ move_apache_conf() {
         error_exit "Error al mover el archivo '$conf_file' a '$DEFAULT_APACHE_ENABLED_DIR'"
     fi
   echo "Archivo de configuración movido correctamente a: $enabled_file"
+  systemctl stop apache2
+  systemctl start apache2
+}
+
+#Funcion para verificar si el modulo ssl esta activado
+check_apache_ssl(){
+     if ! apache2ctl -M | grep -q ssl_module; then
+       echo "DEBUG: El módulo SSL no está habilitado. Intentando habilitarlo..."
+       if ! sudo a2enmod ssl; then
+           error_exit "No se pudo habilitar el módulo SSL de Apache. Por favor, asegúrate de que tienes permisos para realizar esta acción."
+       else
+            echo "DEBUG: Módulo SSL habilitado correctamente. Por favor, vuelve a ejecutar este script."
+           exit 0;
+      fi
+    else
+         echo "DEBUG: El módulo ssl está habilitado"
+    fi
 }
 
 
@@ -278,6 +303,9 @@ main() {
 
      # Verifica librerías python
     check_python_libs
+
+   # Verifica si el modulo ssl está habilitado
+   check_apache_ssl
     
     local webroot_path=""
     local create_cert_mode=0 #0 no , 1 si
