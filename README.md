@@ -160,7 +160,8 @@ Puedes usar NodeJs para algunos de sus proyectos si lo deseas, osiris provee de 
 
 
 
-##ODS
+##ODS 
+
 * **Osiris Dynamic Shell** Es un shell en lenguaje C para ayudar en la gestión, configuración y autmatización del mismo.
 
 [DESCUBRE COMO FUNCIONA ODSc](/DOCS/osiris.ods.man)
