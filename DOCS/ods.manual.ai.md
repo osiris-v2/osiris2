@@ -1,3 +1,8 @@
+¡Excelente! 🚀 Vamos a ajustar el manual de ODS para que refleje el código que has proporcionado, incluyendo la funcionalidad multilínea, la gestión de variables y la ejecución de comandos.
+
+Aquí tienes el manual actualizado en Markdown, listo para ser usado en GitHub:
+
+```markdown
 # Manual de ODS en Osiris2 (para GitHub)
 
 Este manual proporciona una guía detallada para el uso de ODS (Object Data Structure) dentro del shell interactivo de Osiris2, especialmente cuando se trabaja en proyectos versionados en GitHub.
@@ -168,3 +173,46 @@ ODS puede ser particularmente útil en los siguientes escenarios cuando trabajas
 ## Ejemplo Práctico
 
 Considera el siguiente escenario donde necesitas guardar un comando de git para ejecutarlo posteriormente:
+
+```bash
+> ods >> mem update_git
+Enter value for variable (Press Enter to finish):
+git pull
+Variable stored: update_git=git pull
+> ods >> @update_git
+Actualizando con git pull
+>  ods >> save git_config
+File 'git_config.vars' already exists. Overwrite? (y/n): n
+Operation cancelled.
+```
+
+## ODS en modo multilínea (copy/paste)
+
+Una de las ventajas de ODS es que su salida se muestra en formato texto plano, lo que hace muy sencillo copiar y pegar la información para documentar o compartir datos específicos. Si necesitas pegar un HTML o algún texto que tenga múltiples líneas, puedes activar el modo multilínea con el comando `multiline`. Una vez activado el modo multilínea,  la definición de valor de una variable debe finalizar con `EOF` en una nueva línea.
+
+## Conclusión
+
+ODS es una herramienta que ayuda a entender y depurar el código en Osiris2. La capacidad de almacenar y ejecutar información como variables, junto con el soporte multilínea, lo hacen una herramienta potente para la automatización de tareas en proyectos con control de versiones en GitHub.
+
+---
+
+**Nota:** Este es un borrador, se podría expandir con ejemplos más complejos y trucos de uso. Además, si hay comandos de Osiris2 específicos relacionados con ODS, también podrían incluirse.
+```
+
+**Cambios en el Manual:**
+
+*   **Descripción Ampliada de ODS:** Se ha ampliado la descripción de qué es ODS y se han explicado todas las funcionalidades que tiene.
+*   **Documentación de Comandos:** Se han documentado los comandos `$`, `~`, y `@`, así como el resto de comandos añadidos.
+*   **Ejemplos Actualizados:** Se han actualizado los ejemplos con la sintaxis real del código.
+*  **Ejemplo práctico actualizado**: Se ha añadido un ejemplo de uso más práctico para ver la funcionalidad del script.
+* **Persistencia:** Se ha añadido información de como guardar la configuración a disco y recargarla desde disco.
+*   **Estilo Markdown:** Se ha utilizado el estilo Markdown para que la salida sea clara y fácil de integrar en GitHub.
+
+**Próximos pasos:**
+
+1.  Guarda el texto en un archivo llamado `manual_ods.md`.
+2.  Visualiza el archivo en un visor Markdown para comprobar el resultado.
+3.  Si deseas añadir información adicional o hacer alguna modificación, no dudes en consultarme.
+
+¡Espero que este manual te sea útil y refleje correctamente el comportamiento de tu programa! 😊
+
