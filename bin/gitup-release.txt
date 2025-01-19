@@ -15,15 +15,14 @@ LICENSE.md
 
 
 #Archivos instalación
-osiris
 osiris.inst
+osiris
 osiris.sh
 share.sh
 install.sh
 install.com
 index.html
 index.php
-
 
 #Archivos Osiris
 #directorio bin
@@ -72,8 +71,10 @@ bin/server/chat_server/src/bin/server.rs
 bin/net/rserver.nrl
 
 #archivos asistentes de instalacion en bin/install
-#descarga, compila e instala ffmpeg
+#descarga, compila e instala ffmpeg (versión ligera)
 bin/install/ffmpeg_install.sh
+#descarga, compila e instala ffmpeg habilitando hls
+bin/install/ffmpeg2compileHLS.sh
 #instala dependencias pip necesarias
 bin/install/installpip.sh
 #actualiza dependencia pip
@@ -91,6 +92,10 @@ bin/install/tmux_install.sh
 bin/install/tmux_uninstall.sh
 bin/install/osiris_env_sys_vars.sh
 bin/install/python_pack_install.sh
+bin/install/lets-cert.sh
+bin/install/ssh-cert.sh
+
+
 
 #Directorio con archivos de ayuda de comandos
 bin/help/
@@ -116,6 +121,11 @@ bin/scripts/tmux1
 bin/scripts/progress_hls
 bin/scripts/progress_tv
 
+#habilita apache para hls (crea .htaccess en directorios X)
+#Por defecto html/app/mitv/tv/channels/mail
+#También crea dentro de ese directorio la carpeta live-ts
+bin/scripts/a2enHLS.sh
+
 #Comprobador - asistente de problemas de memoria
 bin/scripts/freemem2
 
@@ -124,7 +134,8 @@ bin/scripts/server.build
 #corre el servidor rust
 bin/scripts/server.run
 #corre el cliente rust
-bin/scripts/client
+bin/scripts/client.run
+
 
 
 #Herramientas del directorio bin/tool
@@ -135,7 +146,6 @@ bin/tool/diagnosis1
 #genera reporte de picos y comprobaciones de memoria
 bin/tool/memory
 
-
 #herraientas desktop (ventanas)
 bin/dsk/
 
@@ -143,10 +153,9 @@ bin/dsk/
 bin/com/osiris_env/osiris.pip.requeriments
 bin/com/osiris_env/info.txt
 
-#default password
-#bin/data/auth_pwd
-#data bin
-bin/data/
+#default password is “osiris”
+bin/data/auth_pwd
+#bin/data/command_history.pkl (disabled upload history)
 
 #Instalador de aplicaciones web (html installer)
 bin/install/www/html/index.html
@@ -182,9 +191,9 @@ bin/com/datas/ffmpeg/start.mkv
 bin/com/datas/ffmpeg/carta.mkv
 bin/com/datas/ffmpeg/intro.mp4
 bin/com/datas/ffmpeg/logo.png
-#bin/com/datas/ffmpeg/random/info.txt
-#bin/com/datas/ffmpeg/random/transition/info.txt
-
+bin/com/datas/ffmpeg/random/info.txt
+bin/com/datas/ffmpeg/random/intro.mp4
+bin/com/datas/cert/info.txt
 
 #html - WWW
 
@@ -201,8 +210,16 @@ html/textos/info.txt
 #Aplicaciones WEB
 #html/app
 
+html/app/widgets/hlstv.html
+html/app/widgets/webirc.html
+
 html/app/freedirectory/index.php
 html/app/freedirectory/import.php
+
+
+html/app/mitv/index.html
+html/app/mitv/styles.css
+html/app/mitv/index.php
 
 html/app/mitv/js/app.js
 html/app/mitv/js/config.js
@@ -217,7 +234,7 @@ html/app/mitv/css/firefox.css
 
 html/app/mitv/tv/app.js
 html/app/mitv/tv/build.js
-html/app/mitv/tv/index.js
+html/app/mitv/tv/index.js 
 html/app/mitv/tv/load.js
 html/app/mitv/tv/paneles.js
 html/app/mitv/tv/source.js
@@ -227,6 +244,18 @@ html/app/mitv/tv/index.php
 html/app/mitv/tv/player2.php
 
 
-#RELEASE GENERADO EN 16-01-2025 04.39.00
+html/app/mitv/channels/main/.htaccess
+html/app/mitv/channels/main/live-ts/info.txt
+
+##RELEASE GENERADO EN 19-01-2025 09.39.00
+#mod+x
 osiris2release.deb
+#endmod
+
+#Archivos tmp release
+bin/com/tmp/zj91enedg3.png
+
+#Generado con la consola C  > ods>>
+bin/com.vars
+
 #EOF
