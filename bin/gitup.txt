@@ -210,6 +210,10 @@ html/textos/info.txt
 #Aplicaciones WEB
 #html/app
 
+#jsAnimator (WFIC)
+html/app/jsa/
+
+
 html/app/widgets/hlstv.html
 html/app/widgets/webirc.html
 

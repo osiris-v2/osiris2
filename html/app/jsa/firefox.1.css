@@ -1,0 +1,261 @@
+body{background:#551365}
+
+#AnimeWin,.iframes{
+float:left;
+display:inline-block;
+border:0.4% solid #921911;
+visibility:hidden;
+min-width:1%;
+width:100%;
+height:380px;
+max-width:99.2%;
+padding:0;
+display:none;
+margin:0;
+background:#ffffff;
+resize:both;
+}
+
+#DEV{
+display:block;
+visibility:visible;
+}
+
+.pestanas{
+cursor:pointer;
+background:#c3c9dd;
+border:1px solid #dcdcdc;
+padding:0px;
+float:left;
+font-size:13px;
+color:#432334;
+font-family:'gill sans';
+}
+
+.botonMas{
+border:solid 1px #cfcfcf;
+float:left;
+font-weight:bold;
+font-size:13px;
+font-family:'gill sans';
+color:#4e20a0;
+padding:2px;
+}
+
+.linker{
+font-size:16px;
+border:0;
+background:#dfdfdf;
+}
+
+
+
+.elements_tags{
+
+cursor:move;vertical-align:middle;font-size:100%;width:89%;margin:10px auto 0 auto;width:90%;height:10%;border:solid 1% #cecaae;background:rgba(25,25,55,.43);color:#efefef;
+font-size:50%;padding:1%;
+}
+
+
+.in_tags{
+
+width:100%;height:80%;padding:10% 0 10% 0;
+background:#fcfcfc;color:#0f0f0f;font-weight:bold;font-family:arial;
+
+}
+
+#CPanel{
+
+padding:0px; position:relative;color:red ; background:rgba(237,242,239,0.7); margin:0 auto 0 auto; width:13% ; position:fixed;overflow-y:auto;height:100%;
+
+}
+
+
+#GroupPanel{
+
+height:100%;
+
+position:fixed;
+display:block;
+background: #3f134a;
+float:right;
+width:70%;
+text-align:center;
+left:13%;
+overflow:auto;
+}
+
+
+#WinEdit{
+
+height:70%;
+
+position:fixed;top:0;right:0%;font-weight:bold;padding-top:0;padding-left:0px;padding-right:0;margin:0 auto 0 auto;background:#dccfcf;color:#f9f9f9;max-width:100%;font-size:14px;font-family:'gill sans';border:0px #8ff8ff solid;width:17%;height:100%;overflow-y:auto;
+
+
+}
+
+
+#WinPanel{
+
+
+padding-left:0%;
+padding-bottom:0.5%;padding-right:0%;height:auto;background:#2f3f34;width:100%;text-align:center;
+position:relative;top:0;
+
+
+}
+
+
+#MenuPanel{  height : 3%  ; /*position:fixed;*/
+
+padding:0px;background:#696969;color:#eceb2f;
+
+ }
+
+
+
+#WorkWinFrames{  height: 50% ; /*position:fixed;*/
+
+border:solid 0px red;width:100%;text-align:center;padding:0 0 0 0;
+
+}
+
+
+
+#GroupIframes{
+
+border:solid 0px gold;text-align:center;
+width:100%;text-align:center;padding:0;background:#000000;
+
+}
+
+
+#TimeLine{  height : 3% ;/* position:fixed;*/
+background:#61636d;padding:0%;display:none;font-size:16px;color:#dff30a;font-weight:bold;
+
+ }
+
+
+
+#IdEdit {  height : auto; position:relative; /* border:solid 1px red;*/
+overflow:auto;
+
+background:#1f1a26;
+width:100%;
+margin:0;
+padding:0;
+
+}
+
+
+#AnimeWinOpt{
+
+background:rgba(0,0,0,.6);color:rgba(255,255,255,.8);
+font-weight:bold;
+font-size:14px;font-family:arial;letter-spacing:1.7px;clear:both;
+
+}
+
+
+#TagIframes{
+
+padding:2px 2px 2px 0px;background:#332112;text-indent:5px;font-weight:bold;font-family:arial;font-size:14px;
+
+}
+
+
+
+
+.paneles{
+height:auto;overflow-y:auto;width:100%;text-align:center;color:#deef00;
+background:#09024a;
+}
+
+.paneles_edit {
+
+position:relative;
+float:left;
+color:#deef00;font-weight:bold;
+width:25%;min-height:10%;height:320px;max-height:100%;overflow-y:auto;overflow-x:auto;
+
+}
+
+
+#PANEL_ANIMATION{}
+
+#PANEL_FONTS{}
+
+#PANEL_FAVORITOS{}
+
+#PANEL_VARIOS{}
+
+
+
+
+.menu_edit{
+
+border-top:2px solid #a0a0a0;
+text-decoration:underline;padding:0.6%;font-size:100%;color:#1223f3;background:#c3c1f1;cursor:pointer;text-align:left;width:98.8%;
+
+}
+
+
+.botones_tags{
+
+
+float:right;margin:0;font-size:12px;border:outset 1px #128376;
+
+}
+
+
+
+.controles_input{
+
+margin:0;padding:0;width:99%;
+
+}
+
+.controles_color {
+margin:auto 24% auto 24%;
+height:20px;width:48%;border:outset 1% #65d321;
+
+}
+
+.controles_textarea{
+
+vertical-align:middle;height:30px;width:98%;
+margin:auto 0 auto 0;
+}
+
+
+.area_controles{
+overflow:hidden;
+display:inline-block;padding:0px;margin:0;background:#6F0381;font-size:16px;height:auto;width:98%;
+
+} 
+
+
+.container_controles_avanzados {
+
+border:solid 0px red;
+display:none;
+background:#226044;
+clear:both;
+}
+
+
+.controles_avanzados {
+
+background:#efefef;
+color:#126534;
+font-size:100%;
+
+}
+
+
+
+
+
+
+

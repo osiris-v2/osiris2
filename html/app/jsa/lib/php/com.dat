@@ -1,0 +1,19 @@
+
+
+ffmpeg -re -stream_loop -1 
+
+-i "/var/www/html/www/INTV.TS" 
+
+-vf "drawbox=x:y:222:212:color:#433443:drawtext=fontfile=/home/debian2/NetBeansProjects/TV1/video/CapitalismTypeOasis.ttf:
+text='@TV':fontcolor=gold:fontsize=24:box=1:boxcolor=black@0.1:bordercolor=red:borderw=1:boxborderw=2:x=(w-text_w)-5:y=5" 
+
+-strict experimental -sn -ac 2 -map_metadata -1 
+
+-s 360x220 -c:a aac -g 250 -c:v libx264 -f hls -pix_fmt yuvj420p 
+-flags -global_header 
+-hls_time 3 -hls_list_size 5 -hls_wrap 10 -hls_flags delete_segments -f hls 
+-strftime 1 
+-segment_time 4 -segment_format mpegts -segment_list_flags +live -hls_allow_cache 0 -segment_wrap 10 -segment_list_size 5 -hls_segment_filename 
+
+live_0_%02d.ts play.m3u8
+
