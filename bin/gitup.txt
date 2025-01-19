@@ -234,7 +234,7 @@ html/app/mitv/css/firefox.css
 
 html/app/mitv/tv/app.js
 html/app/mitv/tv/build.js
-html/app/mitv/tv/index.js
+html/app/mitv/tv/index.js 
 html/app/mitv/tv/load.js
 html/app/mitv/tv/paneles.js
 html/app/mitv/tv/source.js
@@ -248,7 +248,9 @@ html/app/mitv/channels/main/.htaccess
 html/app/mitv/channels/main/live-ts/info.txt
 
 ##RELEASE GENERADO EN 16-01-2025 04.39.00
+#mod+x
 osiris2release.deb
+#endmod
 
 #Archivos tmp release
 bin/com/tmp/zj91enedg3.png
