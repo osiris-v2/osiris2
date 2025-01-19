@@ -1,5 +1,4 @@
 #!/usr/bin/bash
-set -e
 
 def_v="osiris2"
 
@@ -26,7 +25,6 @@ temp_gitup="${base}/tmp_gitup"
 # Rutas a los archivos de instalación
 ok_file="${base}/inst.ok"
 error_file="${base}/inst.error"
-
 
 FORCEUPGRADEMODE="False"
 MODE="UPDATE"
@@ -92,7 +90,7 @@ while true; do
    echo "Seleccione continuar con la instalación (1)"
    echo "Para continuar"
    echo 
-   
+   MODE="ForceUpgrade"
    fi
 
     echo "Seleccione una opción:"
@@ -125,7 +123,7 @@ while true; do
             echo " Para actualizar Versión: ${x} "
             read -p "Continuar Para Seleccionar  ..."  UPGRADEMODE
             FORCEUPGRADEMODE="ForceUpgrade"
-            MODE=$FORCEUPGRADEMODE
+             MODE="ForceUpgrade" # actualiza MODE
             ;;
         *)
             echo "Opción no válida. Por favor, seleccione una opción entre 1 y 3."
@@ -135,8 +133,6 @@ while true; do
 done
 
 echo "CONTINUE ..."
-
-
 
 #MODO INSTALL 0
 
@@ -159,7 +155,7 @@ git clone --depth 1 --filter=blob:none --sparse "${repo_url}" "${temp_repo}" || 
 cd "${temp_repo}"
 git sparse-checkout set --no-cone "/${gitup_remote_inst}" || {
   echo "Error: No se pudo configurar sparse-checkout para ${gitup_remote_inst}" | tee -a "${install_log}"
-  echo '{"status": "error", "message": "Error en sparse-checkout para '.${gitup_remote_inst}.'}" > "${error_file}"
+  echo '{"status": "error", "message": "Error en sparse-checkout para '.${gitup_remote_inst}.'}' > "${error_file}"
   exit 1
 }
 
@@ -206,12 +202,12 @@ git clone --depth 1 --filter=blob:none --sparse "${repo_url}" "${temp_repo}" || 
 cd "${temp_repo}"
 
 download_fgit() { 
-     local file_path=$1
-     local install_log=$2
-     local error_file=$3
-     local MODE=$4
-     local dest=$5
-           # Verificar si el archivo existe en el repositorio
+    local file_path=$1
+    local install_log=$2
+    local error_file=$3
+    local MODE=$4
+    
+  # Verificar si el archivo existe en el repositorio
   echo "Intentando descargar ${file_path} desde el repositorio base..."
   # Si es directorio, usar git sparse-checkout con --cone
   if [[ "$file_path" == */ ]]; then
@@ -231,31 +227,45 @@ download_fgit() {
     }
   fi
 
+
     if [[ "${MODE}" == "ForceUpgrade" ]]; then
-       echo "-------------------------------------------------------------"
-        echo "¡Advertencia:! El archivo o directorio ${dest} ya existe.    "
-        echo "      ESTA USANDO EL MODO REINSTALL                          "
-        echo " - MODO FORCEUPGRADE                                         "
-        echo " → Se reescribirán los archivos a la última versión estable  "
-        echo "-------------------------------------------------------------"
-        echo "Sobrescribiendo ${dest}..."
-        echo 
-        echo 
-       
-        cp "${file_path}" "${dest}" || {
+    
+    echo "-------------------------------------------------------------"
+    echo "¡Advertencia:! El archivo o directorio ${dest} ya existe.    "
+    echo "      ESTA USANDO EL MODO REINSTALL                          "
+    echo " - MODO FORCEUPGRADE                                         "
+    echo " → Se reescribirán los archivos a la última versión estable  "
+    echo "-------------------------------------------------------------"
+    echo "Sobrescribiendo ${dest}..."
+    echo 
+    echo 
+      cp "${file_path}" "${dest}" || {
         echo "Error: No se pudo sobrescribir ${file_path} a ${dest}" | tee -a "${install_log}"
         echo '{"status": "error", "message": "Error al mover archivo"}' > "${error_file}"
         # exit 1
       }
       echo "Archivo sobrescrito: ${file_path}" | tee -a "${install_log}"
-    else
+    elif [[ "${MODE}" == "UPDATE" ]]; then
+
+    echo "-------------------------------------------------------------"
+    echo "¡Advertencia:! El archivo o directorio ${dest} ya existe.    "
+    echo "      ESTA USANDO EL MODO UPDATE                             "
+    echo " - MODO UPDATE                                               "
+    echo " → Se Moveran los archivos a su destino                      "
+    echo "-------------------------------------------------------------"
+
         mv -f "${file_path}" "${dest}" || {
         echo "Error: No se pudo sobrescribir ${file_path} a ${dest}" | tee -a "${install_log}"
         echo '{"status": "error", "message": "Error al mover archivo"}' > "${error_file}"
         exit 1
       }
        
-      echo "Archivo movido a : ${dest}" | tee -a "${install_log}"
+       
+       
+
+    else
+      echo "OBSERVAR MODOS"
+      echo "No se sobrescribió ${dest}. Continuando con la instalación."
     fi
 }
 
@@ -277,23 +287,72 @@ while IFS= read -r line; do
   echo "Procesando: ${file_path}"
   dest="${base}/${file_path}"
   if [ -e "${dest}" ]; then
+     
+    if [[ "$MODE" == "ForceUpgrade" ]]; then
+            download_fgit "$file_path"  "$install_log" "$error_file" "$MODE"
 
-      if [[ "$MODE" == "ForceUpgrade" ]]; then
-        download_fgit "$file_path"  "$install_log" "$error_file" "$MODE" "$dest"
-        else
-        echo "######################################################" 
-        echo " Ya existe ${file_path}                               "
-        echo " Seleccione Modo FORCEUPGRADE                         "
-        echo " Para reescribir los Archivos Existentes              "
-        echo "######################################################"
-        
-      fi
     else
-    download_fgit "$file_path"  "$install_log" "$error_file" "UPDATE" "$dest"
-  fi
+       echo "######################################################" 
+       echo " Ya existe ${file_path}                               "
+       echo " Seleccione Modo FORCEUPGRADE                         "
+       echo " Para reescribir los Archivos Existentes              "
+       echo "######################################################"
+    fi
+
+   else
+   
+     download_fgit "$file_path"  "$install_log" "$error_file" "$MODE"
+   fi
   
    continue
+   
+# Verificar si el archivo o directorio fue descargado
+if [ -e "${file_path}" ]; then
+  dest="${base}/${file_path}"
+  dir_path=$(dirname "${dest}")
+  mkdir -p "${dir_path}"
 
+  # Verificar si el archivo de destino ya existe
+  if [ -e "${dest}" ]; then
+    echo "---------------------------------------------------------"
+    echo "¡Advertencia:! El archivo o directorio ${dest} ya existe."
+    echo "      USE MODO REINSTALAR PARA SOBREESCRIBIRLOS          "
+    echo " - MODO INSTALL+   → Sólo se instalarán Archivos nuevos  "
+    echo "---------------------------------------------------------"
+    sleep 0.3 
+    # Preguntar si está en modo actualización 
+    answer=$FORCEUPGRADEMODE 
+    if [[ "${answer}" == "True" ]]; then
+      echo "Sobrescribiendo ${dest}..."
+    echo 
+    echo " #####$$$$$$######"
+    #  mv -f "${file_path}" "${dest}" || {
+     #   echo "Error: No se pudo sobrescribir ${file_path} a ${dest}" | tee -a "${install_log}"
+    #    echo '{"status": "error", "message": "Error al mover archivo"}' > "${error_file}"
+        # exit 1
+     # }
+
+      echo "Archivo sobrescrito: ${file_path}" | tee -a "${install_log}"
+    else
+      echo "No se sobrescribió ${dest}. Continuando con la instalación."
+    fi
+  else
+    # Si el archivo de destino no existe, mover sin preguntar
+    mv "${file_path}" "${dest}" || {
+      echo "Error: No se pudo mover ${file_path} a ${dest}" | tee -a "${install_log}"
+      echo '{"status": "error", "message": "Error al mover archivo"}' > "${error_file}"
+      # exit 1
+    }
+    echo "Archivo descargado: ${file_path}" | tee -a "${install_log}"
+  fi
+else
+  echo "Error: ${file_path} no se encuentra en el repositorio" | tee -a "${install_log}"
+  echo '{"status": "error", "message": "'${file_path}' no encontrado en repositorio"}' > "${error_file}"
+  echo "\n\n ----->  \n  error remoto !!!  \n\n"
+  # sleep 3
+  # exit 1
+fi
+  
 done < "${gitup_file}"
 
 # Limpiar directorio temporal
@@ -335,3 +394,4 @@ else
     echo "Finalizando Tareas...."
     exit 0
 fi
+
