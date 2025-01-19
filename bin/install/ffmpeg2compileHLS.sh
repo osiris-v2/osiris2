@@ -1,7 +1,11 @@
 #!/bin/bash
 source "/etc/environment" #Puede deshabilitarlo si no necesita las variables globales OSIRS000
 echo "Instalador avanzado de FFmpeg con configuraciones completas"
+
+
+#Puede CAMBIAR esta dirección desde https://ffmpeg.org/releases/
 latest_ffmpeg_url="https://ffmpeg.org/releases/ffmpeg-7.0.1.tar.bz2"
+
 # Variables de configuración
 install_dir="/usr/local/osiris2/ffmpeg"
 
