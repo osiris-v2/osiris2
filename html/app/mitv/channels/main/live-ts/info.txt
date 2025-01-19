@@ -1,0 +1,1 @@
+En este directorio se generan los segmentos .ts temporales y los archivos  .m3u8

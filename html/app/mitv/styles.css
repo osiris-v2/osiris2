@@ -1,0 +1,80 @@
+/* styles.css */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #200f03;
+  color: #333;
+  margin: 0;
+}
+
+.container {
+  max-width: 100vw;
+  margin: 0 auto;
+  padding: 5px;
+  background-color: #1f0f2a;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.textarea {
+  width: 100%;
+  height: 240px;
+  resize: none;
+  border: 1px solid #ccc;
+  padding: 10px;
+  font-size: 14px;
+}
+
+/* Styling for buttons */
+input[type="button"] {
+  padding: 10px 20px;
+  background-color: #4CAF50;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+input[type="button"]:hover {
+  background-color: #45a049;
+}
+
+/* Styling for links */
+a {
+  color: #1E90FF;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Styling for hidden elements */
+.hidden {
+  display: none;
+}
+
+/* Styling for scrollable container */
+.scroll-container {
+  overflow-y: scroll;
+  overflow-x: hidden;
+  position: fixed;
+  max-height: 30%;
+  height: flex;
+  width: 100%;
+  bottom: 0;
+}
+
+/* Styling for code block */
+.code-block {
+  background-color: #f7f7f7;
+  padding: 10px;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 14px;
+  color: #333;
+}
+
+/* Styling for video player */
+#MASTER {
+  width: 100%;
+}
+
+/* Other custom styles as needed */

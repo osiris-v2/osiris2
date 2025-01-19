@@ -216,6 +216,11 @@ html/app/widgets/webirc.html
 html/app/freedirectory/index.php
 html/app/freedirectory/import.php
 
+
+html/app/mitv/index.html
+html/app/mitv/styles.css
+html/app/mitv/index.php
+
 html/app/mitv/js/app.js
 html/app/mitv/js/config.js
 html/app/mitv/js/index.js
@@ -238,6 +243,9 @@ html/app/mitv/tv/default.css
 html/app/mitv/tv/index.php
 html/app/mitv/tv/player2.php
 
+
+html/app/mitv/channels/main/.htaccess
+html/app/mitv/channels/main/live-ts/info.txt
 
 ##RELEASE GENERADO EN 16-01-2025 04.39.00
 osiris2release.deb
