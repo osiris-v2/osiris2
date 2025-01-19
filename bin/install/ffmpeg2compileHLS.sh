@@ -1,10 +1,17 @@
 #!/bin/bash
-source "/etc/environment"
+source "/etc/environment" #Puede deshabilitarlo si no necesita las variables globales OSIRS000
 echo "Instalador avanzado de FFmpeg con configuraciones completas"
-
+latest_ffmpeg_url="https://ffmpeg.org/releases/ffmpeg-7.0.1.tar.bz2"
 # Variables de configuración
 install_dir="/usr/local/osiris2/ffmpeg"
+
+
+#CAMBIE A SU DIRECTORIO en default_dir A SU NECESIDAD 
+#EN ESTE DIRECTORIO SE GENERA EL EJECUTABLE 
+#EN /SU_DIRECTORIO/ffmpeg/bin/ffmpeg
+#O USE RUTAS RELATIVAS
 default_dir="${OSIRIS000_BIN}/com/osiris_env/ffmpeg"
+
 download_dir="/tmp/ffmpeg-downloads" # Directorio de descarga
 src_dir="$download_dir/ffmpeg-src"  # Directoio temporal para la descarga y descompresión de ffmpeg
 
@@ -19,7 +26,7 @@ install_dir=${install_dir:-$default_dir}
 echo "El directorio de instalación es: $install_dir"
 
 num_cores=$(nproc)
-latest_ffmpeg_url="https://ffmpeg.org/releases/ffmpeg-7.0.1.tar.bz2"
+
 
 # Crear directorios necesarios
 mkdir -p "$src_dir" "$install_dir"
