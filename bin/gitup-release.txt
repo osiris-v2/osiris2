@@ -210,12 +210,17 @@ html/textos/info.txt
 #Aplicaciones WEB
 #html/app
 
+#jsAnimator (WFIC)
+#html/app/jsa/
+
 html/app/widgets/hlstv.html
 html/app/widgets/webirc.html
 
 html/app/freedirectory/index.php
 html/app/freedirectory/import.php
 
+#Predeterminado para jsanimator
+html/app/freedirectory/media/records/today.html
 
 html/app/mitv/index.html
 html/app/mitv/styles.css
@@ -244,13 +249,19 @@ html/app/mitv/tv/index.php
 html/app/mitv/tv/player2.php
 
 
+
 html/app/mitv/channels/main/.htaccess
 html/app/mitv/channels/main/live-ts/info.txt
 
 ##RELEASE GENERADO EN 16-01-2025 04.39.00
-#mod+x
+
+#(ask) ¿Ejecutar acción?
+#? (ask) if request # shareV #
+#mod+x 5
+##?!> request
 osiris2release.deb
-#endmod
+#!
+
 
 #Archivos tmp release
 bin/com/tmp/zj91enedg3.png
