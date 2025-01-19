@@ -111,7 +111,7 @@ def start_ffmpeg(url,com):
     '-i','/dev/video0']
     
     
-    foutput = ['-c:v', 'libx264', '-preset', 'ultrafast',
+    foutput = ['-c:v', 'libx264', '-preset', 'fast',
     '-tune', 'zerolatency', '-pix_fmt', 'yuv420p',
     '-c:a', 'aac', '-ar', '44100', '-b:a', '128k',
     '-b:v', '2500k', '-s:v', '1280x720', '-maxrate:v', '3000k', '-bufsize:v', '5000k',
@@ -177,6 +177,6 @@ last_url = ""
 command = []
 hls_progress_file = "/var/osiris2/bin/com/datas/progress_hls.txt"
 hls_default_input = "/var/osiris2/bin/com/datas/ffmpeg/intro.mp4"
-hls_path = "/var/osiris2/html/app/mitv/tv/channels/main/live-ts"
+hls_path = "/var/osiris2/html/app/mitv/channels/main/live-ts"
 ffcom_metadata = "text=osiristv-hls-main"
 

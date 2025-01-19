@@ -62,6 +62,8 @@ yt_last_args = False
 
 
 ffmpeg_exec="com/osiris_env/ffmpeg/bin/ffmpeg"
+ffprobe_exec="com/osiris_env/ffmpeg/bin/ffprobe"
+
 
 lineInput = None
 def_output = "rtmp://rtmp.rumble.com/live/r-3enppr-kk9w-l1xl-1abb59"
@@ -259,7 +261,7 @@ def main(args):
     global cookies, user_agent
 
     global lineInput, def_re, def_intro_file, def_output,def_progress_file,def_seek_start,def_audio_filter,def_preset,def_screen,def_fps,def_crf,def_ar
-    global profiles, ffmpeg_exec
+    global profiles, ffmpeg_exec, ffprobe_exec
     global yt_default_list_dir,def_fdir
 
 
@@ -272,7 +274,7 @@ def main(args):
 
     if args[0] == "probe":
         if len(args) > 1:
-            subprocess.call(["ffprobe",args[1]])
+            subprocess.call([ffprobe_exec,args[1]])
             print("\nEnd Probe\n")
         else:
             print("Probe + Input")
@@ -371,7 +373,7 @@ def main(args):
                             print(" PLay:"+str(intn))
                             if len(args)>3:
                                 if args[3] == "probe":
-                                    subprocess.call(["ffprobe","-i",yt_default_list_dir +"/"+ play[int(intn) - 1]])
+                                    subprocess.call([ffprobe_exec,"-i",yt_default_list_dir +"/"+ play[int(intn) - 1]])
                                     print("--End Probe-----------------")
                                     return
                             if play[int(intn) - 1].startswith(iprot):
@@ -429,10 +431,10 @@ def main(args):
                                     else:
                                         print("ERROR INPUT FOR PROBE")
                                         print("Intento CON URL ORIGINAL",play[int(intn)-1])
-                                        subprocess.call(["ffprobe","-i", play[int(intn) - 1]])
+                                        subprocess.call([ffprobe_exec,"-i", play[int(intn) - 1]])
                                         print("End probe HLS URL ORIGINAL")
                                 else:
-                                    subprocess.call(["ffprobe","-i",yt_default_list_dir +"/"+ play[int(intn) - 1]])
+                                    subprocess.call([ffprobe_exec,"-i",yt_default_list_dir +"/"+ play[int(intn) - 1]])
                                 print("--End Probe-----------------")
                                 return
                             if play3.last_process != None:
@@ -824,7 +826,7 @@ def main(args):
                     	    print("Args:",args[2])
                     	    return
                         if pInput:
-                            subprocess.call(["ffprobe","-i",args[2]])
+                            subprocess.call([ffprobe_exec,"-i",args[2]])
                         else:
                             print("Error Input:",args[2])
                             return
@@ -900,7 +902,7 @@ def main(args):
                     print("===================>",output)
                 if output.startswith("http://") or output.startswith("https://"):
                     try:
-                        subprocess.call(["ffprobe", "-i", output])
+                        subprocess.call([ffprobe_exec, "-i", output])
                         pi = True
                         last_url = output
                         lib_url = output

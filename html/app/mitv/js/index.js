@@ -43,6 +43,7 @@ onload = function(){
     const content = document.getElementById(elementId);
 
     // Estilos iniciales
+    container.style.top = "40px";
     container.style.width = "40vw";
     container.style.position = "absolute";
     container.style.padding = "10px";

@@ -28,7 +28,6 @@ innerHTML:"Menú",
 click:`document.getElementById('splash-container').style.display = 'block';`,
 
 
-
 }
 
 
@@ -45,8 +44,9 @@ SPLASH_CONTENT = {
 TAG:"div",
 
 innerHTML:`
-<div style='border:solid 0px #dd3333;position:relative;padding:5vh;background:rgba(5,5,5,.4);display:inline-block'>
-<button type="button" class='mbuton' onclick="document.getElementById('iftvx2').src='tv/player2.php?chn=../channels/main/live-ts/master_ultrafast.m3u8'">Osiris TV</button>
+<div style='border:solid 0px #dd3333;position:relative;padding:6vh;background:rgba(5,5,5,.4);display:inline-block'>
+<button onclick="document.getElementById('splash-container').style.display = 'none';" style="color:#a93333;margin:0.5vw">[Cerrar]</button>
+<button type="button" class='mbuton' onclick="reloadtv()">Osiris TV</button>
 <button type="button" class='mbuton' onclick="document.getElementById('iftvx2').src='https://osiris000.duckdns.org/app/widgets/hlstv.html'">WdTV</button>
 <button type="button" class='mbuton' onclick="document.getElementById('iftvx2').src='tv/app.php'">Canales Tv</button>
 <button type="button" class='mbuton' onclick="document.getElementById('iftvx2').src='../freedirectory/video/cartelera.php'">Cartelera</button>
@@ -60,8 +60,26 @@ style:"width:auto;display:block;"
 
 CLOSE_SPLASH = {
 
-TAG:"button",
+TAG:"div"
+}
+
+/*
 innerHTML:`<button onclick="document.getElementById('splash-container').style.display = 'none';" style="color:#a93333;margin:0.5vw">[Cerrar]</button>`,
 click:`document.getElementById('splash-container').style.display = 'none';`,
-className:`mbuton`
+className:`mbuton`,style:"float:left;margin-top:4vh"
+*/
+
+
+function randchan(){
+randchan  = "chtvr_" + "_" + Math.floor(Math.random() * 9999999);
+return randchan
 }
+
+
+function reloadtv(){
+nrand = randchan()
+document.getElementById('iftvx2').src='tv/player2.php?chn=../channels/main/live-ts/master_ultrafast.m3u8&rlc='+nrand
+}
+
+
+

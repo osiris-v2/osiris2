@@ -7,7 +7,7 @@ cd ../..
 
 
 # Variables
-TARGET_DIR="html/app/mitv/tv/channels/main"
+TARGET_DIR="html/app/mitv/channels/main"
 LIVE_DIR="$TARGET_DIR/live-ts"
 HTACCESS_FILE="$TARGET_DIR/.htaccess"
 HTACCESS_CONTENT='
