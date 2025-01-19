@@ -708,7 +708,7 @@ winN = sEval('windows[1].'+wd.win+'')
 
 
 
-workw = `<div style='width:100%;background:#242476;padding:0;'><div title="Grabación" style='border:3px outset #da2939;width:18px;height:16px; border-radius: 35%;background:#ff190c;cursor:pointer;margin:0;' onclick="if(!aw(ActiveWin)|| ActiveWinName != 'winsfrms_'+(winN+1)){if(!desagrupa){clickId('#xrmst1')}}advancedControls('`+id+`','animacion','ad[`+id+`].animacion','',0);closectrl(`+id+`)"></div></div><div style="font-size:14px;text-align:right;background:#534793;color:#DAeEEE;border-right:solid 0px #fafafa;border-left:solid 0px #fafafa;padding:4px 0 3px 0px;width:100%;font-size:15px;text-align:center;">trabajando con id: <b>`+id+`</b> :<a href="javascript:void(0);" onclick="clickId('#linker_`+(winN -1)+`');AnimeWinOpt.innerHTML = 'Trabajando con Pesta&ntilde;a `+winN+`'" id='xrmst1' style="background:white;">Pesta&ntilde;a `+winN+`</a>: `+wd+` </div><div id='animacion'></div>`
+workw = `<div style='width:100%;background:#101010;padding:0;'><div title="Grabación" style='border:3px outset #da2939;width:18px;height:16px; border-radius: 35%;background:#ff190c;cursor:pointer;margin:0;' onclick="if(!aw(ActiveWin)|| ActiveWinName != 'winsfrms_'+(winN+1)){if(!desagrupa){clickId('#xrmst1')}}advancedControls('`+id+`','animacion','ad[`+id+`].animacion','',0);closectrl(`+id+`)"></div></div><div style="font-size:14px;text-align:right;background:#534793;color:#DAeEEE;border-right:solid 0px #fafafa;border-left:solid 0px #fafafa;padding:4px 0 3px 0px;width:100%;font-size:15px;text-align:center;">trabajando con id: <b>`+id+`</b> :<a href="javascript:void(0);" onclick="clickId('#linker_`+(winN -1)+`');AnimeWinOpt.innerHTML = 'Trabajando con Pesta&ntilde;a `+winN+`'" id='xrmst1' style="background:white;">Pesta&ntilde;a `+winN+`</a>: `+wd+` </div><div id='animacion'></div>`
 
 //wd.style.borderColor = "#ef45ef"
 
@@ -817,7 +817,7 @@ mas++
 }
 
 
-rsm[key]['PANEL'] = `<div class="paneles">`+s+`<div style='border:red solid 0px;width:100%;border-right:0;border-left:0;'><div  id="ID_`+key+`" style="height:auto;overflow-y:auto;width:99%;text-align:center;background:#132436;"><br clear=both></div></div></div> `
+rsm[key]['PANEL'] = `<div class="paneles">`+s+`<div style='border:red solid 0px;width:100%;border-right:0;border-left:0;'><div  id="ID_`+key+`" style="height:auto;overflow-y:auto;width:99%;text-align:center;background:rgba(0,0,0,0.5);"><br clear=both></div></div></div> `
 
 
 

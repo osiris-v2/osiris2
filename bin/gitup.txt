@@ -211,7 +211,7 @@ html/textos/info.txt
 #html/app
 
 #jsAnimator (WFIC)
-#html/app/jsa/
+html/app/jsa/
 
 html/app/widgets/hlstv.html
 html/app/widgets/webirc.html

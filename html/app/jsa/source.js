@@ -260,9 +260,9 @@ GROUPPANEL = {}
 GROUPEDIT = {style:"background:#122553;padding:0px;width:100%;"}
 
 IDEDIT = {innerHTML:`<div style='font-size:18px;font-family:arial;padding:10px;color:white'>Editor de Animaciones CSS JsAnimator <br>Versión: `+Version+`</div>
-<center><iframe scrolling="no" src='media/records/today.html' frameborder="0" style="width:100%;height:320px" scrolling="false"></iframe></center>
+<center><iframe scrolling="no" src='/app/freedirectory/media/records/today.html' frameborder="0" style="width:100%;height:320px" scrolling="false"></iframe></center>
 
-`}
+`,style:"background:black"}
 
 TIMELINE = {}
 
@@ -270,16 +270,16 @@ TIMELINE = {}
 
 htmltxt =`\
 \
-<div id="closeme" style="clear:both;text-align:justify;font-size:16px;padding:0;background:#602360;height:auto">\
+<div id="closeme" style="clear:both;text-align:left;font-size:10px;font-family:arial;padding:2%;background:rgba(60,23,60,.4);height:auto">\
 <a style='color:af3223;cursor:pointer;float:right;margin-right:25px;' onclick='getId("closeme").style.display="none"'><u><h4>CERRAR</h4></u></a>\
-<p style="clear:both;font-weight:bold;color:#fcfcfc;padding:5% 10% 5% 10%;border:dashed 0px red;width:80%">Esta versión está en fase de desarrollo.<br>Borra los archivos temporales de internet. Para acceder a la última <br>versión<br>`+Version+`</p> \
+<p style="clear:both;font-weight:bold;color:#fcfcfc;padding:1% 1% 5% 10%;border:dashed 0px red;width:98%">App en fase dev.<br>Borrar los archivos temporales de internet podría solucionar problemas eventuales.  <br><br>V:`+Version+`</p> \
 <!--iframe frameborder='0' style="width:100%;height:auto;overflow:hidden" src="media/records/wew3.html"></iframe-->\
 \
 </div>\
 \
 `
 
-WINEDIT = {innerHTML:``+htmltxt+``}
+WINEDIT = {innerHTML:``+htmltxt+``,style:"background:black;"}
 
 
 
