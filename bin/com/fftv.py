@@ -61,11 +61,13 @@ pid_proceso = None
 yt_last_args = False
 
 
+ffmpeg_exec="com/osiris_env/ffmpeg/bin/ffmpeg"
+
 lineInput = None
 def_output = "rtmp://rtmp.rumble.com/live/r-3enppr-kk9w-l1xl-1abb59"
 def_output = "rtmp://a.rtmp.youtube.com/live2/svvb-yk73-asfv-0krs-5v57"
 def_fout = "flv"
-def_progress_file = "com/datas/ffmpeg/progress_process.txt"
+def_progress_file = "com/datas/progress_tv.txt"
 def_seek_start = None #"00:38:17"
 def_audio_filter = "aresample=async=1,loudnorm=I=-16:TP=-1.5:LRA=11"
 def_preset = "ultrafast"
@@ -192,7 +194,7 @@ profiles = {
     'input':play3.hls_default_input,
    
     'com':[    
-    'ffmpeg',
+    ffmpeg_exec,
     '-y',
     '-re',
     '-loglevel', 'warning',
@@ -257,7 +259,7 @@ def main(args):
     global cookies, user_agent
 
     global lineInput, def_re, def_intro_file, def_output,def_progress_file,def_seek_start,def_audio_filter,def_preset,def_screen,def_fps,def_crf,def_ar
-    global profiles
+    global profiles, ffmpeg_exec
     global yt_default_list_dir,def_fdir
 
 
@@ -688,10 +690,10 @@ def main(args):
     "+faststart"
  ]
 
-    yt_start = ["ffmpeg"] + user_agent + ["-y"] + yt_default_stream_loop +  yt_default_re  + yt_default_seek_start
+    yt_start = [ffmpeg_exec] + user_agent + ["-y"] + yt_default_stream_loop +  yt_default_re  + yt_default_seek_start
 
     yt_start_intro = [
-    "ffmpeg",
+    ffmpeg_exec,
     "-y"] + ["-stream_loop","-1"] + ["-re"] 
 
     yt_input_concat = [

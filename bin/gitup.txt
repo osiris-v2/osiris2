@@ -71,8 +71,10 @@ bin/server/chat_server/src/bin/server.rs
 bin/net/rserver.nrl
 
 #archivos asistentes de instalacion en bin/install
-#descarga, compila e instala ffmpeg
+#descarga, compila e instala ffmpeg (versión ligera)
 bin/install/ffmpeg_install.sh
+#descarga, compila e instala ffmpeg habilitando hls
+bin/install/ffmpeg2compileHLS.sh
 #instala dependencias pip necesarias
 bin/install/installpip.sh
 #actualiza dependencia pip
@@ -92,6 +94,8 @@ bin/install/osiris_env_sys_vars.sh
 bin/install/python_pack_install.sh
 bin/install/lets-cert.sh
 bin/install/ssh-cert.sh
+
+
 
 #Directorio con archivos de ayuda de comandos
 bin/help/
@@ -116,6 +120,11 @@ bin/scripts/tmux1
 #Lectura continua de progreso tv y hls
 bin/scripts/progress_hls
 bin/scripts/progress_tv
+
+#habilita apache para hls (crea .htaccess en directorios X)
+#Por defecto html/app/mitv/tv/channels/mail
+#También crea dentro de ese directorio la carpeta live-ts
+bin/scripts/a2enHLS.sh
 
 #Comprobador - asistente de problemas de memoria
 bin/scripts/freemem2

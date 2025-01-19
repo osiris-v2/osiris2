@@ -3,6 +3,10 @@ import threading
 import os
 import signal
 
+user_agent = ["-headers","user-agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36'"]
+
+ffmpeg_exec="/var/osiris2/bin/com/osiris_env/ffmpeg/bin/ffmpeg"
+
 def reap_children(signum, frame):
     """ Recolectar cualquier proceso hijo terminado """
     while True:
@@ -61,7 +65,11 @@ def ejecutar_proceso(command, cwd):
         kill_last_process()
 
     # Abrir el proceso en segundo plano
-    process = subprocess.Popen(command, cwd=cwd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, stdin=subprocess.PIPE, close_fds=True)
+    try:    
+        process = subprocess.Popen(command, cwd=cwd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, stdin=subprocess.PIPE, close_fds=True)
+    except Exception as e :    
+        print("ERROR SUBPROCESS:",e)
+        return
     last_process = process
     print("\nProcess started with PID:", process.pid,"\n")
     return
@@ -75,19 +83,16 @@ def start_ffmpeg(url,com):
     global hls_path
     global hls_progress_file
     global ffcom_metadata
+    global ffmpeg_exec
     kill_last_process()  # Mata el proceso actual antes de iniciar uno nuevo
 
 
 
-
-
-
-
+#, cwd=cwd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, stdin=subprocess.PIPE, close_fds=True
     finput = [
-    'ffmpeg',
     '-y',
     '-re',
-    '-loglevel', 'warning',
+    '-loglevel', 'verbose',
     '-f', 'lavfi', '-i', 'color=c=black:s=1280x720',
     '-stream_loop', '-1','-i', url,  # Aplicar stream_loop aquí
     '-f', 'lavfi', '-i', 'anullsrc=r=44100:cl=stereo',
@@ -125,14 +130,20 @@ def start_ffmpeg(url,com):
     '-reconnect', '1', '-reconnect_streamed', '1', '-reconnect_delay_max', '1', '-metadata', ffcom_metadata
 ]
 
-    command = finput + foutput
-
+    try:
+        user_agent = parse_input(url)
+    except Exception as e:
+        print("UA ER 136:",e)
+        
+    
+    print("UA: ",user_agent)
+    command =   [ffmpeg_exec] + user_agent + finput + foutput
 
     # si se recibe el comando se sustituye command
     if com:
         com = com
 #        command = com
-        print("---------COMCOMCOMCMO-------------:",com)
+        print("com ¬ ")
 
     print("Executing command in background:", " ".join(command))
     try:
@@ -146,7 +157,13 @@ def start_ffmpeg(url,com):
     print(f"\n Process started for URL: {url}\n")
 
 
-
+def parse_input(parametro):
+    global user_agent
+    if parametro.startswith("http://") or parametro.startswith("https://"):
+        return user_agent
+    elif os.path.exists(parametro):
+        user_agent = []
+        return user_agent
 
 
 #print("FUNC")
@@ -158,8 +175,8 @@ def start_ffmpeg(url,com):
 last_process = None
 last_url = ""
 command = []
-hls_progress_file = "/var/www/osiris000/bin/com/datas/ffmpeg/progress_hls.txt"
-hls_default_input = "/var/www/osiris000/bin/com/datas/ffmpeg/intro.mp4"
-hls_path = "/var/www/osiris000/html/app/mitv/channels/main/live-ts"
+hls_progress_file = "/var/osiris2/bin/com/datas/progress_hls.txt"
+hls_default_input = "/var/osiris2/bin/com/datas/ffmpeg/intro.mp4"
+hls_path = "/var/osiris2/html/app/mitv/tv/channels/main/live-ts"
 ffcom_metadata = "text=osiristv-hls-main"
 
