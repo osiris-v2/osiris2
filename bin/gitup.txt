@@ -211,8 +211,7 @@ html/textos/info.txt
 #html/app
 
 #jsAnimator (WFIC)
-html/app/jsa/
-
+#html/app/jsa/
 
 html/app/widgets/hlstv.html
 html/app/widgets/webirc.html
@@ -220,6 +219,8 @@ html/app/widgets/webirc.html
 html/app/freedirectory/index.php
 html/app/freedirectory/import.php
 
+#Predeterminado para jsanimator
+html/app/freedirectory/media/records/today.html
 
 html/app/mitv/index.html
 html/app/mitv/styles.css
