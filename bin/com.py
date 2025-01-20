@@ -220,6 +220,8 @@ def handle_command(args):
             ["./OPS/ops"],True
             )
         print("Exit ODS")
+    elif len(args) > 1 and args[1] == "--help-com":
+        print(help_com)
     elif args[0] == "--lp":
         print("Multiprocess Used in core:")
         try:
@@ -242,9 +244,7 @@ def handle_command(args):
     elif len(args) > 1 and args[1] == "--edit":
         edit_command(args[0],def_editor)
     elif len(args) > 1 and args[1] == "--edit-dsk":
-        edit_command(args[0],def_editor_dsk)
-    elif len(args) > 1 and args[1] == "--help-com":
-        print(help_com)
+        edit_command(args[0],def_editor_dsk,"sp")
     else:
         if len(args) > 1 and args[1] == "--help":
             print("Escriba --help-com  para ayuda de comandos predeterminados")
@@ -256,11 +256,21 @@ def handle_command(args):
             execute_command(args)
 
 # Editar un comando
-def edit_command(command,editor="nano"):
+def edit_command(command,editor="nano",action=""):
     def_editor = editor
     ed = os.path.join("com", command + ".py")
     if os.path.isfile(ed):
-        if def_editor in subprocess.check_output(["ps", "-aux"]).decode():
+        if action == "sp" :  # segundo plano
+            exec_com_bg = [def_editor,ed]
+            _ps = core.mp([
+            		"mode":"bg",
+          		"name":None,
+                        "com":exec_com_bg,
+                        "metadata": {"user": usuario,
+                            "time_start":timestamp,
+			    "command":
+                            }])
+        elif def_editor in subprocess.check_output(["ps", "-aux"]).decode():
             subprocess.call([def_editor, ed])
         else:
             subprocess.call([def_editor, ed])
