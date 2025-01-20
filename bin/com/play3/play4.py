@@ -5,6 +5,9 @@ import signal
 
 user_agent = ["-headers","user-agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36'"]
 
+
+user_agent = []
+
 ffmpeg_exec="/var/osiris2/bin/com/osiris_env/ffmpeg/bin/ffmpeg"
 
 def reap_children(signum, frame):
@@ -111,7 +114,7 @@ def start_ffmpeg(url,com):
     '-i','/dev/video0']
     
     
-    foutput = ['-c:v', 'libx264', '-preset', 'fast',
+    foutput = ['-c:v', 'libx264', '-preset', 'veryfast',
     '-tune', 'zerolatency', '-pix_fmt', 'yuv420p',
     '-c:a', 'aac', '-ar', '44100', '-b:a', '128k',
     '-b:v', '2500k', '-s:v', '1280x720', '-maxrate:v', '3000k', '-bufsize:v', '5000k',

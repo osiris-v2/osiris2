@@ -27,13 +27,14 @@ core.signal.signal(signal.SIGINT, core.ctrl_signal)
 
 use_command = ""
 set_com=""
-def_editor="subl"
+def_editor="nano"
+def_editor_dsk="gedit"
 
 # Nombre del entorno virtual
 nombre_venv = "osiris_env"
 
 # Comandos válidos
-valid_commands = ["hls", "shell", "blockchain", "desktop", "gemini", "scanip", "sniff", "fftv", "install","cert"]
+valid_commands = ["hls", "shell", "blockchain", "desktop", "gemini", "scanip", "sniff", "fftv", "install","cert","create","gcom"]
 
 # Diccionario para almacenar información sobre los módulos y sus funciones main
 module_info = {}
@@ -143,7 +144,7 @@ def execute_module_command(module, args):
 
 # Bucle principal del CLI
 def command_line():
-    global def_editor, use_command, set_com, nombre_venv
+    global def_editor, def_editor_dsk, use_command, set_com, nombre_venv
 
     signal.signal(signal.SIGINT, CTRL_C)
     readline.set_history_length(cnf.history_com_size)
@@ -235,7 +236,9 @@ def handle_command(args):
         loaded_modules.pop(args[0], None)
         print(f"Módulo-comando {args[0]} desmontado")
     elif len(args) > 1 and args[1] == "--edit":
-        edit_command(args[0])
+        edit_command(args[0],def_editor)
+    elif len(args) > 1 and args[1] == "--edit-dsk":
+        edit_command(args[0],def_editor_dsk)
     else:
         if len(args) > 1 and args[1] == "--help":
             try:
@@ -246,8 +249,8 @@ def handle_command(args):
             execute_command(args)
 
 # Editar un comando
-def edit_command(command):
-    global def_editor
+def edit_command(command,editor="nano"):
+    def_editor = editor
     ed = os.path.join("com", command + ".py")
     if os.path.isfile(ed):
         if def_editor in subprocess.check_output(["ps", "-aux"]).decode():
