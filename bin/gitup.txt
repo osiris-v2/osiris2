@@ -210,11 +210,19 @@ html/textos/info.txt
 #Aplicaciones WEB
 #html/app
 
+
+# candidata para paquete independiente app.jsa.gitup.txt
 #jsAnimator (WFIC)
 #html/app/jsa/
 html/app/jsa/core.js
 html/app/jsa/index.js
 html/app/jsa/paneles.js
+html/app/jsa/source.js
+html/app/jsa/paneles.js
+html/app/jsa/model.js
+html/app/jsa/firefox.1.css
+
+
 
 html/app/widgets/hlstv.html
 html/app/widgets/webirc.html

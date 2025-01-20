@@ -323,6 +323,9 @@ getId('AnimeWin').style.resize='both';\
 getId('AnimeWin').style.display='inline-block';\
 getId('AnimeWin').style.float='left';\
 getId('AnimeWin').style.border='0';\
+getId('AnimeWin').style.overflow ='hidden';\
+getId('AnimeWin').style.border = 'solid 2px green';\
+getId('AnimeWin').style.resize='vertical';\
 this.innerHTML = ds = 'Agrupar';desagrupa = true\
 }\
 else {\
@@ -568,6 +571,8 @@ ad[drk].win = ActiveWinName
 moveTag(ad[drk],ActiveWin)
 
 TagIframes.innerHTML += adILT(ad[drk],ActiveWin)
+TagIframes.className = "DYNEDITOR"
+TagIframes.style = "border:solid 2px red ; overflow:hidden;resize:vertical;"
 idEdit(ad[drk].id,EditPropertiers,controls,internalsgen)
 internalsgen++
 /* // habilita edicion de id en mouseover

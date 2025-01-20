@@ -1,19 +1,19 @@
-body{background:#551365}
+body{background:#202020}
 
-#AnimeWin,.iframes{
-float:left;
+#AnimeWin, .iframes{
 display:inline-block;
 border:0.4% solid #921911;
 visibility:hidden;
 min-width:1%;
 width:100%;
-height:380px;
+height:420px;
 max-width:99.2%;
 padding:0;
-display:none;
+display:inline-block;
 margin:0;
 background:#ffffff;
-resize:both;
+resize:vertical;
+overflow:auto;
 }
 
 #DEV{
@@ -52,21 +52,23 @@ background:#dfdfdf;
 
 .elements_tags{
 
-cursor:move;vertical-align:middle;font-size:100%;width:89%;margin:10px auto 0 auto;width:90%;height:10%;border:solid 1% #cecaae;background:rgba(25,25,55,.43);color:#efefef;
-font-size:50%;padding:1%;
+cursor:move;vertical-align:middle;font-size:100%;width:89%;margin:1px auto 0 auto;width:100%;height:auto;border:solid 1% #cecaae;margin-right:0;margin-left:0;background:rgba(25,25,55,.43);color:#efefef;
+font-size:calc(0.5vw + 0.5vh);padding:2px;
 }
 
 
 .in_tags{
 
-width:100%;height:80%;padding:10% 0 10% 0;
+width:100%;height:80%;padding:5% 0 1% 0;
 background:#fcfcfc;color:#0f0f0f;font-weight:bold;font-family:arial;
 
 }
 
 #CPanel{
 
-padding:0px; position:relative;color:red ; background:rgba(237,242,239,0.7); margin:0 auto 0 auto; width:13% ; position:fixed;overflow-y:auto;height:100%;
+padding:0px; position:relative;color:red ; background:rgba(0,0,0,1); margin:0 auto 0 auto; 
+
+width:5vw ; position:fixed;overflow-y:auto;height:100%;
 
 }
 
@@ -77,20 +79,20 @@ height:100%;
 
 position:fixed;
 display:block;
-background: #3f134a;
+background: #000000;
 float:right;
-width:70%;
+width:70vw;
 text-align:center;
-left:13%;
+left:5vw;
 overflow:auto;
 }
 
 
 #WinEdit{
 
-height:70%;
+height:100vh;
 
-position:fixed;top:0;right:0%;font-weight:bold;padding-top:0;padding-left:0px;padding-right:0;margin:0 auto 0 auto;background:#dccfcf;color:#f9f9f9;max-width:100%;font-size:14px;font-family:'gill sans';border:0px #8ff8ff solid;width:17%;height:100%;overflow-y:auto;
+position:fixed;top:0;right:0%;font-weight:bold;padding-top:0;padding-left:0px;padding-right:0;margin:0 auto 0 auto;background:#dccfcf;color:#f9f9f9;max-width:100%;font-size:14px;font-family:'gill sans';border:0px #8ff8ff solid;width:25vw;overflow-y:auto;
 
 
 }
@@ -126,7 +128,11 @@ border:solid 0px red;width:100%;text-align:center;padding:0 0 0 0;
 #GroupIframes{
 
 border:solid 0px gold;text-align:center;
-width:100%;text-align:center;padding:0;background:#000000;
+width:calc(100% - 10px);text-align:center;padding:0;background:#000000;
+
+overflow:hidden;
+
+resize:vertical;
 
 }
 
