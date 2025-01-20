@@ -262,14 +262,14 @@ def edit_command(command,editor="nano",action=""):
     if os.path.isfile(ed):
         if action == "sp" :  # segundo plano
             exec_com_bg = [def_editor,ed]
-            _ps = core.mp([
+            _ps = core.mp({
             		"mode":"bg",
           		"name":None,
                         "com":exec_com_bg,
                         "metadata": {"user": usuario,
                             "time_start":timestamp,
 			    "command": exec_com_bg
-                            }])
+                            }})
         elif def_editor in subprocess.check_output(["ps", "-aux"]).decode():
             subprocess.call([def_editor, ed])
         else:
