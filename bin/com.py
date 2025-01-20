@@ -177,7 +177,8 @@ def command_line():
             if args[0] == "--reload":
                 print("RELOAD ENV")
                 # Código de recarga del entorno
-                continue
+            elif args[0] == "--help-com":
+                print(help_com)
 
                
             handle_command(args)
@@ -220,8 +221,6 @@ def handle_command(args):
             ["./OPS/ops"],True
             )
         print("Exit ODS")
-    elif len(args) > 1 and args[1] == "--help-com":
-        print(help_com)
     elif args[0] == "--lp":
         print("Multiprocess Used in core:")
         try:
@@ -266,8 +265,8 @@ def edit_command(command,editor="nano",action=""):
             		"mode":"bg",
           		"name":None,
                         "com":exec_com_bg,
-                        "metadata": {"user": usuario,
-                            "time_start":timestamp,
+                        "metadata": {"user": "com.py",
+                            "time_start":int(time.time()),
 			    "command": exec_com_bg
                             }})
         elif def_editor in subprocess.check_output(["ps", "-aux"]).decode():

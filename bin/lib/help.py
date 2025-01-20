@@ -2,7 +2,7 @@
 
 help_com = """
 
-Atuda comandos predeterminados (com.py)
+Ayuda comandos predeterminados (com.py)
 
 
 """
