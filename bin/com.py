@@ -243,7 +243,7 @@ def handle_command(args):
     elif len(args) > 1 and args[1] == "--edit":
         edit_command(args[0],def_editor)
     elif len(args) > 1 and args[1] == "--edit-dsk":
-        edit_command(args[0],def_editor_dsk,"sp")
+        edit_command(args[0],def_editor_dsk,"execute_in_background")
     else:
         if len(args) > 1 and args[1] == "--help":
             print("Escriba --help-com  para ayuda de comandos predeterminados")
@@ -255,20 +255,23 @@ def handle_command(args):
             execute_command(args)
 
 # Editar un comando
-def edit_command(command,editor="nano",action=""):
-    def_editor = editor
+def edit_command(command,editor="nano",execution=""):
     ed = os.path.join("com", command + ".py")
+    print(ed)
     if os.path.isfile(ed):
-        if action == "sp" :  # segundo plano
-            exec_com_bg = [def_editor,ed]
-            _ps = core.mp({
+        if execution == "execute_in_background" :  # segundo plano
+            exec_com_bg = [editor,ed]
+            timestamp = int(time.time())
+            __com = str(exec_com_bg)
+            _ps = core.multiprocess({
             		"mode":"bg",
           		"name":None,
                         "com":exec_com_bg,
                         "metadata": {"user": "com.py",
-                            "time_start":int(time.time()),
-			    "command": str(exec_com_bg)
-                            }})
+                            "time_start":timestamp,
+			    "command": __com
+                           }})
+            print(_ps)
         elif def_editor in subprocess.check_output(["ps", "-aux"]).decode():
             subprocess.call([def_editor, ed])
         else:
