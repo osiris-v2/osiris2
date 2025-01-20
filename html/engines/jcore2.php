@@ -23,7 +23,11 @@ endif;
 
 */
 
-if(!isset($_SESSION["REGUSER"]) || !$_SESSION['REGUSER']) die("<center><h1 style='color:#abc922;background:black;'>Inicia Sesión Para Publicar</h1>
+if(!isset($_SESSION["REGUSER"]) || !$_SESSION['REGUSER']) die("<center><h1 style='color:#abc922;background:black;'>
+
+<div style='display:inline-block;cursor:pointer;' onclick=\"clickId('a1')\">Inicia Sesión</a> Para Publicar
+
+</h1>
 <center><img src='/img/oluz.png' style='width:auto;height:auto;;max-height:80vh'>
 <img src='/img/oluz2.png' style='width:auto;height:auto;;max-height:80vh'>
 </center>

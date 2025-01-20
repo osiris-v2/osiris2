@@ -142,9 +142,6 @@ El comando `--exp man` genera un archivo de texto llamado `man.txt` (o el nombre
 Este manual proporciona una visión general de la interfaz Osiris. Para más detalles y ejemplos de uso, consulta el código fuente.  Puedes obtener ayuda sobre comandos individuales usando el argumento `--help` (ej: `gemini3 --help`).
 
 
-
-
-
 <img src="https://www.gifss.com/economia/bitcoin/images/bitcoin-05.gif"  width=40 height=40><b></b>  
 
 <b>AMM 2024</b> [LICENCIA](LICENSE.md)  
