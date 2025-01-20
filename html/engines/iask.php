@@ -1,5 +1,15 @@
 <?php
+session_start();
 set_time_limit(300);
+if(!isset($_SESSION["CONTEXT_ID"])):
+$_SESSION["CONTEXT_ID"] = md5(rand(100,10000000000).date("DmYhis"));
+endif;
+
+//# echo "alert(`".$_SESSION["CONTEXT_ID"]."`);";
+
+$context_id = $_SESSION["CONTEXT_ID"];
+
+
 #ini_set('memory_limit', '-1');
 
 $NContext = "TEMPCONTEXT";
@@ -15,9 +25,16 @@ endif;
 
 if($ask):
 
-$xdata = $_SERVER["REMOTE_ADDR"] ;
+$raddr = $_SERVER["REMOTE_ADDR"] ;
+$xdata .=<<<ID_CONTEXT
+
+El ip Cliente es: {$raddr}
+Tu Id de contexto es: {$context_id}
+
+ID_CONTEXT;
 
 
+$xdata = base64_encode($xdata);
 #$ask = addcslashes($ask,"\\\$");
 $ask = base64_encode($ask);
 
@@ -31,7 +48,7 @@ default:
 $selectModel = "--b64prompt";
 endswitch;
 
-$response = shell_exec("/var/osiris2/bin/com/web/iask.sh  \"$selectModel\" ". $ask ." ".$NContext." ".$xdata);
+$response = shell_exec("/var/osiris2/bin/com/web/iask.sh  \"$selectModel\" ". $ask ." ".$NContext." ".$raddr." ".$context_id." ".$xdata);
 
 
 

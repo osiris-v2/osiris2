@@ -7,7 +7,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <signal.h>  // Necesario para SIGTERM
-
+//#include "ops.h"
 
 #define MAX_LINE_LENGTH 1024
 #define MAX_ARGS 100

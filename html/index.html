@@ -5,6 +5,41 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="initial-scale=1, maximum-scale=1">
 <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+<style type="text/css">
+
+.video-container {
+  position: relative; /* Necesario para posicionar el iframe */
+  padding-bottom: 56.25%; /* Proporción de aspecto 16:9 por defecto, puedes cambiarla */
+  height: 0;
+  overflow: hidden;
+  margin-top: 10px;
+  margin-left: 10px;
+}
+
+.video-container iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.boton-desplegar-video {
+  margin-left: 10px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+</style>
+
 <script src="/lib/js/wfcore3.js?v=1.801"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script type="text/javascript">
@@ -248,7 +283,7 @@ padding:1.4%;
 regInf.info = `ShadowHost Link`
 regInf.style=`
 
-background:green;
+background:black;
 
 `
 
@@ -320,7 +355,7 @@ iardiv.style = "justify-content:center;border-radius:10px;font-weight:bold;borde
 IAR.prepend(iardiv)
 
 
-
+WAITING = "... <b>Conectando</b> ... "
 
 if(param == 1){
 
@@ -332,13 +367,16 @@ TTA.value += IAI.value
 TTA.style="margin-top:10px;font-family:arial;border-radius:10px;border:solid 1px #bdfdcc;width:90%;padding:10px;overflow:auto;resize:vertical;"
 moveTag(TTA,TTAD)
 
+WAITING = "<b> Esperando Respuesta ... </b>"
+
 }
+
 
 
 
 rsdiv = document.createElement("div")
 rsdiv.id = "responsediv_"+randn
-rsdiv.innerHTML = "<b> Esperando Respuesta ... </b>"
+rsdiv.innerHTML = WAITING
 iardiv.prepend(rsdiv)
 
 
@@ -403,10 +441,182 @@ IAR.style.display = "block"
 
 
 
-function mktparse(id,txt){
- txt = marked.parse(txt)
-id.innerHTML = txt;
+const sitiosDeseados = {
+  google: "https://www.google.com",
+  youtube: "https://www.youtube.com",
+  facebook: "https://www.facebook.com",
+  twitter: "https://www.twitter.com",
+  vimeo: "https://www.vimeo.com",
+  dailymotion: "https://www.dailymotion.com"
+};
+
+function mktparse(id, txt) {
+    id.innerHTML = "";
+    let html = marked.parse(txt);
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+     const enlaces = doc.querySelectorAll('a[href]');
+
+    let enlacesEncontrados = 0;
+    enlaces.forEach(enlace=>{
+         const href = enlace.getAttribute('href');
+        for (const sitio in sitiosDeseados) {
+            if (href && href.startsWith(sitiosDeseados[sitio])) {
+                enlacesEncontrados++;
+                break; // No hace falta seguir buscando si ya lo encontramos
+            }
+        }
+
+    })
+
+    if (enlacesEncontrados > 0) {
+        procesarEnlacesVideo(doc.body, true);
+        id.innerHTML += `Lmode<br>`;
+    }
+
+    id.appendChild(doc.body);
 }
+
+
+
+/*
+function procesarEnlacesVideo(element, modoVideoActivado) {
+    const enlaces = element.querySelectorAll('a[href]');
+
+    let contadorEnlaces = 0;
+
+    enlaces.forEach(enlace => {
+        enlace.setAttribute('target', '_blank');
+
+        if (modoVideoActivado) {
+            contadorEnlaces++;
+            const enlaceId = `enlace-video-${contadorEnlaces}`;
+            const videoContainerId = `video-container-${contadorEnlaces}`;
+            const iframeId = `iframe-video-${contadorEnlaces}`;
+            enlace.id = enlaceId;
+
+            const botonDesplegar = document.createElement('button');
+            botonDesplegar.textContent = 'Desplegar Video';
+            botonDesplegar.classList.add('boton-desplegar-video');
+
+
+            const contenedorVideo = document.createElement('div');
+            contenedorVideo.id = videoContainerId;
+            contenedorVideo.style.display = 'none';
+            contenedorVideo.classList.add('video-container');
+
+            const urlVideo = enlace.getAttribute('href');
+            const urlVideoMapeada = mapearUrlAEmbed(urlVideo);
+            if (urlVideoMapeada) {
+                const iframe = document.createElement('iframe');
+                iframe.id = iframeId;
+                iframe.src = urlVideoMapeada;
+                iframe.width = "80%";
+                iframe.height = 315;
+                iframe.allowFullscreen = true;
+                contenedorVideo.appendChild(iframe);
+
+            } else {
+                const mensajeError = document.createElement('p');
+                mensajeError.textContent = 'No se pudo obtener el video asociado a este enlace.';
+                contenedorVideo.appendChild(mensajeError);
+            }
+            enlace.parentNode.insertBefore(botonDesplegar, enlace.nextSibling);
+            enlace.parentNode.insertBefore(contenedorVideo, botonDesplegar.nextSibling);
+            botonDesplegar.addEventListener('click', () => {
+                 const isDisplayed = contenedorVideo.style.display === 'block';
+                contenedorVideo.style.display = isDisplayed ? 'none' : 'block';
+                 botonDesplegar.textContent = isDisplayed ? 'Desplegar Video' : 'Ocultar Video';
+            });
+        }
+    });
+}
+*/
+
+
+function procesarEnlacesVideo(element, modoVideoActivado) {
+  const enlaces = element.querySelectorAll('a[href]');
+  let contadorEnlaces = 0;
+
+  enlaces.forEach(enlace => {
+    enlace.setAttribute('target', '_blank');
+
+    if (modoVideoActivado) {
+      contadorEnlaces++;
+      const enlaceId = `enlace-video-${contadorEnlaces}`;
+      const videoContainerId = `video-container-${contadorEnlaces}`;
+      const iframeId = `iframe-video-${contadorEnlaces}`;
+      enlace.id = enlaceId;
+
+      const botonDesplegar = document.createElement('button');
+      botonDesplegar.textContent = 'Desplegar Video';
+      botonDesplegar.classList.add('boton-desplegar-video');
+
+      const contenedorVideo = document.createElement('div');
+      contenedorVideo.id = videoContainerId;
+      contenedorVideo.style.display = 'none';
+      contenedorVideo.classList.add('video-container');
+
+      const urlVideo = enlace.getAttribute('href');
+      const urlVideoMapeada = mapearUrlAEmbed(urlVideo);
+        if (urlVideoMapeada) {
+             const iframe = document.createElement('iframe');
+            iframe.id = iframeId;
+            iframe.src = urlVideoMapeada;
+            iframe.allowFullscreen = true;
+            contenedorVideo.appendChild(iframe);
+        } else {
+             const mensajeError = document.createElement('p');
+            mensajeError.textContent = 'No se pudo obtener el video asociado a este enlace.';
+            contenedorVideo.appendChild(mensajeError);
+        }
+
+
+      enlace.parentNode.insertBefore(botonDesplegar, enlace.nextSibling);
+      enlace.parentNode.insertBefore(contenedorVideo, botonDesplegar.nextSibling);
+
+      botonDesplegar.addEventListener('click', () => {
+         const isDisplayed = contenedorVideo.style.display === 'block';
+                contenedorVideo.style.display = isDisplayed ? 'none' : 'block';
+         botonDesplegar.textContent = isDisplayed ? 'Desplegar Video' : 'Ocultar Video';
+      });
+    }
+  });
+}
+
+
+
+function mapearUrlAEmbed(url) {
+    if (url.includes('youtube.com')) {
+        const urlParams = new URLSearchParams(url.split('?')[1]);
+        const videoId = urlParams.get('v');
+        if (videoId) {
+            return `https://www.youtube.com/embed/${videoId}`;
+        }
+    }
+
+    if (url.includes('vimeo.com')) {
+        const videoId = url.split('/').pop();
+        return `https://player.vimeo.com/video/${videoId}`;
+    }
+
+    return null;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -31,11 +31,7 @@ button0.onmouseout = function(){
 
 
 
-
-/*enlace id  a1*/  
-/* Enlaza a div id regInf class disApp*/
-
-a1.onclick = function(){
+const __a1 = function(){
 dmenu('regInf','dispApp')
 ajax({
 datas:"nodata",
@@ -47,6 +43,15 @@ handler:"UNIKH",
 block:true,
 method:"POST"
 });
+}
+
+
+
+/*enlace id  a1*/  
+/* Enlaza a div id regInf class disApp*/
+
+a1.onclick = function(){
+__a1()
 }
 
 a1.innerHTML=` usr / Login`
