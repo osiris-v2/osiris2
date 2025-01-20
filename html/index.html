@@ -26,17 +26,18 @@
 }
 
 .boton-desplegar-video {
-  margin-left: 10px;
+  margin-left: 5px;
   background-color: #4CAF50;
   color: white;
   border: none;
-  padding: 8px 12px;
+  padding: 6px 9px;
   text-align: center;
   text-decoration: none;
   display: inline-block;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
   border-radius: 4px;
+  margin-right:5px;
 }
 </style>
 
@@ -440,180 +441,115 @@ IAR.style.display = "block"
 
 
 
-
 const sitiosDeseados = {
-  google: "https://www.google.com",
   youtube: "https://www.youtube.com",
-  facebook: "https://www.facebook.com",
-  twitter: "https://www.twitter.com",
   vimeo: "https://www.vimeo.com",
-  dailymotion: "https://www.dailymotion.com"
+  vimeo1: "https://vimeo.com",
+  vimeo2: "https://player.vimeo.com",
+  dailymotion: "https://www.dailymotion.com",
 };
 
 function mktparse(id, txt) {
-    id.innerHTML = "";
-    let html = marked.parse(txt);
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-     const enlaces = doc.querySelectorAll('a[href]');
-
-    let enlacesEncontrados = 0;
-    enlaces.forEach(enlace=>{
-         const href = enlace.getAttribute('href');
-        for (const sitio in sitiosDeseados) {
-            if (href && href.startsWith(sitiosDeseados[sitio])) {
-                enlacesEncontrados++;
-                break; // No hace falta seguir buscando si ya lo encontramos
-            }
-        }
-
-    })
-
-    if (enlacesEncontrados > 0) {
-        procesarEnlacesVideo(doc.body, true);
-        id.innerHTML += `Lmode<br>`;
-    }
-
-    id.appendChild(doc.body);
-}
-
-
-
-/*
-function procesarEnlacesVideo(element, modoVideoActivado) {
-    const enlaces = element.querySelectorAll('a[href]');
-
-    let contadorEnlaces = 0;
+  id.innerHTML = "";
+  let html = marked.parse(txt);
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const enlaces = doc.querySelectorAll('a[href]');
+  let enlacesEncontrados = 0;
 
     enlaces.forEach(enlace => {
-        enlace.setAttribute('target', '_blank');
+      enlace.setAttribute('target', '_blank'); // Añadido target="_blank" a todos los enlaces
 
-        if (modoVideoActivado) {
-            contadorEnlaces++;
-            const enlaceId = `enlace-video-${contadorEnlaces}`;
-            const videoContainerId = `video-container-${contadorEnlaces}`;
-            const iframeId = `iframe-video-${contadorEnlaces}`;
-            enlace.id = enlaceId;
-
-            const botonDesplegar = document.createElement('button');
-            botonDesplegar.textContent = 'Desplegar Video';
-            botonDesplegar.classList.add('boton-desplegar-video');
-
-
-            const contenedorVideo = document.createElement('div');
-            contenedorVideo.id = videoContainerId;
-            contenedorVideo.style.display = 'none';
-            contenedorVideo.classList.add('video-container');
-
-            const urlVideo = enlace.getAttribute('href');
-            const urlVideoMapeada = mapearUrlAEmbed(urlVideo);
-            if (urlVideoMapeada) {
-                const iframe = document.createElement('iframe');
-                iframe.id = iframeId;
-                iframe.src = urlVideoMapeada;
-                iframe.width = "80%";
-                iframe.height = 315;
-                iframe.allowFullscreen = true;
-                contenedorVideo.appendChild(iframe);
-
-            } else {
-                const mensajeError = document.createElement('p');
-                mensajeError.textContent = 'No se pudo obtener el video asociado a este enlace.';
-                contenedorVideo.appendChild(mensajeError);
+      const href = enlace.getAttribute('href');
+      let esEnlaceDeseado = false;
+        for (const sitio in sitiosDeseados) {
+            if (href && href.startsWith(sitiosDeseados[sitio])) {
+                esEnlaceDeseado = true;
+                 enlacesEncontrados++;
+                break;
             }
-            enlace.parentNode.insertBefore(botonDesplegar, enlace.nextSibling);
-            enlace.parentNode.insertBefore(contenedorVideo, botonDesplegar.nextSibling);
-            botonDesplegar.addEventListener('click', () => {
-                 const isDisplayed = contenedorVideo.style.display === 'block';
-                contenedorVideo.style.display = isDisplayed ? 'none' : 'block';
-                 botonDesplegar.textContent = isDisplayed ? 'Desplegar Video' : 'Ocultar Video';
-            });
+        }
+
+        if (esEnlaceDeseado) {
+             procesarEnlaceVideo(enlace,true);
         }
     });
+
+  if (enlacesEncontrados > 0) {
+    id.innerHTML += `Lmode<br>`;
+  }
+  id.appendChild(doc.body);
 }
-*/
 
 
-function procesarEnlacesVideo(element, modoVideoActivado) {
-  const enlaces = element.querySelectorAll('a[href]');
-  let contadorEnlaces = 0;
+function procesarEnlaceVideo(enlace, modoVideoActivado) {
+  if (modoVideoActivado) {
+    const enlaceId = `enlace-video-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+    const videoContainerId = `video-container-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+    const iframeId = `iframe-video-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+    enlace.id = enlaceId;
 
-  enlaces.forEach(enlace => {
-    enlace.setAttribute('target', '_blank');
-
-    if (modoVideoActivado) {
-      contadorEnlaces++;
-      const enlaceId = `enlace-video-${contadorEnlaces}`;
-      const videoContainerId = `video-container-${contadorEnlaces}`;
-      const iframeId = `iframe-video-${contadorEnlaces}`;
-      enlace.id = enlaceId;
-
-      const botonDesplegar = document.createElement('button');
-      botonDesplegar.textContent = 'Desplegar Video';
-      botonDesplegar.classList.add('boton-desplegar-video');
+    const botonDesplegar = document.createElement('button');
+    botonDesplegar.textContent = 'Desplegar Video';
+    botonDesplegar.classList.add('boton-desplegar-video');
 
       const contenedorVideo = document.createElement('div');
-      contenedorVideo.id = videoContainerId;
-      contenedorVideo.style.display = 'none';
+    contenedorVideo.id = videoContainerId;
       contenedorVideo.classList.add('video-container');
+      contenedorVideo.style.display = "none"
 
-      const urlVideo = enlace.getAttribute('href');
-      const urlVideoMapeada = mapearUrlAEmbed(urlVideo);
-        if (urlVideoMapeada) {
-             const iframe = document.createElement('iframe');
-            iframe.id = iframeId;
-            iframe.src = urlVideoMapeada;
-            iframe.allowFullscreen = true;
-            contenedorVideo.appendChild(iframe);
-        } else {
-             const mensajeError = document.createElement('p');
-            mensajeError.textContent = 'No se pudo obtener el video asociado a este enlace.';
-            contenedorVideo.appendChild(mensajeError);
-        }
+    const urlVideo = enlace.getAttribute('href');
+    const urlVideoMapeada = mapearUrlAEmbed(urlVideo);
+
+     const br = document.createElement('br'); // Crear elemento br
+    enlace.parentNode.insertBefore(br, enlace); // Insertar br antes del botón
+     enlace.parentNode.insertBefore(botonDesplegar, enlace);
 
 
-      enlace.parentNode.insertBefore(botonDesplegar, enlace.nextSibling);
-      enlace.parentNode.insertBefore(contenedorVideo, botonDesplegar.nextSibling);
+        botonDesplegar.addEventListener('click', () => {
+          if (contenedorVideo.innerHTML === "") {
+               if (urlVideoMapeada) {
+                contenedorVideo.innerHTML = `<iframe id="${iframeId}" src="${urlVideoMapeada}" width="80%" height="315" allowfullscreen></iframe>`
+                botonDesplegar.textContent = 'Ocultar Video';
+                contenedorVideo.style.display = "block"
+            }else{
+              contenedorVideo.innerHTML = '<p>No se pudo obtener el video asociado a este enlace.</p>';
+              }
+          } else {
+              contenedorVideo.innerHTML = "";
+              contenedorVideo.style.display = "none"
+              botonDesplegar.textContent = 'Desplegar Video';
+          }
 
-      botonDesplegar.addEventListener('click', () => {
-         const isDisplayed = contenedorVideo.style.display === 'block';
-                contenedorVideo.style.display = isDisplayed ? 'none' : 'block';
-         botonDesplegar.textContent = isDisplayed ? 'Desplegar Video' : 'Ocultar Video';
-      });
-    }
-  });
+    });
+
+
+      enlace.parentNode.insertBefore(contenedorVideo, enlace.nextSibling);
+  }
 }
-
 
 
 function mapearUrlAEmbed(url) {
-    if (url.includes('youtube.com')) {
-        const urlParams = new URLSearchParams(url.split('?')[1]);
-        const videoId = urlParams.get('v');
-        if (videoId) {
-            return `https://www.youtube.com/embed/${videoId}`;
-        }
+  if (url.includes('youtube.com')) {
+    const urlParams = new URLSearchParams(url.split('?')[1]);
+    const videoId = urlParams.get('v');
+    if (videoId) {
+      return `https://www.youtube.com/embed/${videoId}`;
     }
+  }
 
-    if (url.includes('vimeo.com')) {
-        const videoId = url.split('/').pop();
-        return `https://player.vimeo.com/video/${videoId}`;
-    }
+  if (url.includes('vimeo.com')) {
+    const videoId = url.split('/').pop();
+    return `https://player.vimeo.com/video/${videoId}`;
+  }
 
-    return null;
+  if (url.includes('dailymotion.com')) {
+    const videoId = url.split('/').pop();
+    return `https://dailymotion.com/embed/video/${videoId}`;
+  }
+
+  return null;
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -37,6 +37,8 @@ ID_CONTEXT;
 $xdata = base64_encode($xdata);
 #$ask = addcslashes($ask,"\\\$");
 $ask = base64_encode($ask);
+$contextmode="TRUE";
+
 
 switch ($_POST["smodel"]):
 case "image":
@@ -48,7 +50,7 @@ default:
 $selectModel = "--b64prompt";
 endswitch;
 
-$response = shell_exec("/var/osiris2/bin/com/web/iask.sh  \"$selectModel\" ". $ask ." ".$NContext." ".$raddr." ".$context_id." ".$xdata);
+$response = shell_exec("/var/osiris2/bin/com/web/iask.sh  \"$selectModel\" ". $ask ." ".$NContext." ".$raddr." ".$context_id." ".$xdata." ".$context_mode);
 
 
 
