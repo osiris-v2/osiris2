@@ -101,6 +101,7 @@ bin/install/ssh-cert.sh
 bin/help/
 
 #Archivos lib python bin/lib
+bin/lib/help.py
 bin/lib/core.py
 bin/lib/ffmpeg.py
 bin/lib/multiprocess.py
@@ -165,6 +166,7 @@ bin/install/www/tool/index.html
 #Archivos Comandos
 #para la consola osiris.py
 
+bin/com/gcom.py
 bin/com/shell.py
 bin/com/create.py
 bin/com/cert.py

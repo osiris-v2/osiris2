@@ -101,6 +101,7 @@ bin/install/ssh-cert.sh
 bin/help/
 
 #Archivos lib python bin/lib
+bin/lib/help.py
 bin/lib/core.py
 bin/lib/ffmpeg.py
 bin/lib/multiprocess.py

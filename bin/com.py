@@ -22,6 +22,10 @@ import lib.core as core
 osiris_bin_path = os.path.abspath(__file__)
 osiris_bin_dir = os.path.dirname(osiris_bin_path)
 
+import lib.help as hlp
+
+
+help_com = hlp.help_com
 
 core.signal.signal(signal.SIGINT, core.ctrl_signal)
 
@@ -184,7 +188,7 @@ def command_line():
 
 # Manejo de comandos
 def handle_command(args):
-    global use_command, set_com
+    global use_command, set_com, help_com
     
     
 
@@ -239,8 +243,11 @@ def handle_command(args):
         edit_command(args[0],def_editor)
     elif len(args) > 1 and args[1] == "--edit-dsk":
         edit_command(args[0],def_editor_dsk)
+    elif len(args) > 1 and args[1] == "--help-com":
+        print(help_com)
     else:
         if len(args) > 1 and args[1] == "--help":
+            print("Escriba --help-com  para ayuda de comandos predeterminados")
             try:
                 print(fhelp.fhelp(args[0]))
             except Exception as e:
