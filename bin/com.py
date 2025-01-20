@@ -268,7 +268,7 @@ def edit_command(command,editor="nano",action=""):
                         "com":exec_com_bg,
                         "metadata": {"user": usuario,
                             "time_start":timestamp,
-			    "command":
+			    "command": exec_com_bg
                             }])
         elif def_editor in subprocess.check_output(["ps", "-aux"]).decode():
             subprocess.call([def_editor, ed])
