@@ -22,7 +22,7 @@ share.sh
 install.sh
 install.com
 index.html
-index.php
+#index.php No existe aún 
 
 #Archivos Osiris
 #directorio bin
@@ -32,7 +32,7 @@ bin/cnf.py
 bin/com.py
 bin/fhelp.py
 bin/get_config.py
-bin/com.conf
+#bin/com.conf  Por determinar
 bin/com.ini
 bin/osiris
 bin/venv.sh
@@ -166,7 +166,6 @@ bin/install/www/tool/index.html
 #Archivos Comandos
 #para la consola osiris.py
 
-bin/com/gcom.py
 bin/com/shell.py
 bin/com/create.py
 bin/com/cert.py
@@ -205,15 +204,28 @@ html/robots.txt
 html/favicon.ico
 
 html/lib/
-html/img/
+
 html/engines/
+
 html/textos/info.txt
+html/img/info.txt
 
 #Aplicaciones WEB
 #html/app
 
+
+# candidata para paquete independiente app.jsa.gitup.txt
 #jsAnimator (WFIC)
 #html/app/jsa/
+html/app/jsa/core.js
+html/app/jsa/index.js
+html/app/jsa/paneles.js
+html/app/jsa/source.js
+html/app/jsa/paneles.js
+html/app/jsa/model.js
+html/app/jsa/firefox.1.css
+
+
 
 html/app/widgets/hlstv.html
 html/app/widgets/webirc.html
@@ -263,7 +275,6 @@ html/app/mitv/channels/main/live-ts/info.txt
 ##?!> request
 osiris2release.deb
 #!
-
 
 #Archivos tmp release
 bin/com/tmp/zj91enedg3.png

@@ -201,17 +201,22 @@ git clone --depth 1 --filter=blob:none --sparse "${repo_url}" "${temp_repo}" || 
 }
 cd "${temp_repo}"
 
+COPYCOM=""
+WHATIS=""
+
 download_fgit() { 
     local file_path=$1
     local install_log=$2
     local error_file=$3
     local MODE=$4
-    
+  #Llegado aquí o estamos en modo upgrade o update y el archivo no existe
   # Verificar si el archivo existe en el repositorio
   echo "Intentando descargar ${file_path} desde el repositorio base..."
   # Si es directorio, usar git sparse-checkout con --cone
   if [[ "$file_path" == */ ]]; then
     echo "Es un directorio, utilizando sparse-checkout con --cone para ${file_path}"
+    COPYCOM="cp -r"
+    WHATIS="DIR"
     git sparse-checkout set --cone "${file_path}" || {
       echo "Error: No se pudo configurar sparse-checkout para ${file_path}" | tee -a "${install_log}"
       echo '{"status": "error", "message": "Error en sparse-checkout"}' > "${error_file}"
@@ -220,62 +225,19 @@ download_fgit() {
   else
     # Si es archivo, hacer sparse-checkout de archivo específico
     echo "Es un archivo, utilizando sparse-checkout para ${file_path}"
+    COPYCOM="cp"
+    WHATIS="FILE"
     git sparse-checkout set --no-cone "/${file_path}" || {
       echo "Error: No se pudo configurar sparse-checkout para ${file_path}" | tee -a "${install_log}"
       echo '{"status": "error", "message": "Error en sparse-checkout"}' > "${error_file}"
       exit 1
     }
   fi
-
-
-    if [[ "${MODE}" == "ForceUpgrade" ]]; then
-    
-    echo "-------------------------------------------------------------"
-    echo "¡Advertencia:! El archivo o directorio ${dest} ya existe.    "
-    echo "      ESTA USANDO EL MODO REINSTALL                          "
-    echo " - MODO FORCEUPGRADE                                         "
-    echo " → Se reescribirán los archivos a la última versión estable  "
-    echo "-------------------------------------------------------------"
-    echo "Sobrescribiendo ${dest}..."
-    echo 
-    echo 
-	  mkdir -p "$(dirname "$dest")" # Crea el directorio si no existe
-      cp "${file_path}" "${dest}" || {
-        echo "Error: No se pudo sobrescribir ${file_path} a ${dest}" | tee -a "${install_log}"
-        echo '{"status": "error", "message": "Error al mover archivo"}' > "${error_file}"
-        # exit 1
-      }
-      echo "Archivo sobrescrito: ${file_path}" | tee -a "${install_log}"
-    elif [[ "${MODE}" == "UPDATE" ]]; then
-    
-    echo "-------------------------------------------------------------"
-    echo "¡Advertencia:! El archivo o directorio ${dest} ya existe.    "
-    echo "      ESTA USANDO EL MODO UPDATE                             "
-    echo " - MODO UPDATE                                               "
-    echo " → Se Moveran los archivos a su destino                      "
-    echo "-------------------------------------------------------------"
-	
-	  mkdir -p "$(dirname "$dest")" # Crea el directorio si no existe
-        mv -f "${file_path}" "${dest}" || {
-        echo "Error: No se pudo sobrescribir ${file_path} a ${dest}" | tee -a "${install_log}"
-        echo '{"status": "error", "message": "Error al mover archivo"}' > "${error_file}"
-        echo "Se ignora..."
-        #exit 1
-      }
-       
-    else
-      echo "OBSERVAR MODOS"
-      echo "No se sobrescribió ${dest}. Continuando con la instalación."
-    fi
 }
+
 
 # Procesar archivos listados en ${gitinstfn}
 echo "Procesando archivos listados en ${gitinstfn} ..."
-
-
-if [[ "$MODE" == "DEFAULT" ]]; then
-  MODE="UPDATE"
-fi
 
 while IFS= read -r line; do
   # Limpiar línea
@@ -284,76 +246,55 @@ while IFS= read -r line; do
   
   # Verificar si la entrada es un archivo o directorio
   file_path="${line}"
-  echo "Procesando: ${file_path}"
   dest="${base}/${file_path}"
-    if [ -e "${dest}" ]; then
-     
-    if [[ "$MODE" == "ForceUpgrade" ]]; then
+  
+    if [[ $MODE == "UPDATE" ]]; then
+      if [ -e $dest ]; then
+            echo "#############################################################"
+            echo "¡Advertencia:! El archivo o directorio ${dest} ya existe.    "
+            echo "      ESTA USANDO EL MODO UPDATE                             "
+            echo "      USE MODO UPGRADE PARA SOBREESCRIBILO                   "
+            echo "#############################################################"
+            continue #cancelamos esta vuelta y pasamos a la siguiente
+      else
             download_fgit "$file_path"  "$install_log" "$error_file" "$MODE"
-
+            #echo $COPYCOM
+            echo "#####################################"
+            echo "UPDATE - COPIADO NUEVO ARCHIVO: $dest"
+            echo "#####################################"
+            mkdir -p "$(dirname "${dest}")" # Crea el directorio si no existe
+            $COPYCOM "${file_path}" "${dest}" || {
+            echo "Error: No se pudo sobrescribir ${PWD}/${file_path} a ${dest}" | tee -a "${install_log}"
+            echo '{"status": "error", "message": "Error al mover archivo"}' > "${error_file}"
+                             }
+            continue  # Pasamos vuelta  
+       fi  #fin modo UPDATE
+    elif [[ $MODE == "ForceUpgrade" ]]; then
+         echo "#############################################################"
+         echo "¡Advertencia:! El archivo o directorio ${dest}               "
+         echo "      ESTA USANDO EL MODO UPGRADE                            "
+         echo "      EL ARCHIVO O DIRECTORIO SERÁ SOBREESCRITO              "
+         echo "#############################################################"
+         download_fgit "$file_path"  "$install_log" "$error_file" "$MODE"
+         echo "SE COPIA UPGRADE $dest"
+         mkdir -p "$(dirname "${dest}")" # Crea el directorio si no existe
+         $COPYCOM  "${file_path}" "${dest}" || {
+         echo "Error: No se pudo sobrescribir ${PWD}/${file_path} a ${dest}" | tee -a "${install_log}"
+         echo '{"status": "error", "message": "Error al mover archivo"}' > "${error_file}"
+       }
+           continue  #Pasamos vuelta
     else
-       echo "######################################################" 
-       echo " Ya existe ${file_path}                               "
-       echo " Seleccione Modo FORCEUPGRADE                         "
-       echo " Para reescribir los Archivos Existentes              "
-       echo "######################################################"
-    fi
+      echo "ERROR MODE"
+      exit  
+   fi 
 
-   else
-   
-     download_fgit "$file_path"  "$install_log" "$error_file" "$MODE"
-   fi
-  
-   continue
-   
-# Verificar si el archivo o directorio fue descargado
-if [ -e "${file_path}" ]; then
-  dest="${base}/${file_path}"
-  dir_path=$(dirname "${dest}")
-  mkdir -p "${dir_path}"
 
-  # Verificar si el archivo de destino ya existe
-  if [ -e "${dest}" ]; then
-    echo "---------------------------------------------------------"
-    echo "¡Advertencia:! El archivo o directorio ${dest} ya existe."
-    echo "      USE MODO REINSTALAR PARA SOBREESCRIBIRLOS          "
-    echo " - MODO INSTALL+   → Sólo se instalarán Archivos nuevos  "
-    echo "---------------------------------------------------------"
-    sleep 0.3 
-    # Preguntar si está en modo actualización 
-    answer=$FORCEUPGRADEMODE 
-    if [[ "${answer}" == "True" ]]; then
-      echo "Sobrescribiendo ${dest}..."
-    echo 
-    echo " #####$$$$$$######"
-    #  mv -f "${file_path}" "${dest}" || {
-     #   echo "Error: No se pudo sobrescribir ${file_path} a ${dest}" | tee -a "${install_log}"
-    #    echo '{"status": "error", "message": "Error al mover archivo"}' > "${error_file}"
-        # exit 1
-     # }
-
-      echo "Archivo sobrescrito: ${file_path}" | tee -a "${install_log}"
-    else
-      echo "No se sobrescribió ${dest}. Continuando con la instalación."
-    fi
-  else
-    # Si el archivo de destino no existe, mover sin preguntar
-    mv "${file_path}" "${dest}" || {
-      echo "Error: No se pudo mover ${file_path} a ${dest}" | tee -a "${install_log}"
-      echo '{"status": "error", "message": "Error al mover archivo"}' > "${error_file}"
-      # exit 1
-    }
-    echo "Archivo descargado: ${file_path}" | tee -a "${install_log}"
-  fi
-else
-  echo "Error: ${file_path} no se encuentra en el repositorio" | tee -a "${install_log}"
-  echo '{"status": "error", "message": "'${file_path}' no encontrado en repositorio"}' > "${error_file}"
-  echo "\n\n ----->  \n  error remoto !!!  \n\n"
-  # sleep 3
-  # exit 1
-fi
-  
 done < "${gitup_file}"
+
+
+
+echo "##############################################"
+
 
 # Limpiar directorio temporal
 cd "${base}"
