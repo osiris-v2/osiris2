@@ -3,7 +3,7 @@
 instMSG() {
 
            echo "################################################"
-           echo " Sitúese sobre el directorio $1            #####"
+           echo " Sitúese sobre el directorio $1                 "
            echo "  Y ejecute: ./osiris.inst                   ###"                
            echo "  Para lanzar el instalador interno de osiris ##"
            echo "################################################"
