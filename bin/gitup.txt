@@ -93,7 +93,7 @@ bin/install/tmux_uninstall.sh
 bin/install/osiris_env_sys_vars.sh
 bin/install/python_pack_install.sh
 bin/install/lets-cert.sh
-bin/install/ssh-cert.sh
+bin/install/ssl-cert.sh
 
 
 
@@ -253,7 +253,7 @@ html/app/mitv/css/firefox.css
 
 html/app/mitv/tv/app.js
 html/app/mitv/tv/build.js
-html/app/mitv/tv/index.js 
+html/app/mitv/tv/index.js
 html/app/mitv/tv/load.js
 html/app/mitv/tv/paneles.js
 html/app/mitv/tv/source.js

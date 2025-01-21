@@ -93,7 +93,7 @@ bin/install/tmux_uninstall.sh
 bin/install/osiris_env_sys_vars.sh
 bin/install/python_pack_install.sh
 bin/install/lets-cert.sh
-bin/install/ssh-cert.sh
+bin/install/ssl-cert.sh
 
 
 

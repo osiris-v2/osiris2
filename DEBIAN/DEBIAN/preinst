@@ -240,10 +240,9 @@ download_fgit() {
 echo "Procesando archivos listados en ${gitinstfn} ..."
 
 while IFS= read -r line; do
-  # Limpiar línea
-  line="${line%%*( )}"
-  [[ "$line" =~ ^#.*$ || -z "$line" ]] && continue # Saltar comentarios y líneas vacías
-  
+    [[ "$line" =~ ^#.*$ || -z "$line" ]] && continue # Saltar comentarios y líneas vacías
+    line=$(echo "$line" | sed 's/^[ \t]*//;s/[ \t]*$//')
+
   # Verificar si la entrada es un archivo o directorio
   file_path="${line}"
   dest="${base}/${file_path}"
@@ -327,11 +326,13 @@ if [[ "$choice" == "s" || "$choice" == "S" ]]; then
     echo "Ejecutando el script..."
     # Aquí llamas a tu script o comando
     echo "EXEC" > /tmp/osiris2_install_vars
-    echo "${base_bind}"
     echo "${base_bind}" >> /tmp/osiris2_install_vars
     echo "${x_bind}" >> /tmp/osiris2_install_vars
     echo "Instalando componentes "
 else
     echo "Finalizando Tareas...."
+    echo "FINISH" > /tmp/osiris2_install_vars
+    echo "${base_bind}" >> /tmp/osiris2_install_vars
+    echo "${x_bind}" >> /tmp/osiris2_install_vars
     exit 0
 fi
