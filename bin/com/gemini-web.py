@@ -104,7 +104,7 @@ API_KEY = APK;
 gemini_model = gemini_models[1]
 
 
-print("<div style='width:95%;font-size:13px;font-family:\"Noto Sans\";font-weight:bold;text-align:right;;padding:4px;display:block;color:green;'><b style='color:#aaaaff;'>Model:</b> ",gemini_model,"</div>")
+print("<div style='width:95%;font-size:10px;font-family:\"arial\";font-weight:bold;text-align:right;;padding:4px;display:block;color:green;'><b style='color:#aaaaff;'>Model:</b> ",gemini_model,"</div>")
 
 
 # Si la clave no está disponible, la obtenemos
@@ -1253,6 +1253,7 @@ def create_context(nombre_archivo, texto_a_agregar):
                 # Contexto de Conversación - Sesión CXID-88101c47cdb156f7f8323cae4235fa8e
                   Inferencia de Respuestas Previas: Activada
                   Hasta la siguiente pregunta de cliente lo que sigue son preguntas previas debes inferir tus respuestas anteriores para mejorar la conversación. Eso hace la función de memoria virtual.
+                  Pregunta al cliente al inicio como quiere que te dirijas a el/ella.
                                 
                 """
 

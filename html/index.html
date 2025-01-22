@@ -219,13 +219,11 @@ function paintIAR(){
 paint = `
 
 <div style="position:absolute;top:2px;margin:auto 0 auto 0; width:80%;height:20px;padding:3px;">
-<a href="javascript:void(0);" style="font-weight:bold;color:#DA3333;float:right" onclick="IAR.innerHTML=paintIAR()">Limpiar</a>
+<a href="javascript:void(0);" style="font-weight:bold;color:#eAf393;float:right" onclick="IAR.innerHTML=paintIAR()">Limpiar</a>
+ - 
 <span style="float:right">&nbsp;&nbsp;</span>
-<a href="javascript:void(0);" style="font-weight:bold;color:#DA3333;float:right" onclick="IAR.style.display='none'">Cerrar</a>
+<a href="javascript:void(0);" style="font-weight:bold;color:#eAf393;float:right" onclick="IAR.style.display='none'">Cerrar</a>
 </div>
-
-<div id="ResizeIAR" style="position: absolute;right:0;bottom:0;color:gold;font-size:11px; font-weight:bold;">
-Resize Here →<div style="background:white;font-family:impact;font-size:13px;display:inline-block;width:10px;height:7px;margin:0;padding:0;"></div></div>
 
 `
 
@@ -424,6 +422,12 @@ IAR.style.display = "block"
 function iaini() {
   // Aquí puedes colocar el código que deseas ejecutar cuando se presione Enter.
   // Por ejemplo, enviar los datos del input a un servidor, o realizar una búsqueda.
+IAR.innerHTML += `
+
+<div id="ResizeIAR" style="position: absolute;right:0;bottom:100%;color:gold;font-size:11px; font-weight:bold;display:flex">
+Resize Here =><div style="background:white;font-family:impact;font-size:13px;display:inline-block;width:10px;height:7px;margin:0;padding:0;">↓</div></div>
+
+`
 date = new Date()
 ajax({
 datas:"action=ask&question="+encodeURIComponent("Mensaje de Conexión cliente. Ha entrado en: "+window.location.hostname+"  -  con URL: "+window.location.href+" Hola Nuevo Cliente Entra a   \n"+date+"\n Saluda al cliente. \n"),

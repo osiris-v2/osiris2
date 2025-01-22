@@ -199,6 +199,7 @@ bin/com/datas/cert/info.txt
 
 #bin web com
 bin/com/web/datas/ai/info.txt
+bin/com/web/install/
 
 #html - WWW
 
