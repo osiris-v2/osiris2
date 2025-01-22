@@ -177,6 +177,7 @@ bin/com/scanip.py
 bin/com/blockchain.py
 bin/com/selecttv.py
 bin/com/gemini.py
+bin/com/gemini-web.py
 bin/com/desktop.py
 bin/com/screenshot.py
 

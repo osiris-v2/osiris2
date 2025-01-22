@@ -50,7 +50,7 @@ default:
 $selectModel = "--b64prompt";
 endswitch;
 
-$response = shell_exec("/var/osiris2/bin/com/web/iask.sh  \"$selectModel\" ". $ask ." ".$NContext." ".$raddr." ".$context_id." ".$xdata." ".$context_mode);
+$response = shell_exec("/var/osiris2/bin/com/web/iask.sh  \"$selectModel\" ". $ask ." ".$NContext." ".$raddr." CXID-".$context_id." ".$xdata." ".$context_mode);
 
 
 
