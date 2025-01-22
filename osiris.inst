@@ -6,9 +6,12 @@ clear
 echo "OSIRIS INST"
 
 #rm -f /var/lib/dpkg/lock
-rm -f /var/lib/dpkg/lock-frontend
+#rm -f /var/lib/dpkg/lock-frontend
 
 script_dir=$(dirname "$(readlink -f "$0")")
+
+#Desabilitado esto de momento (problemático lanzar el script como hilo dependiente del instalador .deb)
+: << 'DISABLED'
 
 if [[ $1 == "--from-deb" ]]; then
 
@@ -31,6 +34,7 @@ exit 0
 
 fi
 
+DISABLED
 
 # Verificar si se proporcionó un argumento
 
