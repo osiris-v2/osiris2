@@ -197,6 +197,9 @@ bin/com/datas/ffmpeg/random/info.txt
 bin/com/datas/ffmpeg/random/intro.mp4
 bin/com/datas/cert/info.txt
 
+#bin web com
+bin/com/web/datas/ai/info.txt
+
 #html - WWW
 
 html/index.html
