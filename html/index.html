@@ -424,8 +424,8 @@ function iaini() {
   // Por ejemplo, enviar los datos del input a un servidor, o realizar una búsqueda.
 IAR.innerHTML += `
 
-<div id="ResizeIAR" style="position: absolute;right:0;bottom:100%;color:gold;font-size:11px; font-weight:bold;display:flex">
-Resize Here =><div style="background:white;font-family:impact;font-size:13px;display:inline-block;width:10px;height:7px;margin:0;padding:0;">↓</div></div>
+<div id="ResizeIAR" style="position: relative;margin:auto 0 0 auto;float:right;color:gold;font-size:11px; font-weight:bold;display:flex;margin-top:20px;margin-right:-18px;margin-bottom:-10px;font-family:arial;font-weight:bold;font-size:14px;">
+Resize<div style="background:black;font-family:impact;font-size:18px;display:inline-block;width:10px;height:7px;margin:0;padding:0;">↓</div></div>
 
 `
 date = new Date()
@@ -440,7 +440,24 @@ method:"POST",
 prejs:'createADiv(0)'
 });
 IAR.style.display = "block"
+
+
+IAR.addEventListener("scroll", function(){
+
+
+
+})
+
+IAR.addEventListener("resize", function(){
+alert("RR")
+})
+
+
 }
+
+
+
+
 
 
 
@@ -515,7 +532,7 @@ function procesarEnlaceVideo(enlace, modoVideoActivado) {
           if (contenedorVideo.innerHTML === "") {
                if (urlVideoMapeada) {
                 contenedorVideo.innerHTML = `<iframe id="${iframeId}" src="${urlVideoMapeada}" width="80%" height="315" allowfullscreen></iframe>`
-                botonDesplegar.textContent = 'Ocultar Video';
+                botonDesplegar.textContent = 'Cerrar Video';
                 contenedorVideo.style.display = "block"
             }else{
               contenedorVideo.innerHTML = '<p>No se pudo obtener el video asociado a este enlace.</p>';
@@ -559,13 +576,11 @@ function mapearUrlAEmbed(url) {
 
 
 
-
-
-
-
 onload = function(){
 
 iaini()
+
+
 
 inicio()
 
