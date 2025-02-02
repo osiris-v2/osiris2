@@ -16,6 +16,7 @@ $NContext = "TEMPCONTEXT";
 
 $ask = rawurldecode(($_POST["question"]));
 
+$noExec = false;
 
 if(!$ask):
 	exit();
@@ -34,9 +35,6 @@ Tu Id de contexto es: {$context_id}
 ID_CONTEXT;
 
 
-$xdata = base64_encode($xdata);
-#$ask = addcslashes($ask,"\\\$");
-$ask = base64_encode($ask);
 $contextmode="TRUE";
 
 
@@ -46,12 +44,30 @@ $selectModel = "--b64imagecreate";
 break;
 case "text":
 $selectModel = "--b64prompt";
+break;
+case "video":
+$url = "";
+$url = explode(" ",trim($ask));
+$curl = $url[0];
+$durl = filter_var($curl,FILTER_VALIDATE_URL);
+unset($url[0]);
+$ask = implode(" ",$url);
+if(!$durl){$noExec=true;$response  = "ERROR : El primer argumento debe ser un enlace válido ";} else { $xdata = $durl ; }
+$selectModel = "--b64prompt-video";
+break;
 default:
 $selectModel = "--b64prompt";
 endswitch;
 
-$response = shell_exec("/var/osiris2/bin/com/web/iask.sh  \"$selectModel\" ". $ask ." ".$NContext." ".$raddr." CXID-".$context_id." ".$xdata." ".$context_mode);
 
+$xdata = base64_encode($xdata);
+#$ask = addcslashes($ask,"\\\$");
+$ask = base64_encode($ask);
+
+
+if(!$noExec){
+$response = shell_exec("/var/osiris2/bin/com/web/iask.sh  \"$selectModel\" ". $ask ." ".$NContext." ".$raddr." CXID-".$context_id." ".$xdata." ".$context_mode);
+}
 
 
 

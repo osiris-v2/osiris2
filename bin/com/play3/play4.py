@@ -114,7 +114,7 @@ def start_ffmpeg(url,com):
     '-i','/dev/video0']
     
     
-    foutput = ['-c:v', 'libx264', '-preset', 'veryfast',
+    foutput = ['-threads','2','-c:v', 'libx264', '-preset', 'ultrafast',
     '-tune', 'zerolatency', '-pix_fmt', 'yuv420p',
     '-c:a', 'aac', '-ar', '44100', '-b:a', '128k',
     '-b:v', '0', '-s:v', '856x580', '-maxrate:v', '3000k', '-bufsize:v', '6000k',

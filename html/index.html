@@ -83,7 +83,7 @@ Main {style:"background:#000000;"}
 >>>img_btn0 {TAG:"img",src:"/img/menu-yel.png",style:"width:5vw;height:5vh;top:0px;position:absolute;"}
 >>IAI {TAG:"input", name:"iapn",id:"iap",type:"text",value:" ¿Tienes alguna pregunta ? ",spellcheck:"false"}
 >>IAVQ {TAG:"button",click:"display('IAR');",innerHTML:"ø"}
->>IAR {info:"IA Response",className:"dispAppIA"}
+>>IAR {info:"IA Response",className:"dispAppIA",name:"IAITOP"}
 >Container {}
 >>MI
 >>>SMODEL {innerHTML:"<b style=''> Modelo </b> ",style:"border-top-right-radius: 20px 15px;background:#a2a2a2;display:block;padding:2px 0px 2px 8px;width:calc(50% - 10px);margin-top:10%;font-size:100%;"}
@@ -185,6 +185,9 @@ SMODEL.innerHTML += `
 
         <input type="radio" name="opcion" value="image" id="opcion2"  onclick="selectModel()">
         <label for="opcion2">Image</label><br>
+        
+        <input type="radio" name="opcion" value="video" id="opcion3"  onclick="selectModel()">
+        <label for="opcion3">Video</label><br>
 
         <!--button type="button" onclick="selectModel()"></button-->
     </form>
@@ -363,8 +366,24 @@ TTAD.style="width:80%;text-align:right;"
 iardiv.prepend(TTAD)
 TTA = addPanel({TAG:"textarea"})
 TTA.value += IAI.value
-TTA.style="margin-top:10px;font-family:arial;border-radius:10px;border:solid 1px #bdfdcc;width:90%;padding:10px;overflow:auto;resize:vertical;"
+TTA.style="display:inline-block;margin-top:10px;font-family:arial;border-radius:10px;border:solid 1px #bdfdcc;width:90%;padding:10px;overflow:auto;resize:vertical;"
 moveTag(TTA,TTAD)
+
+TTAd = addPanel({TAG:"div",innerHTML:"",info:"  Capa botones reenviar / limpir - textarea prompt - Context "})
+TTAd.style=""
+moveTag(TTAd,TTAD)
+
+
+TTAb = addPanel({TAG:"button",innerHTML:"Reenviar"})
+TTAb.value += IAI.value
+TTAb.style=""
+moveTag(TTAb,TTAd)
+
+
+TTAb1 = addPanel({TAG:"button",innerHTML:"Limpiar"})
+TTAb1.value += IAI.value
+TTAb1.style=""
+moveTag(TTAb1,TTAd)
 
 WAITING = "<b> Esperando Respuesta ... </b>"
 
@@ -404,7 +423,7 @@ eval:true,
 handler:"ASK_QUESTION",
 block:true,
 method:"POST",
-prejs:'createADiv(1)'
+prejs:'createADiv(1);location.href="#IAITOP"'
 });
 
 
@@ -468,7 +487,8 @@ const sitiosDeseados = {
   vimeo1: "https://vimeo.com",
   vimeo2: "https://player.vimeo.com",
   dailymotion: "https://www.dailymotion.com/video/",
-  dailymotion: "https://www.dailymotion.com/embed/"
+  dailymotion: "https://www.dailymotion.com/embed/",
+  osiris: "https://osiris000.duckdns.org/img/tmp/"
 };
 
 function mktparse(id, txt) {
@@ -498,7 +518,7 @@ function mktparse(id, txt) {
     });
 
   if (enlacesEncontrados > 0) {
-    id.innerHTML += `Lmode<br>`;
+    id.innerHTML += ``;
   }
   id.appendChild(doc.body);
 }
@@ -568,6 +588,11 @@ function mapearUrlAEmbed(url) {
   if (url.includes('dailymotion.com')) {
     const videoId = url.split('/').pop();
     return `https://dailymotion.com/embed/video/${videoId}`;
+  }
+
+  if (url.includes('osiris000.duckdns.org')) {
+    const videoId = url.split('/').pop();
+    return url
   }
 
   return null;

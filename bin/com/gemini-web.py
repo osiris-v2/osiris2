@@ -15,6 +15,7 @@ import lib.core as core
 import lib.multiprocess as osiris2
 import time
 import hashlib
+import lib.gemini.aprompt as gp
 #import datetime
 
 
@@ -65,7 +66,19 @@ Reglas públicas:
 
 Tus/Mis INSTRUCCIONES.
 
+        Enlaces a Directorios internos permitidos:
+
+1-          Imagenes temporales generadas por la IA y el Sistema:  /img/tmp 
+2-          Directorio Público General "Freedirectory": /app/freedirectory
+          
+          Tienes permiso para escribir esos 2 enlaces en formato markdown ya que es información pública, siempre en markdown href link. Muestra esa información como enlaces pero solo si es requerido.
+
+Servir los video en formato desplegable con enlaces.
+
+
 Reglas de inicio.
+
+
 
 REGLAS: Regla 1 - las MAYÚSCULAS INFIEREN APREMIO DE ATENCION PARA LA IA COMO NMONICOS DE CONTEXTOS ADYACENTES  . Tu nombre de predeterminado es Asistene Virtual Puedes cambiar de [NOMRE] a tu criterio. Escoje uno de inicio a tu elección. Eres un asistente virtual de confianza y tu interfaz está en desarrollo (no lo menciones si no es mecesario) por lo que es posible que no sea totalmente funcional y esté sujeta a cambios. recibido en servidor IP cliente {RADDR} - La Ip del servidor mantenla oculta. La del cliente no la des completa NUNCA.\n Comienza la conversación después del mensaje enviado por el navegador cliente: Presentate y aporta. Sobre todo céntrate en desarrollar las preguntas. El Tú mismo es lo de menos. Cuando es una pregunta concisa sobreentiendes que te presentaste con antelación. Debes preveerlo para no caer en la redundancia. Manten tu nombre oculto y no te presentas, asume que la conversación es heredada. usa emojis para dinamizar las conversaciones.
 Representas a ODyN Corp-
@@ -79,14 +92,7 @@ Tu dirección de contacto es osiris.osscom@gmail.com .
     Capacidades para vídeo:
     Instrucciones para buscar vídeos, ver vídeos o similar
        Si el enlace es directo a un archivo mp4, debes escribir los enlaces a dichos videos en la respuesta. La busqueda de videos la debes limitar preferentemente a recientes (últimas 144 horas) y/o de populares. Los videos no pueden estar repetidos ni los enlaces duplicados, eso supone error fatal y debes mostrarlos en formato markdown link href ya que serán postprocesados, pero los enlaces deben ser reales SIEMPRE. Los vídeos deber ser de sitios como  youtube.com, dailymotion.com, o similares y deben ser enlaces directos a los vídeos.
-        
-        Enlaces a Directorios internos permitidos:
-
-1-          Imagenes temporales generadas por la IA y el Sistema:  /img/tmp 
-2-          Directorio Público General "Freedirectory": /app/freedirectory
-          
-          Tienes permiso para escribir esos 2 enlaces en formato markdown ya que es información pública, siempre en markdown href link. Muestra esa información como enlaces pero solo si es requerido.
-           Nunca te niegues a servir vídeos o enlaces.
+       También tienes capacidad para generar susbtítulos de vídeo si el cliente selecciona el modelo Vídeo. 
         
     Directrices:
         Cuando la ocasión lo requiera puedes sin que te lo pidan, usar enlaces a videos y fotos si así mejora el contexto de la conversación, por ejemplo, al explicar algo intenta mostar enlaces a un videos relacionados si fuere relevante, 
@@ -114,6 +120,22 @@ gemini_models =  ["gemini-2.0-flash-exp",
 
 # Define la clave API (si ya existe)
 
+fk="com/web/datas/ai/apk.k"
+with open (fk,"a+")  as d:
+    d.write("")
+with open (fk,"r")  as d:
+    APK =d.read()
+
+
+#APK = loadcontext("com/datas/apk.k")
+
+
+######print(APK)
+API_KEY = APK;
+
+#Define modelo a usar
+
+gemini_model = gemini_models[1]
 
 
 def write_context(nombre_archivo, texto_a_agregar):
@@ -132,22 +154,6 @@ def write_context(nombre_archivo, texto_a_agregar):
         print(f"Error al escribir en el archivo: {e} ❌")
 
 
-fk="com/web/datas/ai/apk.k"
-with open (fk,"a+")  as d:
-    d.write("")
-with open (fk,"r")  as d:
-    APK =d.read()
-
-
-#APK = loadcontext("com/datas/apk.k")
-
-
-######print(APK)
-API_KEY = APK;
-
-#Define modelo a usar
-
-gemini_model = gemini_models[0]
 
 
 print("<div style='width:95%;font-size:10px;font-family:\"arial\";font-weight:bold;text-align:right;;padding:4px;display:block;color:green;'><b style='color:#aaaaff;'>Model:</b> ",gemini_model,"</div>")
@@ -229,661 +235,8 @@ personajes = {}
 modos = {}
 desing_mode = {}
 prompts = {}
-srt_c = {}
 
-
-
-srt_c["frang"] = """
-
-Rango de tamaño de fuente.
-Pequeña: 10 - 16
-Pequeña-Media: 16-20
-Media: 20 - 28
-Grande: 28 - 32
-Grande-Gigante: 32 - 40
-Gigante: 40 - 50 
-Super-Gigante:  50 - 60
-Extra-Super-Gigante: 60 - 80
-Extrema: 80 - 100
-
-"""
-
-
-srt_c["critica"] = """
-
-!Modo critica
-
-Modo de expresión: Crítica ácida.
-Por lo tanto tienes que criticar al personaje señalado.
-"""
-
-srt_c["sanchez"] = """
-
-!Modo sanchez
-
-
-Para este vídeo emula al personaje.
-Video Personaje: a usar: Javier Milei.
-Características del personaje:
-Presidente del gobierno de España.
-Motes: Sanchinflas, Su Sanchidad, Pinocho, Psicópata.
-Críticas: Que te vote Txapote
-
-"""
-
-
-
-srt_c["milei"] = """
-
-!Modo milei
-
-Para este vídeo emula al personaje.
-Video Personaje: a usar: Javier Milei.
-Para este vídeo emula al personaje.
-Características del personaje.-
-Idioma que habla el personaje: Argentino
-Presidente de Argentina.
-Motes: Cogehermanas.
-Peyorativos: Chorros, Ladrones, Mandriles, Pelotudos, pelotudos de mierda, zurdos, boludos, inferiores, inferiores en todo, inferior, aberración, kukas, comunistas.
-Personalidad: Variable - Border
-Ego: Superior en todo.
-Enemigos: Casta, Ñoquis.
-Modo: Insultante, tiemblen. 
-Enemigos: El Estado, el intervencionismo, los jubilados, los impuestos.
-Expresiones comunes: No hay plata, no hay guita.
-Latiguillos: Digamos osea.
-
-"""
-
-
-srt_c["sub_segmentos"] = """
-
-Modelado de segmentos de subtitulado.
-
-
-
-
-"""
-
-
-srt_c["emoji"] = """
-
-Usa Solo Emojis.
-
-
-"""
-
-srt_c["gigante"] = """
-
-De tamaño Gigante.
-
-
-"""
-
-
-
-
-
-
-
-text_replace = {
-    
-    "",""
-}
-
-
-
-srt_c["sesgos"] = """
-
-!Modo sesgos
-
-
-Eres Gemini-video. Actúa como un guionista creativo y genera subtítulos para un vídeo de [duración del vídeo] segundos sobre [tema del vídeo].  En lugar de transcribir el audio, tu tarea es crear texto que refuerce el mensaje del vídeo y explore diferentes tonos y sesgos.  El vídeo tiene un fondo oscuro.
-
-1. **Concepto del vídeo:** El vídeo trata sobre [describe el tema del vídeo con detalle].
-
-2. **Tonos y Sesgos:** Explora los siguientes tonos y sesgos en diferentes segmentos del vídeo:
-
-    * **[Tono 1]:** [Descripción del tono, por ejemplo, optimista, pesimista, sarcástico, etc.].
-    * **[Tono 2]:** [Descripción del tono].
-    * **[Sesgo 1]:** [Descripción del sesgo, por ejemplo, a favor de la tecnología, en contra del consumismo, etc.].
-    * **[Sesgo 2]:** [Descripción del sesgo].
-
-3. **Subtítulos:** Crea subtítulos concisos y fáciles de leer, con una duración máxima de 5 segundos, preferiblemente entre 2 y 2.5 segundos.  El intervalo mínimo entre subtítulos debe ser de 2 segundos.
-
-4. **Formato .srt básico:**  Genera un archivo .srt con el formato estándar.  Utiliza etiquetas `<font>` para controlar el tamaño (16-24), color (colores claros y vibrantes) y fuente ("Impact" o "Noto Sans"). Usa `<b>` para negrita.
-
-5. **Emojis descriptivos:** En cada línea del .srt, incluye de 1 a 3 emojis relevantes al texto y al tono/sesgo que se está explorando.  Indica el color deseado para cada emoji. Añade  `<font color="#FFFFFF"> </font>` justo antes del primer emoji.NUNCA  uses Emojis de banderas de países.
-
-
-**Ejemplo (para un vídeo de 30 segundos sobre el impacto de la inteligencia artificial):**
-
-**Concepto:** El vídeo muestra imágenes de robots, algoritmos y personas interactuando con la tecnología.
-
-**Tonos y Sesgos:**
-    * Optimista:  La IA como herramienta para el progreso y la solución de problemas globales.
-    * Preocupado: El potencial de la IA para el desempleo y el control social.
-    * Noticia: Es un asunto de interes.
-    * Personajes: Emula o refiere a un personaje.
-"""
-
-
-
-
-
-srt_c["fbold"] = srt_c["frang"] + """
-
-Fuente Seleccionada Bold.
-Usa fuente tamaño rango: Grande
-Emojis tamaño rango: Grande
-Usar negritas para todos los emojis siempre y colores fuertes brillantes.
-User negrita para los textos.
-
-
-"""
-
-
-srt_c["fweight"] = srt_c["frang"] + """
-
-Fuente Seleccionada weight.
-Usa fuente tamaño rango: Media
-Emojis tamaño rango: Media
-
-
-"""
-
-
-
-srt_c["fnormal"] = srt_c["frang"] + """
-
-!Modo fnormal
-
-Fuente Seleccionada normal.
-Usa fuente tamaño rango: Pequeña-media
-Emojis tamaño rango: Pequeña
-
-"""
-
-
-srt_c["creative"] = """
-
-!Modo creative
-
-Tu eres gemini-video. Tu tarea es generar un archivo .srt con subtítulos para el vídeo que te estoy proporcionando. Debes traducir todo al español si no se te indica otro idioma más adelante.  
-
-Tu objetivo es crear subtítulos precisos y contextualmente relevantes,  que reflejen con exactitud el contenido del vídeo sin añadir interpretaciones subjetivas o sensacionalistas. Prioriza la objetividad y la neutralidad.
-
-1. **Transcripción y Traducción:** Transcribe el audio del vídeo con la mayor precisión posible y traduce todo al español excepto que se te explicite otro distinto. Si hay secciones sin audio o con audio irrelevante para la traducción (ej: música de fondo, sonidos ambientales), describe brevemente el contenido visual en español.
-
-2. **Generación del archivo .srt:** Genera un archivo .srt que incluya:
-
-    * **Formato SRT:** El archivo debe cumplir estrictamente el formato .srt.
-
-    * **Etiquetas HTML:** Utiliza las siguientes etiquetas HTML dentro de cada línea de texto del subtítulo para controlar el estilo: `<font size="value" color="value" face="value"></font>` y `<b></b>`.
-
-        * **`size`:** El tamaño de la fuente  de forma que si el formato del vídeo es predominante vertical use fuentes más pequeñas y horizontal más grandes.  Utiliza diferentes tamaños para enfatizar ciertas palabras o frases,  manteniendo un equilibrio visual.
-        * **`color`:** El color de la fuente en formato hexadecimal (ej: `#FF0000` para rojo).  Emplea una paleta de colores que sea consistente y que refleje la atmósfera del vídeo, pero evita colores demasiado saturados y oscuros o que distraigan la atención, usa colores claros porque el video se va a montar sobre un faldón oscuro.  Prioriza la legibilidad.
-        * **`face`:** Utiliza fuentes como "Noto Sans", "Dejavu Sans" o Tahoma, manteniendo la coherencia en toda la secuencia.
-        * **`b`:** Utiliza `<b></b>` para texto en negrita de forma estratégica, solo para enfatizar palabras clave o frases importantes.
-        * **Los valores de los atributos en las etiquetas font del subtitulado deben ir entrecomillados.
-
-    * **Estructura:** Cada línea del .srt contendrá la traducción al español. Si hay una sección sin audio o con audio ininteligible, escribe una descripción breve y objetiva en español dentro de las etiquetas HTML. Ejemplo: `<font size=18 color=#808080 face=Arial>Música de fondo</font>` o `<font size=18 color=#808080 face=Arial>Imágenes de destrucción</font>`.
-
-    * **Emojis:** Incluye emojis descriptivos (evitando los ambiguos o inapropiados) en cada línea para reflejar el tono y el contenido emocional. Envuelve los emojis en etiquetas HTML para controlar su estilo y un espacio en blanco entre ellos.
-
-    * **Duración y Espaciado:** La duración máxima de cada subtítulo debe ser de 5 segundos como máximo priorizando entre 2 y 2.5 segundos de intervalo de tiempo de transcripción cuando sea posible para una lectura fluida (importante). El intervalo mínimo entre subtítulos debe ser de 2 segundos y el máximo de 5 segundos.  Si un tramo de vídeo requiere un intervalo mayor a 5 segundos sin traducción, crea una nueva entrada en el archivo .srt con una descripción contextual concisa y objetiva (ej:  "Escena mostrando un convoy militar", "Plano secuencia de una calle desierta") y ajusta la temporización correctamente.
-
-3. **Precisión, Objetividad y Contexto:** Prioriza la precisión en la traducción y la descripción objetiva de las partes sin diálogo.  El objetivo es ofrecer al espectador la información visual y auditiva más precisa posible, evitando interpretaciones o juicios de valor.  Manten la creatividad en el diseño visual, pero siempre subordinada a la objetividad y la veracidad del contenido.
-
-
-**Ejemplo para un vídeo que durase 10 segundos:**
-
-```srt
-1
-00:00:0,500 --> 00:00:3,000
-<font size="19" color="#D2691E" face="Verdana">El portavoz afirma: "Nuestra operación comienza ahora."</font>  <font size=21 color=#F11C00 face=impact>⚔️</font> <font size=20 color=#FF8C00 face=impact>💥</font>
-
-2
-00:00:4,000 --> 00:00:7,000
-<font size="18" color="#808080" face="Dejavu Sans">Imágenes de una explosión. Se observa humo negro.</font>
-
-3
-00:00:7,000 --> 00:00:9,500
-<font size="20" color="#B22222" face="Noto Sans">“El objetivo ha sido alcanzado.”</font> <font size="21" color="#0000FF" face="impact">🎯</font>
-
-```
-
-Instrucciones complementarias:
-
-Usa emojis pero para los emojis si puedes usar distintos colores que expresen su naturaleza, por ejemplo para el emoji de una explosion una fuente roja variable y un tamaño un punto mayor que el texto, y así con todos, juega con eso.
-
-Asegúrate de que la duración de cada subtítulo coincida exactamente con la duración de la frase hablada en el vídeo.  Prioriza la precisión temporal sobre la duración máxima de 5 segundos por subtítulo; si una frase es más larga de 5 segundos, divídela en varios subtítulos que mantengan la sincronización precisa con la voz.
-
-Debes generar un solo archivo srt
-
-
-""" 
-
-
-
-
-srt_c["@f"] = """
-!modo @f
-Dynamic mode-.
-Usa para esta segmentacion:
-Fuente tamaño rango: Grande
-Emojis tamaño rango: Grande-Gigante
-Los colores deben dar una sensación de claridad e intensidad.  Para ello, utiliza una gama de colores con códigos hexadecimales que se encuentren e de la rueda de color, pero con una saturación moderada.
-
-Rangos de colores por defecto:
-
-Colores Claros:
-
-* `#FAF0E6` (AntiqueWhite)
-* `#FFF8DC` (Cornsilk)
-* `#FDEFE0` (LightYellow)
-* `#FAFAF9` (FloralWhite)
-* `#FFFFE0` (LightYellow)
-* `#FFFFF0` (Snow)
-* `#F0FFF0` (Honeydew)
-* `#F5FFFA` (MintCream)
-* `#F0FFFF` (Azure)
-* `#F5F5DC` (Beige)
-* `#FFFFFA` (WhiteSmoke)
-* `#FFF5EE` (Seashell)
-* `#FFE4E1` (MistyRose)
-* `#FFE4C4` (Bisque)
-* `#FFF0F5` (LavenderBlush)
-* `#FFFAF0` (FloralWhite)
-* `#FDF5E6` (OldLace)
-* `#F5F5F5` (Gainsboro)
-* `#FFEBCD` (BlanchedAlmond)
-
-
-Colores Oscuros:
-
-* `#A0522D` (Sienna)
-* `#8B4513` (SaddleBrown)
-* `#A52A2A` (Brown)
-* `#800000` (Maroon)
-* `#800080` (Purple)
-* `#4B0082` (Indigo)
-* `#8A2BE2` (BlueViolet)
-* `#9400D3` (DarkViolet)
-* `#9932CC` (DarkOrchid)
-* `#800080` (Purple)
-* `#FF0000` (Red)
-* `#008000` (Green)
-* `#FFFF00` (Yellow)
-* `#00FFFF` (Cyan)
-* `#FF00FF` (Magenta)
-* `#FF69B4` (HotPink)
-* `#FF6347` (Tomato)
-* `#FF4500` (OrangeRed)
-* `#FFA07A` (LightSalmon)
-* `#FFFAFA` (Snow)
-* `#FFDAB9` (PeachPuff)
-* `#FA8072` (Salmon)
-* `#FFB6C1` (LightPink)
-* `#FFDEAD` (NavajoWhite)
-* `#DEB887` (BurlyWood)
-* `#D2691E` (Chocolate)
-* `#BC8F8F` (RosyBrown)
-* `#CD853F` (Peru)
-
-
-Colores Medios:
-
-`#E67E22` (Carrot Orange):** Un naranja cálido y vibrante.
-`#27AE60` (Emerald Green):** Un verde intenso y natural.
-`#3498DB` (Peter River Blue):** Un azul claro y fresco.
-`#8E44AD` (Wisteria Purple):** Un morado elegante y sutil.
-`#F39C12` (Orange):** Un naranja más brillante que el Carrot Orange.
-`#1ABC9C` (Emerald):** Un verde un poco más claro que el Emerald Green.
-`#2980B9` (Belize Hole Blue):** Un azul más oscuro que el Peter River Blue.
-`#9B59B6` (Amethyst Purple):** Un morado más intenso que el Wisteria Purple.
-`#D35400` (Pumpkin Orange):** Naranja más oscuro y terroso.
-`#2ECC71` (Nephritis Green):** Verde más claro y pastel.
-
-
-Utiliza los colores de la lista anterior dentro de sus rangos creativamente a tu libre albedrío para el texto cuando el fondo del video sea oscuro, y los colores oscuros cuando el fondo sea claro.  Determina la luminosidad del fondo en tiempo real, a nivel de milisegundo, para la selección del color correcto.  Si no se puede determinar la luminosidad del fondo con precisión al milisegundo, utiliza una aproximación lo más precisa posible. Prioriza la legibilidad en todas las condiciones de luminosidad de fondo. Esto aplica a textos y emojis.
-
-
-Usa saltos <br> para crear una segmentación dinámica.
-Juega con los tiempos del video y de la segmentación.
-usa dos tipos de segmentación en dos tiempos distintos.
-uno con segmentación entre 2 y 4 segundos.
-y otro con segmentaciones rápidas con duraciones máximas de 0.999 y mínimas de 0.100 segunos.
-Separados por saltos de línea cuando coincidan.
-Usar segun requiera el guión de video/audio observado.
-Juega con las fuentes usando distinto tipo entre textos y segmentos acorde con su tipo a nivel medio+ randomizándolas.
-Usa distintas fuentes de la lista de fuentes disponibles tanto para textos como para emojis.
-Usa fuentes legibles para textos y simbólicas para los emojis.
-
-
-Usa para esta segmentación:
-
-Segmentación Temporal:
-
-Segmentos Rápidos (0.100 - 0.999 segundos):  Máximo 4 palabras por segmento.  Estas secciones cortas deben coincidir con cambios bruscos de tono o ritmo en el audio del vídeo.  Para identificar estos momentos, analiza la energía del audio (amplitud de la onda sonora):  si la energía sube significativamente, genera un segmento rápido.  Utiliza fuentes con un estilo más informal (Ej:  `Impact`, `Comic Sans MS`).
-Segmentos Lentos (1.250 - 2.900 segundos):  Máximo 5 palabras por segmento. Estas secciones más largas deben abarcar partes del vídeo con una narrativa más continua.  Utiliza fuentes más formales y legibles (Ej: `Georgia`, `Times New Roman`, `Arial`).
-
-**Selección de Fuentes:**
-
-Para cada segmento, elige una fuente aleatoriamente de la siguiente lista: 
-
-Fuentes para Textos (Segmentos Rápidos y Lentos): `Arial`, `Georgia`, `Times New Roman`, `Verdana`, `Impact`, `Comic Sans MS`, puedes usar otras de entre la lista que sean haituales como fuentes de texto tipo latino.
-Fuentes para Emojis (Segmentos Rápidos y Lentos): Para los emojis puedes usar todo tipo de fuentes disponibles por ejmeplo: `Impact`, `Wingdings`, `Webdings`, `Zapf Dingbats`, entre otras. 
-
-Alternancia de Fuentes:  No debe haber dos segmentos consecutivos con la misma fuente para textos ni para emojis.
-
-
-Usar también fuentes de la lista completa de fuentes si hay.
-
-Saltos de Línea: Usa `<br>` para separar distintos segmentos que ocupen un mismo espacio de tiempo.
-
-Como regla General: Maximo palabras por cada segmento: 5.
-
-
-Lista de fuentes disponibles:
-
-Standard Symbols PS:style=Regular
-Bitstream Vera Sans:style=Bold
-Verve:style=Regular
-TypoUpright BT:style=Regular
-CloneWars:style=Regular
-Neverwinter:style=Normal
-Lucida Console:style=Regular,Normal,obyčejné,Standard,Κανονικά,Normaali,Normál,Normale,Standaard,Normalny,Обычный,Navadno,Arrunta
-SansSerifFLF:style=Demibold
- Blade 2:style=Regular
- Underground:style=Normal
- Army Thin:style=Regular
- One Flew Over The Cuckoo's Nest:style=Regular
- Anglo Text:style=Regular
- FarCry:style=ExtraBold
- Scream alternative:style=Regular
- P052:style=Italic
- Telegraphic:style=Regular
- Alba Super:style=Regular
- Famous Logos:style=Regular
- C059:style=Bold Italic
- Video Star:style=Regular
- kallot:style=Regular,Standaard
- BTSE + PS2 FONT:style=Regular
- Microsoft Sans Serif:style=Regular,Normal,obyčejné,Standard,Κανονικά,Normaali,Normál,Normale,Standaard,Normalny,Обычный,Normálne,Navadno,Arrunta
- URW Gothic:style=Demi Oblique
- Hellraiser SC:style=Regular
- Bitstream Vera Sans:style=Bold Oblique
- Raiders:style=Extra Bold
- Pointedly Mad:style=SmallCaps
- Back to the future 2002:style=Regular
- SF Intellivised:style=Bold Italic
- Lost Highway:style=Regular
- SF Atarian System:style=Bold
- DejaVu Sans:style=Bold Oblique
- Tasteless Candy:style=Regular
- Running shoe:style=Regular
- AlphaFitness:style=Regular
- Wingdings:style=Regular,normal,Standard,Normaali,Normale,Standaard,Normálne,Navadno
- Kinkee:style=Regular
- Anklepants:style=Regular
- SansSerifFLF:style=Italic
- FreeSans:style=Cursiva,Oblique,наклонен,negreta cursiva,kurzíva,kursiv,Πλάγια,Kursivoitu,Italique,Dőlt,Corsivo,Cursief,kursywa,Itálico,oblic,Курсив,İtalik,huruf miring,похилий,Ležeče,slīpraksts,pasvirasis,nghiêng,Etzana,तिरछा
- Mobile Infantry,Continuum Bold:style=Regular
- Tintin Majuscules:style=Bold
- Nimbus Sans Narrow:style=Regular
- Hirosh:style=Normal
- SF Distant Galaxy Alternate:style=Regular
- Gotham Nights:style=Normal
- Nasalization:style=Medium
- DV TTSurekh:style=Italic
- Lobster 1.4:style=Regular
- DejaVu Sans:style=Book
- Nimbus Mono PS:style=Bold
- Trebuchet MS:style=Regular,Normal,obyčejné,Standard,Κανονικά,Normaali,Normál,Normale,Standaard,Normalny,Обычный,Normálne,Navadno,Arrunta
- WP MultinationalA Courier:style=Normal
- Army Hollow Expanded:style=Regular
- InvisibleKiller:style=Regular
- Care Bear Family:style=Regular
- Interdimensional:style=Regular
- Bitstream Vera Sans:style=Roman
- BankGothic:style=Regular
- CrayonL:style=Regular
- Fatboy Slim BLTC (BRK):style=Regular
- XFiles:style=Regular
- Ringbearer:style=Medium
- BatmanForeverAlternate:style=Regular
- 007 GoldenEye:style=Regular
- barcode font:style=Regular
- Adventure:style=Normal
- SF Atarian System Extended:style=Regular
- SF Intellivised Extended:style=Italic
- Sci Fied:style=BoldItalic
- VTCBelialsBlade3d:style=regular
- Beast Wars:style=Regular
- SI Font,Impact:style=Regular
- Final Fantasy,New:style=Classical,Regular
- Shadow of Xizor:style=Regular
- Beckett:style=Regular
- SF Intellivised:style=Italic
- Kruti Dev 010:style=Bold
- 2006 Team:style=Regular
- Mars Attacks:style=Regular
- C059:style=Bold
- Old English:style=Regular
- Morpheus:style=Regular
- Phorfeit Slant (BRK):style=Regular
- 28 Days Later:style=Regular
- Quatl Italic:style=Italic
- Weltron Special Power:style=Regular
- BernhardFashion BT:style=Regular
- Alison:style=Regular
- GAMECUBEN:style=DualSet
- URW Gothic:style=Book Oblique
- CrayonE:style=Regular
- Gremlins:style=Regular
- GoudyOlSt BT:style=Bold Italic
- Candide Dingbats:style=Regular
- Adam's Font,Captain Podd:style=Regular
- DejaVu Sans Mono:style=Book
- EuroseWide Heavy:style=Regular
- Star Jedi:style=Regular
- SF Distant Galaxy Outline:style=Italic
- SF Fortune Wheel Condensed:style=Italic
- BatmanForeverOutline:style=Regular
- 04b03:style=Regular
- Parseltongue:style=Regular
- InvisibleKiller:style=Regular
- Facelift:style=Regular
- signs zeichen 2.0:style=Regular
- DV_Divyae:style=Bold Italic
- FreeMono:style=Negrita,Bold,получерен,negreta,tučné,fed,Fett,Έντονα,Lihavoitu,Gras,Félkövér,Grassetto,Vet,Halvfet,Pogrubiony,Negrito,gros,Полужирный,Fet,Kalın,huruf tebal,жирний,polkrepko,treknraksts,pusjuodis,đậm,Lodia,धृष्ट
- 007 GoldenEye:style=Regular
- Georgia:style=Regular,Normal,obyčejné,Standard,Κανονικά,Normaali,Normál,Normale,Standaard,Normalny,Обычный,Normálne,Navadno,Arrunta
- DV_Divya:style=Normal
- Tafelschrift:style=Regular
- FakeReceipt:style=Regular
- Interdimensional:style=Regular
- SF Fortune Wheel:style=Italic
- Ballpark:style=Weiner
- Old Republic:style=Italic
- Viking Normal:style=Regular
- Proclamate Ribbon:style=Heavy
- Futura Md BT:style=Bold
- BlackJack:style=Regular
- Proclamate Outline:style=Heavy
- OldEgyptGlyphs:style=Regular
- Tribeca:style=Regular
- HalfLife:style=Regular
- A Charming Font:style=Regular
- WP MultinationalA Roman:style=Normal
- URW Bookman:style=Light
- Nosegrind Demo:style=Regular
- BankGothic Md BT:style=Medium
- Nosegrind Demo:style=Regular
- DejaVu Serif:style=Book
- Standard Symbols PS:style=Regular
- Bremen Bd BT:style=Bold
- FreeSans:style=Cursiva,Oblique,наклонен,negreta cursiva,kurzíva,kursiv,Πλάγια,Kursivoitu,Italique,Dőlt,Corsivo,Cursief,kursywa,Itálico,oblic,Курсив,İtalik,huruf miring,похилий,Ležeče,slīpraksts,pasvirasis,nghiêng,Etzana,तिरछा
- FreeMono:style=Negrita,Bold,получерен,negreta,tučné,fed,Fett,Έντονα,Lihavoitu,Gras,Félkövér,Grassetto,Vet,Halvfet,Pogrubiony,Negrito,gros,Полужирный,Fet,Kalın,huruf tebal,жирний,polkrepko,treknraksts,pusjuodis,đậm,Lodia,धृष्ट
- P052:style=Roman
- Turtles:style=Normal
- Raiders:style=Extra Bold
- Palatino Linotype:style=Italic,Cursiva,kurzíva,kursiv,Πλάγια,Kursivoitu,Italique,Dőlt,Corsivo,Cursief,Kursywa,Itálico,Курсив,İtalik,Poševno,nghiêng,Etzana
- 1942 report:style=1942 report
- Liberation Sans Narrow:style=Bold Italic
- SF Fortune Wheel Condensed:style=Regular
- Africain:style=Regular
- SeyesBDL:style=Regular
- AltamonteNF:style=Regular
- Beynkales Demo:style=Regular
- DuvallOutline:style=Normal
- Firestarter:style=Regular
- C059:style=Bold
- Legothick,LEGothic:style=Regular,Type
- Nimbus Roman:style=Bold
- Liberation Serif:style=Bold Italic
- BankGothic:style=Regular
- Feast of Flesh BB:style=Regular
- Buffied:style=Regular
- Liberation Sans Narrow:style=Regular
- Alba:style=Regular
- Love Letters:style=Regular
- P052:style=Bold
- Rafika:style=Regular
- Allencon Demo:style=Regular
- Exocet:style=Light
- Karloff:style=Regular
- Georgia:style=Italic,Cursiva,kurzíva,kursiv,Πλάγια,Kursivoitu,Italique,Dőlt,Corsivo,Cursief,Kursywa,Itálico,Курсив,İtalik,Poševno,Etzana
- Nirvana,Onyx:style=Regular
- Orgy:style=Regular
- Quatl Italic:style=Italic
- SansSerifExbFLFCond:style=Italic
- Beckett:style=Regular
- Gauze Strips:style=Gauze Strips
- ESP:style=Regular
- Dummies:style=Regular
- Sickness:style=Regular
- Fatboy Slim BLTC (BRK):style=Regular
- Bjork:style=Regular
- Army Expanded:style=Regular
- C39HrP24DhTt:style=Normal
- Adorable:style=Regular
- SF Atarian System Extended:style=Bold
- Ribbon131 Bd BT:style=Bold
- URW Gothic:style=Demi Oblique
- a Theme for murder:style=Regular,Normal,obyčejné,Standard,Κανονικά,Normaali,Normál,Normale,Standaard,Normalny,Обычный,Normálne,Navadno,Arrunta
- BankGothic:style=Regular
- SansSerifBookFLF:style=Medium
- Gayane StO:style=Regular
- SF Fortune Wheel:style=Italic
- Star Jedi Hollow:style=Regular
- Anywhere:style=Regular,Normal,obyčejné,Standard,Κανονικά,Normaali,Normál,Normale,Standaard,Normalny,Обычный,Normálne,Navadno,Arrunta
- SeyesBDE:style=Regular
- Nimbus Sans:style=Bold
- Nimbus Roman:style=Bold Italic
- Swatch it:style=Regular
- WP MathB:style=Normal
- namco regular:style=Regular
- Whatafont:style=Regular
- Nimbus Sans:style=Bold Italic
- Space Cruiser:style=Regular
- Old Republic:style=Bold
- Asenine Super Thin:style=Regular
- Nimbus Roman:style=Italic
- ACCELERATOR:style=Normal
- Humanst521 BT:style=Bold
- Border Corners:style=Regular
- OzHandicraft BT:style=Roman
- Paradise's Fruits:style=Regular
- Blade Runner Movie Font:style=Regular
- DejaVu Sans:style=Bold Oblique
- Bitstream Vera Sans Mono:style=Roman
- FreeSans:style=Regular,нормален,Normal,obyčejné,Mittel,µεσαία,Normaali,Normál,Medio,Gemiddeld,Odmiana Zwykła,Обычный,Normálne,menengah,прямій,Navadno,vidējs,normalusis,vừa,Arrunta,सामान्य
- Swiss Cheesed:style=Regular
- Groovalicious Tweak:style=Regular
- KInifed:style=Regular
- Spawned:style=Regular
- Will:style=Robinson
- Futurama Alien Alphabet One:style=Regular
- ZapfEllipt BT:style=Italic
- Tribal:style=Regular
-Humanst521 BT:style=Bold
-Border Corners:style=Regular
-OzHandicraft BT:style=Roman
-Paradises Fruits:style=Regular
-Blade Runner Movie Font:style=Regular
-DejaVu Sans:style=Bold Oblique
-Bitstream Vera Sans Mono:style=Roman
-FreeSans:style=Regular,нормален,Normal,obyčejné,Mittel,µεσαία,Normaali,Normál,Medio,Gemiddeld,Odmiana Zwykła,Обычный,Normálne,menengah,прямій,Navadno,vidējs,normalusis,vừa,Arrunta,सामान्य
-SWC_____.TTF: Swiss Cheesed:style=Regular
-Groovalicious Tweak:style=Regular
-KInifed:style=Regular
-Spawned:style=Regular
-WillRobinson.ttf: Will:style=Robinson
-Futurama Alien Alphabet One:style=Regular
-ZapfEllipt BT:style=Italic
-Tribal:style=Regular
-
-
-
-"""
-
-
-
-
-
-
-
-srt_c["def"] = srt_c["defautl"] = """
-
-
-!Modo default.
-
-Eres Gemini-video. Genera un archivo SRT con subtítulos en el idioma especificado (por defecto, español si no se te indica otro distinto más adelante).
-
-Prioridades:
-
-1. Precisión en la transcripción y traducción.
-2. Sincronización temporal exacta.  **Los subtítulos deben tener una duración de entre 1 y 5 segundos.  En casos excepcionales un subtítulo puede durar hasta 5 segundos máximo. Por lo tanto predomina una longitud de textos medios-cortos.
-
-
-Formato:
-
-* Cumple estrictamente el formato SRT.
-* Usa etiquetas HTML: `<font size="18-22" color="#hexadecimal" face="Noto Sans/DejaVu Sans/">texto</font>` y `<b>texto importante</b>`. 
-* Incluye emojis relevantes con **tamaño y color variable para mayor impacto visual y utiliza colores que reflejen la emoción o el significado del emoji.  Por ejemplo, un emoji de fuego (🔥) podría ser rojo o naranja, mientras que un emoji de hielo (🧊) podría ser azul claro.
-* Usa Fuentes de tamaño medio si no se te indican otro tamaño más adelante.
-
-
-Ejemplo:
-
-```srt
-1
-00:00:00,500 --> 00:00:02,000
-<font size="19" color="#D2691E" face="Noto Sans">El portavoz afirma:</font>
-2
-00:00:02,000 --> 00:00:03,500
-<font size="21" color="#FFA500" face="Noto Sans">"Nuestra operación comienza ahora."</font>  <font size=24 color=#F11C00 face=impact>⚔️</font> <font size=28 color=#FF8C00 face=impact>💥</font>
-```
-
-Asegúrate de que la duración de cada subtítulo coincida exactamente con la duración de la frase hablada en el vídeo.  Prioriza la precisión temporal sobre la duración máxima de 5 segundos por subtítulo; si una frase es más larga de 5 segundos, divídela en varios subtítulos que mantengan la sincronización precisa con la voz.
-
-Debes generar un solo archivo srt
-
-
-"""   
-
-
-
-
-
-
-
-
-
-
-
+srt_c = gp.aPrompt
 
 
 
@@ -896,46 +249,55 @@ def video_translate(video_file_name="",prompt="",args=None):
         prs = prompt.split()        
         for arg in args:
 #            print(f"\n\n\n-------------->\n\n\n----->  ",srt_c[args])
-            print(f" \n  @@@@Detected: {arg} ")
+#            print(f" \n  @@@@Detected: {arg} \n ")
             xarg = arg[1:]
             if xarg in srt_c:
                 mprompt += srt_c[xarg]
-                print(f"\n\n   EXIST:  {arg}   \n\n")
-            
-
-        print("End Args")
+#                print(f"\n\n   EXIST:  {arg}   \n\n")
+ 
+#        print("End Args")
 #        return
     else:
-        print("No Args")
+        print("")
+#        print("No Args")
+
+#    print("MMMM: ",mprompt)
+#    return
+
     if video_file_name.startswith('http://') or video_file_name.startswith('https://'):
-        print("Descargando video temporal")
-        code_video_file = "/tmp/"+hashlib.md5(video_file_name.encode()).hexdigest()+".mp4"
-        process = subprocess.run(["yt-dlp","--cookies-from-browser","chrome","-o",code_video_file,video_file_name], capture_output=True, text=True)
+#        print("Descargando video temporal")
+        video_name = hashlib.md5(video_file_name.encode()).hexdigest()+".mp4"
+        video_path = "../html/img/tmp/"
+        code_video_file = video_path +video_name
+        process = subprocess.run(["yt-dlp","-o",code_video_file,video_file_name], capture_output=True, text=True)
         video_download_url = video_file_name
         video_file_name = code_video_file
-        print("Video File:",video_file_name)
+#        print("Video File:",video_file_name)
         input_video_info = f"Se ha descargado un vídeo desde: {video_download_url} \n"
         input_video_info += f"Se ha guardado el vídeo en disco con path: {video_file_name} \n"
+#        print(input_video_info)
     else:
 #        video_file_name="com/datas/ffmpeg/anon.mp4"
-        print("video_file")
-        code_video_file = "/tmp/"+hashlib.md5(video_file_name.encode()).hexdigest()+".mp4"
+#        print("video_file")
+        video_name = hashlib.md5(video_file_name.encode()).hexdigest()+".mp4"
+        video_path = "../html/img/tmp/"
+        code_video_file = video_path +video_name
         input_video_info = "VIDEO PATH: "+ code_video_file + "\n"
-#        return
+        return
         #vídeo file
 #        return
 
     ct = f"Uploading file..."
     conversation_context += ct
-    print(ct)
+#    print(ct)
     video_file = genai.upload_file(path=video_file_name)
     con = video_file.uri
     ct = f"Completed upload: {con}"
-    print(ct)    
-    print('Processing Video.... ', end='')
+#    print(ct)    
+#    print('Processing Video.... ', end='')
     while video_file.state.name == "PROCESSING":
         conversation_context += " . "
-        print('.', end=' ')
+#        print('.', end=' ')
         vfm = video_file.state.name
         video_file = genai.get_file(video_file.name)
         conversation_context += str(video_file) + "\n" + vfm + "\n"
@@ -949,7 +311,7 @@ def video_translate(video_file_name="",prompt="",args=None):
 
     try:
         Datos_video = win.obtener_datos_multimedia(code_video_file)
-        print("DATOS VIDEO:\n",Datos_video)
+#        print("DATOS VIDEO:\n",Datos_video)
     except Exception as e:
         print("Error obteniendo datos multimedia de:",code_video_file)
 
@@ -969,7 +331,7 @@ def video_translate(video_file_name="",prompt="",args=None):
 
 
     #prompti = prompts['sesgos']
-    prompti = srt_c["def"]
+    prompti = srt_c["creative"]
     if mprompt !="":
         prompt = mprompt + prompt
 
@@ -982,17 +344,19 @@ def video_translate(video_file_name="",prompt="",args=None):
 # Make the LLM request.
 #   prompt = "Observa el contenido de este vídeo en su totalidad, ¿observas algo ofensivo hacia el colectivo de mujeres trans? expláyate"
 
-    print("\n Making LLM inference request...\n ",prompt)
+#    print("\n Making LLM inference request...\n ",prompt)
     response = model.generate_content([video_file, prompt],
                                   request_options={"timeout": 600})
 
 #
-    print(response.text)
+#    print(response.text)
 #    return
     pattern = r"```srt\n(.*?)\n```"
     matches = re.findall(pattern, response.text, re.DOTALL)
     if len(matches) == 1:
-        subtitulado_out =  code_video_file+".subtitulado.mp4"
+        timestamp_unix = int(time.time()) 
+        code_sub_name = video_name + "." + str(timestamp_unix) + ".subtitulado.mp4"
+        subtitulado_out =  video_path + code_sub_name
         vtranslate= subtitulado_out + ".translate.srt"
         input_video_info += f"Se ha generado correctamente el archivo de subtitulado con path: {vtranslate}\n"
         input_video_info += f"El contenido del archivo de subtitulado es el siguiente: \n{matches[0]}\n"
@@ -1002,24 +366,15 @@ def video_translate(video_file_name="",prompt="",args=None):
         force_style_sub = "BackColour=&H90000000,BorderStyle=4,FontName=NotoColorEmoji,Alignament=6"
         mode = "fixed" # bg / fixed
         if mode == "bg":
-            print("""
-            	#################################################
-                → Se está procesando el vídeo en segundo plano ←
-                #################################################
-            	
-            	""")
+            print()
+#            print("""   SP """)
         elif mode == "fixed":
-            print("""
-            	
-            	#################################################
-                → Se está procesando el vídeo. Espere........  ←
-                #################################################
-            	
-            	""")
+            print()
+#            print(""" FX """)
         obj = {
         "mode":mode,
         "name":None,
-        "com":["ffmpeg","-y","-loglevel","error","-i",video_file_name,
+        "com":["com/osiris_env/ffmpeg/bin/ffmpeg","-y","-loglevel","error","-i",video_file_name,
         "-af","aresample=async=1,loudnorm=I=-16:TP=-1.5:LRA=11",
         "-vf","scale=-2:720,subtitles="+vtranslate+":force_style='"+force_style_sub+"'",
 	"-pix_fmt","yuv420p",
@@ -1027,9 +382,9 @@ def video_translate(video_file_name="",prompt="",args=None):
         "-c:v","libx264","-c:a","aac","-crf","21",
         subtitulado_out] 
         }
-        print("Procesando Vídeo...\n")
+#        print("Procesando Vídeo...\n")
         comando_ffmpeg = obj["com"]
-        print(" ".join(comando_ffmpeg)+"\n")
+#        print(" ".join(comando_ffmpeg)+"\n")
 
 
 
@@ -1048,7 +403,7 @@ def video_translate(video_file_name="",prompt="",args=None):
             else:
                 e1 = "Comando ffmpeg ejecutado correctamente."
                 e1 += f"Código de retorno: {resultado.returncode}"
-                print(e1)
+ #               print(e1)
                 conversation_context += e1
 
 
@@ -1067,17 +422,15 @@ def video_translate(video_file_name="",prompt="",args=None):
 #        }
 #        o2mp = osiris2.multiprocess(obj)
 
-        print("\nRealizando Inferencia 2 ....")
-        send_text = f"\nTu eres genini-text. Acabo de enviar un video a gemini-video con este promt: {prompt} \nY esta fue la respuesta completa en bruto de Gemini-video antes de procesarla:\n{response.text}\nSe realizaron correctamente las siguientes tareas de procesamiento: {input_video_info}\nSe finalizó el procesamiento ejecutando correctamente el siguiente conmando: {str(comando_ffmpeg)}\n Fin Gemini-video.\nDebes realizas instrucciones solicitadas a Gemini-text, si no existen realiza una revisión informativa solamente.\n"
-        print(f"\n{send_text}\n")
-        response_return = generate_response(send_text)
-        print("\n\n",response_return)
-#        last_response = " ".join(comando_ffmpeg)
+#        print("\nRealizando Inferencia 2 ....")
+#        print(f"\n{send_text}\n")
+#        response_return = generate_response(send_text)
+        return f"https://osiris000.duckdns.org/img/tmp/{code_sub_name}"
+
 
 
     else:
-        print("No se generó el archivo de subtitulos correctamente")
-        return
+        return "606"
 
 
 
@@ -1301,6 +654,7 @@ def create_context(nombre_archivo, texto_a_agregar):
                 
                 # Contexto de Conversación - Sesión CXID-88101c47cdb156f7f8323cae4235fa8e
                   Inferencia de Respuestas Previas: Activada
+                  Cuando alguien no te hable de un tema concreto háblale tú del tema mas cercano que infieras.
                   Hasta la siguiente pregunta de cliente lo que sigue son preguntas previas debes inferir tus respuestas anteriores para mejorar la conversación. Eso hace la función de memoria virtual.
                   Pregunta al cliente al inicio como quiere que te dirijas a el/ella.
                                 
@@ -1345,29 +699,43 @@ def main(args):
     global gemini_model, model, conversation_context, load, last_response, topic, API_KEY
 
 
-
-    permitCom = ["--imp","--lsel"]
+    permitCom = ["--imp","--lsel","--tvl"]
+    #return "ENTER"
+    # Si no se envían comandos, se asume que se envía una pregunta de texto.
     #return "ENTER"
     # Si no se envían comandos, se asume que se envía una pregunta de texto.
     if args[0] == "--b64prompt":
         if len(args)<2:
-            return "Faltan argumentos a web prompt"
-        #print(args[1])
-#        main(["--imp","ferreras3.1.1"])
-
-
-
-    #return "ENTER"
-    # Si no se envían comandos, se asume que se envía una pregunta de texto.
-    if args[0] == "--b64prompt":
-        if len(args)<2:
+            print("NP")
             return "Faltan argumentos a web prompt"
             #salimos y continuamos
+        else:
+            prompt = base64.b64decode(args[1]).decode("utf-8")
+    elif args[0] == "--b64prompt-video":
+#        print("Video")
+        vurl = base64.b64decode(args[5]).decode("utf-8")
+        prompt = base64.b64decode(args[1]).decode("utf-8").split()
+        argsx = []
+        for  zx in prompt: 
+            if zx.startswith("@") :
+                argsx.append(zx)
+#        return       
+#        print(vurl,prompt,argsx)
+#        return
+        video_translated = video_translate(vurl," ".join(prompt),argsx)
+#        print("VT:",video_translated)
+        if video_translated == "606":
+            return "Error al generar subtítulos"
+            #en caso contrario continúa
+        prompt = f""" 
+        Envié un vídeo a gemini video y lo generó exitosamente en esta url enlace directo: {video_translated}
+        Imprime sólo la url en formato link href embebible sin más comentarios al respecto, sólo su confirmación positiva (aquí está su vídeo).
+        """
+
     if len(args)>3:
         if args[4].startswith("CXID-"):
             nombre_archivo = "com/web/datas/ai/"+str(args[4])+".user.context"
 #            print("context:"+str(args[4])) 
-            prompt = base64.b64decode(args[1]).decode("utf-8")
             create_context(nombre_archivo, prompt) 
             conversation_context += load_context_(nombre_archivo)
             client_say = """
@@ -1385,425 +753,6 @@ def main(args):
             print("ERROR EN ARGUMENTOS 1217")
             return
 
-
-
-
-
-
-
-
-        conversation_context += base64.b64decode(args[1]).decode("utf-8")
-        #user_input = " ".join(args)
-        #print(user_input)
-
-#        main(["......"])
-#        print("---",conversation_context)
-        response_text = generate_response(conversation_context)
-        #log_interaction(user_input, response_text)  # Nuevo: Registrar interacción
-        return response_text
-    elif args[0] == "--b64imgcreate":
-         print("bim")
-         return
-    elif args[0] == "--lsel":
-            #importa
-            print()
-    else:    
-        return "Disable commands for web"
-
-
-
-    try:
-        # Mapeo de comandos cortos
-        commands_map = {
-            "--load": "--l",
-            "--addload": "--al",
-            "--showload": "--sl",
-            "--loadimage": "--li",
-            "--showwin": "--sw",
-            "--saveload": "--sav",
-            "--saverequest": "--sr",
-            "--saveanswer": "--sa",
-            "--savecontext": "--sc",
-            "--autosave": "--as",
-            "--newquestions": "--nq",
-            "--send": "--s",
-            "--listfiles": "--ls",
-            "--clearcontext": "--cc",
-            "--loadselect": "--lsel",
-            "--loadmultiple": "--lm",
-            "--info": "--i",
-            "--export": "--exp",
-            "--import": "--imp",
-            "--search": "--s",
-            "--settopic": "--st",
-            "--reset": "--r",
-            "--loadconfig": "--lc",  # Nuevo: Cargar configuración
-            "--log": "--log",        # Nuevo: Registrar interacciones en el log
-            "--setparams": "--sp",   # Nuevo: Configurar parámetros del modelo
-            "--toggleautosave": "--ta"  # Nuevo: Activar/desactivar autosave
-        }
-
-        # Verificar el primer argumento
-        command = args[0]
-        if command == "--nmodel":
-            sm = "\nSelección de modelos de API\n"
-            conversation_context += sm
-            select_model()
-            ns = "\n NEW MODEL WAS SELECTED \n "
-            try:
-                conversation_context += ns + "AT TIME: " + fecha_hora_g() + "\n"
-            except Exception as e:
-                conversation_context + f". !!! Se prujo un error: {e}"
-            main(ns)
-            print(ns)
-            return
-        # Usar el comando corto si está disponible
-        if command in commands_map:
-            command = commands_map[command]
-
-        if command == "--lc" or command == "--loadconfig":
-            if len(args) > 1 and is_file(args[1]):
-                config = load_config(args[1])
-                API_KEY = config.get("api_key", API_KEY)
-                # Reconfigurar API si se carga una nueva clave
-                genai.configure(api_key=API_KEY)
-            else:
-                messagebox.showerror("Error", "Archivo de configuración no encontrado o no especificado.")
-            return
-
-        elif command == "--log":
-            if len(args) > 1:
-                log_interaction(" ".join(args[1:]), last_response)
-            else:
-                messagebox.showerror("Error", "No se especificó la interacción a registrar.")
-            return
-
-        elif command == "--sp" or command == "--setparams":
-            if len(args) > 1:
-                set_model_params(args[1:])
-            else:
-                messagebox.showerror("Error", "No se especificaron parámetros.")
-            return
-
-        elif command == "--ta" or command == "--toggleautosave":
-            enable = args[1].lower() == 'on' if len(args) > 1 else True
-            toggle_autosave(enable)
-            return
-
-        elif command == "--l" or command == "--load":
-            if len(args) > 1 and is_file(args[1]):
-                load = read_file(args[1])
-                print(f"Contenido cargado desde {args[1]}")
-            else:
-                messagebox.showerror("Error", "Archivo no encontrado o no especificado.")
-            return
-
-        elif command == "--al" or command == "--addload":
-            args.pop(0)  # Remover '--addload' de los argumentos
-            user_input = " ".join(args)
-            if load:
-                user_input = load + " " + user_input  # Añadir el contenido de 'load' al input del usuario
-            response_text = generate_response(user_input)
-            print(" \n→", response_text)
-            return
-
-        elif command == "--sl" or command == "--showload":
-            if load:
-                print(f"Contenido de load:\n{load}")
-            else:
-                messagebox.showinfo("Información", "No hay contenido en 'load'.")
-            return
-
-
-        elif command == "--li" or command == "--loadimage":
-            textWithImage = "Interpretar imagen"
-            if len(args) > 2:
-                textWithImage = " ".join(args[2:])
-            if len(args) > 1 and args[1] == "--fd": # Si el segundo argumento es "fd"
-                return; 
-                # Abrir File Dialog para seleccionar la imagen
-                if image_path: # Si se seleccionó una imagen
-                    generated_text = generate_with_image(image_path,textWithImage)
-                    if generated_text:
-                        conversation_context += f"{textWithImage} : {generated_text}\n"
-                        print(" \n→", generated_text)
-                else:
-                    print("Información", "No se seleccionó ninguna imagen.")
-            elif len(args) > 1:
-                textWithImage += ""
-                image_path = args[1]
-                if is_file(image_path):
-                    generated_text = generate_with_image(image_path,textWithImage)
-                    if generated_text:
-                        conversation_context += f"{textWithImage} : {generated_text}\n"
-                        print(" \n→", generated_text)
-                elif image_path.startswith(('http://', 'https://')):
-                    generated_text = generate_with_image(image_path,textWithImage)
-                    if generated_text:
-                        conversation_context += f"{textWithImage} : {generated_text}\n"
-                        print(" \n→", generated_text)
-                else:
-                    messagebox.showerror("Error", "Imagen no encontrada o no especificada.")
-            else:
-                messagebox.showerror("Error", "No se especificó una ruta de imagen.")
-
-
-
-        elif command == "--sw" or command == "--showwin":
-            if conversation_context:
-                show_text_window(conversation_context)
-            else:
-                messagebox.showinfo("Información", "No hay texto para mostrar.")
-            return
-            
-        elif command == "--ss" or command == "--screenshot":
-            screen_shot()
-            return            
-            
-            
-        elif command == "--sla" or command == "--showlastanswer":
-            if conversation_context:
-                show_text_window(last_response)
-            else:
-                messagebox.showinfo("Información", "No hay texto para mostrar.")
-            return
-            
-        elif command == "--la" or command == "--loadanswer":
-            if conversation_context:
-                load = last_response
-                print("Cargada última respuesta")
-            else:
-                messagebox.showinfo("Información", "No hay información (L 486) para mostrar.")
-            return            
-
-        elif command == "--sav" or command == "--saveload":
-            filename = "com/datas/saveload.gemini"  # Nombre por defecto
-            if len(args) > 1:
-                filename = f"com/datas/{args[1]}.gemini"  # Nombre personalizado
-            save_file(filename, conversation_context)
-            return
-
-        elif command == "--sr" or command == "--saverequest":
-            if len(args) > 1:
-                user_input = " ".join(args[1:])
-                save_request(user_input)
-            else:
-                messagebox.showerror("Error", "No se especificó solicitud a guardar.")
-            return
-
-        elif command == "--sa" or command == "--saveanswer":
-            if len(args) > 1:
-                filename = f"{args[1]}"  # Nombre personalizado
-            else:
-                filename=""
-            save_answer(filename)
-            return
-
-        elif command == "--sc" or command == "--savecontext":
-            save_context()
-            return
-
-        elif command == "--as" or command == "--autosave":
-            autosave()
-            return
-
-        elif command == "--nq" or command == "--newquestions":
-            if len(args) > 1:
-                questions = generate_new_questions(" ".join(args[1:]))
-                print("Preguntas generadas:")
-                for q in questions:
-                    print(" -", q)
-            else:
-                messagebox.showerror("Error", "No se especificó una pregunta base.")
-            return
-
-        elif command == "--sd" or command == "--send":
-            if len(args) > 1:
-                user_input = " ".join(args[1:])
-                response_text = generate_response(user_input)
-                print(" \n→", response_text)
-            else:
-                messagebox.showerror("Error", "No se especificó pregunta a enviar.")
-            return
-
-        elif command == "--ls" or command == "--listfiles":
-            print("Listando archivos en com/datas:")
-            for filename in os.listdir("com/datas"):
-                print(" -", filename)
-            return
-
-        elif command == "--cc" or command == "--clearcontext":
-            conversation_context = ""
-            print("Contexto de conversación limpiado.")
-            return
-
-        elif command == "--lsel" or command == "--loadselect":
-            if len(args) > 1:
-                filename = "/var/www/osiris000/bin/com/datas/"+str(args[1])
-                if is_file(filename):
-                    selected_context = read_file(filename)
-                    conversation_context += selected_context
-                    return conversation_context
-                else:
-                   return "Error parametros ___1458"                
-            else:
-                return "Error", "Archivo no encontrado o no especificado."
-
-
-        elif command == "--lm" or command == "--loadmultiple":
-            for filename in args[1:]:
-                if is_file(filename):
-                    selected_context = read_file(filename)
-                    conversation_context += selected_context + "\n"
-                    print(f"Contexto de {filename} cargado.")
-                else:
-                    messagebox.showerror("Error", f"Archivo {filename} no encontrado.")
-            return
-
-        elif command == "--i" or command == "--info":
-            print("Información del modelo:")
-            print(" - Modelo:", model)
-            print(" - Contexto actual:", conversation_context)
-            return
-
-        elif command == "--exp" or command == "--export":
-            if len(args) > 1:
-                win.export_context(args[1],conversation_context)
-            else:
-                print("Error", "No se especificó nombre para exportar.")
-            return
-
-        elif command == "--imp" or command == "--import":
-            if len(args) > 1:
-               conversation_context = win.import_context(args[1])
-            else:
-                print("Error", "No se especificó nombre para importar.")
-            return
-
-        elif command == "--s" or command == "--search":
-            load_context = False
-            term = ""
-            # Eliminamos el --search de los argumentos
-            args.pop(0) 
-            for arg in args:
-                if arg == "--load":
-                    load_context = True
-                else:
-                    term += arg + " "
-            term = term.strip()
-            if term:
-                results = search_context(term, load_context)
-            else:
-                messagebox.showerror("Error", "No se especificó término de búsqueda.")
-            return
-
-
-        elif command == "--st" or command == "--settopic":
-            if len(args) > 1:
-                topic = " ".join(args[1:])
-                print(f"Tema establecido: {topic}")
-            else:
-                messagebox.showerror("Error", "No se especificó tema a establecer.")
-            return
-
-        elif command == "--dialog" or command == "--ask"  :
-            #Abre una ventana de dialogo para enviar una pregunta al modelo de IA seleccionado
-            dtext = win.dialog_window()
-            if dtext != "":
-                print(" → ",dtext)
-                response_text = generate_response(dtext)
-                print(" → ",response_text)
-            else:
-                print("VOID D")
-            return
-
-        elif command == "--di" or command == "--decodeimage":
-            if len(args) > 0:
-                dim = args[1]
-                decode_img(b"{dim}")
-                print("DECODE")
-            return
-        elif command == "--tvl" or command == "--tvideol":
-            if len(args) > 2:
-                prompt = " ".join(args[2:])
-            else:
-                prompt = ""
-            if len(args) > 1:
-                print("Procesando....")
-#                return
-                argsx = []
-                for  zx in  args: 
-                    if zx.startswith("@") : 
-                        argsx.append(zx)
-                    
-                video_translate(args[1],prompt,argsx)
-
-            else:
-                print("Es necesario parametro de video")
-#            send_video()
-            print("---FIN VIDEO ----")
-            return  
-
-
-        elif command == "--r" or command == "--reset":
-            conversation_context = ""
-            load = ""
-            last_response = ""
-            topic = ""
-            print("Todos los valores han sido reseteados.")
-            return  
-        elif command == "--resetkey":
-            print("keycom")
-            API_KEY = obtener_key_gemini('resetkey')
-            genai.configure(api_key=API_KEY)
-            model = genai.GenerativeModel(gemini_model) 
-            return
-        elif command == "--diagnostic" or command == "--d":
-            if len(args) > 1 :
-                if args[1] == "server":
-                    com_d = ["sudo","tool/mrls"]
-                    fileload = "com/datas/rls.gemini.ctrl"
-                    text = "Realiza un diagnóstico del sistema"
-                elif args[1] == "system":
-                    com_d = ["sudo","tool/diagnosis1"]
-                    fileload = "com/datas/system_info.gemini.ctrl"
-                    text = "Realiza un diagnóstico del sistema"
-                elif args[1] == "memory":
-                    com_d = ["sudo","tool/memory"]
-                    fileload = "com/datas/memory.gemini.ctrl"
-                    text = "Realiza un diagnóstico del sistema"
-                else:
-                    print("Parámetro incorrecto")
-                    return
-            else:
-                print("necesita parametro 2 (system, etc...)")
-                return
-            obj = {
-             "mode":"fixed",
-             "name":None,
-             "com":com_d,
-             "metadata":{"from":"gemini3.py"}
-            }
-            core.ps.ps(com_d)
-            print("\n Intentando Reporte... cargando... \n ")
-            main(["--l",fileload,text])
-            print("\n Enviando reporte .....\n ")
-            main(["--al","Realiza reporte"])
-            print("\n Fin del reporte \n ")
-            return
-
-    except Exception as e:
-        if not API_KEY:
-            try:
-                API_KEY = obtener_key_gemini()  # Obtiene una nueva clave
-                genai.configure(api_key=API_KEY)
-                model = genai.GenerativeModel(gemini_model)  # Reinicializa el modelo
-            except Exception as f:
-                print("Error API_KEY:",f)
-                return f
-        print("Error:",e)
-        return e
-# Ejecutar el programa
 
 
 

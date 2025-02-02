@@ -13,3 +13,4 @@ ffmpeg
 dnspython
 scapy
 python-nmap
+websockets
