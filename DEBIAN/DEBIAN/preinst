@@ -304,13 +304,16 @@ rm -rf "${temp_gitup}"
 echo "Aplicando permisos de ejecución..."
 find "${base}" -type f \( -name "*.sh" -o \( ! -name "*.*" -exec grep -q '^#!' {} \; \) \) -size +0c -exec chmod +x {} \;
 
+timestamp=$(date +"%Y-%m-%d %H:%M:%S")
 # Crear archivo de instalación
 if [ $? -eq 0 ]; then
-  echo '{"status": "success", "message": "Instalación completada exitosamente"}' > "${ok_file}"
-  echo '{"status": "success", "message": "Instalación completada exitosamente"}' | tee "${install_log}"
+  OKINST='{"status": "success", "message": "Instalación completada exitosamente","vname": "'.${xbind}.'", "mode": "'.${MODE}.'", "date":"'.${timestamp}.'"}'
+  echo $OKINST > "${ok_file}"
+  echo $OKINST | tee "${install_log}"
 else
-  echo '{"status": "error", "message": "Error durante la instalación"}' > "${error_file}"
-  echo '{"status": "error", "message": "Error durante la instalación"}' | tee "${install_log}"
+  ERRINST='{"status": "error", "message": "Error durante la instalación","vname": "'.${xbind}.'", "mode": "'.${MODE}.'", "date":"'.${timestamp}.'"}'
+  echo $ERRINST > "${error_file}"
+  echo $ERRINST | tee "${install_log}"
   exit 1
 fi
 

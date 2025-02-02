@@ -1369,7 +1369,7 @@ def toggle_autosave(enable=True):
 # Función para manejar los argumentos
 def main(args):
     """Función principal que maneja los argumentos de entrada para generar respuestas del modelo."""
-    global gemini_model, model, conversation_context, load, last_response, topic, API_KEY
+    global ruta_archivo_key, gemini_model, model, conversation_context, load, last_response, topic, API_KEY
 
 
     # Si no se envían comandos, se asume que se envía una pregunta de texto.
@@ -1413,6 +1413,12 @@ def main(args):
 
         # Verificar el primer argumento
         command = args[0]
+        if command == "--resetkey":
+            print("keycom")
+            API_KEY = obtener_key_gemini('resetkey')
+            genai.configure(api_key=API_KEY)
+            model = genai.GenerativeModel(gemini_model) 
+            return
         if command == "--nmodel":
             sm = "\nSelección de modelos de API\n"
             conversation_context += sm
@@ -1753,12 +1759,7 @@ def main(args):
             topic = ""
             print("Todos los valores han sido reseteados.")
             return  
-        elif command == "--resetkey":
-            print("keycom")
-            API_KEY = obtener_key_gemini('resetkey')
-            genai.configure(api_key=API_KEY)
-            model = genai.GenerativeModel(gemini_model) 
-            return
+
         elif command == "--diagnostic" or command == "--d":
             if len(args) > 1 :
                 if args[1] == "server":
