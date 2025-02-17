@@ -43,7 +43,7 @@ sudo apt-get install -y \
   libmp3lame-dev libnuma-dev libopus-dev libsdl2-dev \
   libtool libva-dev libvdpau-dev libvorbis-dev libvpx-dev libx264-dev \
   libx265-dev libxcb1-dev libxcb-shm0-dev libxcb-xfixes0-dev pkg-config \
-  texinfo wget yasm zlib1g-dev libssl-dev
+  texinfo wget yasm zlib1g-dev libssl-dev libcurl4-openssl-dev
 # Instalar dependencias para libfdk-aac
 sudo apt-get install -y libtool autoconf automake
 # Descargar fdk-aac

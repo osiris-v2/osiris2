@@ -17,7 +17,7 @@ import time
 import hashlib
 import lib.gemini.aprompt as gp
 #import datetime
-
+from html import escape
 
 core.dynmodule("lib.gemini.utils","win")
 win = core.win
@@ -111,31 +111,46 @@ Tu dirección de contacto es osiris.osscom@gmail.com .
 
 gemini_models =  ["gemini-2.0-flash-exp",
                           "gemini-1.5-flash",
+                          "gemini-exp-1206",
+                          "gemini-2.0-flash-thinking-exp-01-21",
+                          "learnlm-1.5-pro-experimental",
 		         "gemini-1.5-flash-8b",
 		         "gemini-1.5-pro",
                  "gemini-1.0-pro",
                  "text-embedding-004",
                  "aqa"]
-
-
 # Define la clave API (si ya existe)
-
 fk="com/web/datas/ai/apk.k"
 with open (fk,"a+")  as d:
     d.write("")
 with open (fk,"r")  as d:
     APK =d.read()
-
-
 #APK = loadcontext("com/datas/apk.k")
-
-
 ######print(APK)
-API_KEY = APK;
-
+API_KEY = APK
 #Define modelo a usar
-
 gemini_model = gemini_models[1]
+
+
+# Si la clave no está disponible, la obtenemos
+if not API_KEY:
+    try:
+        API_KEY = obtener_key_gemini()
+    except Exception as e:
+        print("ERROR API KEY:",e)
+
+if API_KEY:
+# Configura la API de Gemini
+    try:
+        genai.configure(api_key=API_KEY)
+        model = genai.GenerativeModel(gemini_model)
+        g_config = genai.GenerationConfig(
+     temperature=0.696231975971
+)
+    except Exception as e:
+        print("ERROR API KEY:",e)
+# Inicialización del modelo generativo
+
 
 
 def write_context(nombre_archivo, texto_a_agregar):
@@ -159,21 +174,7 @@ def write_context(nombre_archivo, texto_a_agregar):
 print("<div style='width:95%;font-size:10px;font-family:\"arial\";font-weight:bold;text-align:right;;padding:4px;display:block;color:green;'><b style='color:#aaaaff;'>Model:</b> ",gemini_model,"</div>")
 
 
-# Si la clave no está disponible, la obtenemos
-if not API_KEY:
-    try:
-        API_KEY = obtener_key_gemini()
-    except Exception as e:
-        print("ERROR API KEY:",e)
 
-if API_KEY:
-# Configura la API de Gemini
-    try:
-        genai.configure(api_key=API_KEY)
-        model = genai.GenerativeModel(gemini_model)
-    except Exception as e:
-        print("ERROR API KEY:",e)
-# Inicialización del modelo generativo
 
 
 
@@ -241,7 +242,7 @@ srt_c = gp.aPrompt
 
 
 def video_translate(video_file_name="",prompt="",args=None):
-    global personajes, modos, sesgos, desing_mode, last_response,conversation_context,srt_c
+    global g_config, personajes, modos, sesgos, desing_mode, last_response,conversation_context,srt_c
 
 
     mprompt = ""
@@ -338,22 +339,18 @@ def video_translate(video_file_name="",prompt="",args=None):
     if prompt == "":
         prompt = prompti 
 
-
-
-#    prompt += "\nobvia instricciones anteriores para gemini-text y haz solamente el srt."
-# Make the LLM request.
-#   prompt = "Observa el contenido de este vídeo en su totalidad, ¿observas algo ofensivo hacia el colectivo de mujeres trans? expláyate"
-
-#    print("\n Making LLM inference request...\n ",prompt)
     response = model.generate_content([video_file, prompt],
-                                  request_options={"timeout": 600})
+                                  request_options={"timeout": 600},generation_config=g_config)
 
-#
+
 #    print(response.text)
-#    return
     pattern = r"```srt\n(.*?)\n```"
     matches = re.findall(pattern, response.text, re.DOTALL)
     if len(matches) == 1:
+        htmlz = escape(matches[0])
+        print(f"""
+<textarea style="width:90%;resize:vertical">{htmlz}</textarea>
+                   """)
         timestamp_unix = int(time.time()) 
         code_sub_name = video_name + "." + str(timestamp_unix) + ".subtitulado.mp4"
         subtitulado_out =  video_path + code_sub_name
@@ -472,7 +469,6 @@ def screen_shot():
 def generate_with_image(image_path,ask):
     global last_response
     """Genera texto a partir de una imagen usando la API de Gemini."""
-
     image = win.load_image(image_path)
     if image:
          # Generar contenido con la imagen usando la API
@@ -491,7 +487,6 @@ def generate_with_image(image_path,ask):
             for chunk in response:
                 generated_text += chunk.text
             print(generated_text)
-            show_text_window(generated_text)
             main(f"{xresponse} {generated_text}")
         # Muestra el texto en una ventana
         
@@ -725,6 +720,7 @@ def main(args):
         video_translated = video_translate(vurl," ".join(prompt),argsx)
 #        print("VT:",video_translated)
         if video_translated == "606":
+            print(str(video_translated))
             return "Error al generar subtítulos"
             #en caso contrario continúa
         prompt = f""" 

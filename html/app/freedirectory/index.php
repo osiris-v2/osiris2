@@ -170,8 +170,23 @@ mxurl++;
 
 '>
 
-<div id="ajxres"  style='max-height:20%;overflow:auto;'></div>
+<input type="file" id="fileInput">
+<button onclick="uploadFile({allowedExtensions: ['jpg', 'jpeg', 'png', 'gif','mp4'], allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif','video/mp4'], fileInput: 'fileInput',fileOutput: 'output', fileProgress: 'progress'})">Subir Archivo</button>
 
+
+<div style='padding:20px;position:relative;height:50px;overflow:auto;resize:vertical;background:black;color:white;font-weight:bolb;font-family:arial;font-size:12px;'>
+<span style="color:white;font-size:14px;float:left">
+Barra de operaciones
+</span><br>
+<a href="javascript:void(0)"
+onclick="getId('ajxres').innerHTML = '';
+getId('output').innerHTML = '';
+getId('progress').innerHTML = '';"> <b style='color:red'>Limpiar</b></a> &nbsp; 
+
+<div id="progress"></div>
+<div id="output"></div>
+<div id="ajxres"></div>
+</div>
 
 
 <a href="javascript:void(0);" onclick='
@@ -309,7 +324,7 @@ case 'ogv':
 case 'ogm':
 case 'ogg':
 
-$innerDiv = $setSrc."<video src=\"".$_SESSION["path"].rawurlencode($value[0])."\" type=\"video/".$extvalue."\" style=\"border:0;resize:both;width:100%;height:80%;\" autoplay controls loop volume=\"0.5\"></video>";
+$innerDiv = $setSrc."<video src=\"".$_SESSION["path"].rawurlencode($value[0])."\" style=\"border:0;resize:both;width:100%;height:80%;\" autoplay controls loop volume=\"0.5\"></video>";
 
 break;
 

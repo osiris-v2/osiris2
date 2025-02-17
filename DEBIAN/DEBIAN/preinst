@@ -307,11 +307,11 @@ find "${base}" -type f \( -name "*.sh" -o \( ! -name "*.*" -exec grep -q '^#!' {
 timestamp=$(date +"%Y-%m-%d %H:%M:%S")
 # Crear archivo de instalación
 if [ $? -eq 0 ]; then
-  OKINST='{"status": "success", "message": "Instalación completada exitosamente","vname": "'.${xbind}.'", "mode": "'.${MODE}.'", "date":"'.${timestamp}.'"}'
+  OKINST='{"status": "success", "message": "Instalación completada exitosamente","vname": "'${x_bind}'", "mode": "'${MODE}'", "date":"'${timestamp}'"}'
   echo $OKINST > "${ok_file}"
   echo $OKINST | tee "${install_log}"
 else
-  ERRINST='{"status": "error", "message": "Error durante la instalación","vname": "'.${xbind}.'", "mode": "'.${MODE}.'", "date":"'.${timestamp}.'"}'
+  ERRINST='{"status": "error", "message": "Error durante la instalación","vname": "'${x_bind}'", "mode": "'${MODE}'", "date":"'${timestamp}'"}'
   echo $ERRINST > "${error_file}"
   echo $ERRINST | tee "${install_log}"
   exit 1

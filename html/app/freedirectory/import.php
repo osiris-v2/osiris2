@@ -1,7 +1,9 @@
 <?php
 session_start();
 set_time_limit(0);
-if(!$_SESSION["REGUSER"]) die("<h5 style='background:white;'><!--*/ alert('Se ha cerrado la sesión'); /*--> Inicia Sesión Para usar herramientas</h5>");
+
+
+//if(!$_SESSION["REGUSER"]) die("<h5 style='background:white;'><!--*/ alert('Se ha cerrado la sesión'); /*--> Inicia Sesión Para usar herramientas</h5>");
 
 include $_SERVER["DOCUMENT_ROOT"]."/lib/php/lib.php";
 
@@ -38,20 +40,32 @@ switch($option){
 
 case 'ydl':
 
-
     $cd = "cd $path && " ;
 //    $uid = md5($url);
     #$exec = " --exec 'php postp.php' " ;
    // echo $cd;
+   
+       $url = filter_var($url, FILTER_VALIDATE_URL);
     $url = filter_var($url, FILTER_CALLBACK, array('options' => 'escapeshellarg'));
    
    $com = "$cd yt-dlp -f best  --write-description --write-info-json --restrict-filenames --write-thumbnail $exec $url";
   
+  $out  = md5($url).".mp4";
+  
+  
+#echo $com;
 
-  echo $com;  
+$cd =  dirname(__FILE__)."/".sanitizePath($_SESSION["path"]);
+
+$o = shell_exec("bash ../../../bin/com/web/download.sh $cd $url $out");
 
 
+echo "".$o ; 
 
+ // echo $com;  
+
+
+/*
     $id = popen($com,"r") ;
     while($fr = fread($id,255)){
    echo $fr."<br>"; 
@@ -60,9 +74,9 @@ case 'ydl':
 
   
   pclose($id);
+*/
 
-
-  echo "EXIT import";
+//  echo "EXIT import";
  exit;
 
 break;
@@ -114,7 +128,7 @@ break;
 
 default:
 
-echo "$fname<br>"."$ext extensión no permitido";
+echo "ERROR: $fname  :   $ext extensión no permitida para enlace directo";
 
 break;
 

@@ -118,10 +118,13 @@ Instrucciones: ¡Bienvenido a Osiris!  Usa emojis para dinamizar la conversació
 """
 
 
-gemini_models = ["gemini-2.0-flash-exp",
-		 "gemini-1.5-flash",
-		 "gemini-1.5-flash-8b",
-		 "gemini-1.5-pro",
+gemini_models =  ["gemini-2.0-flash-exp",
+                          "gemini-1.5-flash",
+                          "gemini-exp-1206",
+                          "gemini-2.0-flash-thinking-exp-01-21",
+                          "learnlm-1.5-pro-experimental",
+		         "gemini-1.5-flash-8b",
+		         "gemini-1.5-pro",
                  "gemini-1.0-pro",
                  "text-embedding-004",
                  "aqa"]

@@ -26,6 +26,40 @@ COM;
 
 
 
+function sanitizePath($path) {
+  // 1. Eliminar puntos iniciales y finales
+ 
+
+
+  // 3. Convertir la ruta a una ruta relativa desde el directorio raiz del servidor web (opcional pero recomendado por seguridad)
+ // $basePath = realpath($_SERVER['DOCUMENT_ROOT']);
+  $relativePath =  $path;
+
+  // 4. Eliminar barras excesivas
+  $path = preg_replace('/\/+/', '/', $path);
+  $path = preg_replace('/^.\//', '', $path);
+
+
+
+  return $path;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 function cadena_a_binario(string $cadena): string {

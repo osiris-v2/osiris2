@@ -222,7 +222,10 @@ function paintIAR(){
 paint = `
 
 <div style="position:absolute;top:2px;margin:auto 0 auto 0; width:80%;height:20px;padding:3px;">
-<a href="javascript:void(0);" style="font-weight:bold;color:#eAf393;float:right" onclick="IAR.innerHTML=paintIAR()">Limpiar</a>
+<a href="javascript:void(0);" style="font-weight:bold;color:#eAf393;float:right" 
+onclick="if(confirm('¿Borrar la conversación?')){
+IAR.innerHTML=paintIAR()
+}">Limpiar</a>
  - 
 <span style="float:right">&nbsp;&nbsp;</span>
 <a href="javascript:void(0);" style="font-weight:bold;color:#eAf393;float:right" onclick="IAR.style.display='none'">Cerrar</a>
@@ -348,6 +351,10 @@ IAI.addEventListener("keydown", function(event) {
 //iardiv = undefined;
 //rsdiv="";
 
+ctrlid = new Array()
+ttactrlid = new Array()
+ctn = 0;
+
 function createADiv(param="0"){
 randn  =  Math.floor(Math.random() * 9999999);
 iardiv = document.createElement("div")
@@ -360,11 +367,13 @@ IAR.prepend(iardiv)
 WAITING = "... <b>Conectando</b> ... "
 
 if(param == 1){
-
+ctrlid[ctn] = iardiv.id
 TTAD = document.createElement("div")
 TTAD.style="width:80%;text-align:right;"
 iardiv.prepend(TTAD)
 TTA = addPanel({TAG:"textarea"})
+TTA.id = "TTA_"+iardiv.id
+ttactrlid[ctn]  = TTA.id
 TTA.value += IAI.value
 TTA.style="display:inline-block;margin-top:10px;font-family:arial;border-radius:10px;border:solid 1px #bdfdcc;width:90%;padding:10px;overflow:auto;resize:vertical;"
 moveTag(TTA,TTAD)
@@ -374,18 +383,26 @@ TTAd.style=""
 moveTag(TTAd,TTAD)
 
 
-TTAb = addPanel({TAG:"button",innerHTML:"Reenviar"})
+TTAb = addPanel({TAG:"button",innerHTML:"Reenviar",click:`
+if(confirm("¿Reenviar? ")) { 
+ reSend(encodeURIComponent(getId(ttactrlid[`+ctn+`]).value),'`+selectModel()+`','`+iardiv.xrand+`')  
+  }
+`})
 TTAb.value += IAI.value
 TTAb.style=""
 moveTag(TTAb,TTAd)
 
 
-TTAb1 = addPanel({TAG:"button",innerHTML:"Limpiar"})
+TTAb1 = addPanel({TAG:"button",innerHTML:"Eliminar",click:`
+if(confirm("¿Eliminar de la conversación? - `+ctn+`  ...  `+ctrlid[ctn]+`")) {  remid(`+ctrlid[ctn]+`)   }
+`})
 TTAb1.value += IAI.value
 TTAb1.style=""
 moveTag(TTAb1,TTAd)
 
 WAITING = "<b> Esperando Respuesta ... </b>"
+
+ctn = ctn + 1
 
 }
 
@@ -403,18 +420,14 @@ iardiv.prepend(rsdiv)
 }
 
 
+function remid(x){x.remove()}
 
 
 function realizarAccion() {
   // Aquí puedes colocar el código que deseas ejecutar cuando se presione Enter.
   // Por ejemplo, enviar los datos del input a un servidor, o realizar una búsqueda.
-
-
 IAI.value = IAI.value.trim()
-
 if(IAI.value==""){return}
-
-
 ajax({
 datas:"action=ask&question="+encodeURIComponent(IAI.value)+"&smodel="+selectModel(),
 method:"POST",
@@ -423,24 +436,36 @@ eval:true,
 handler:"ASK_QUESTION",
 block:true,
 method:"POST",
-prejs:'createADiv(1);location.href="#IAITOP"'
+prejs:'createADiv(1)'
 });
-
-
-
 IAR.style.display = "block"
+}
 
+
+function reSend(txt,model,id) {
+
+//alert(txt+" MODEL:"+ model +"  ID:"+id)
+
+
+ajax({
+datas:"action=ask&question="+txt+"&smodel="+model+"&rewid="+id,
+method:"POST",
+location:"/engines/iask.php",
+eval:true,
+handler:"ASK_QUESTION",
+block:true,
+method:"POST",
+prejs:"responsediv_"+id+".innerHTML = '<h3>Reenviando Prompt, espere</h3>';"
+});
+IAR.style.display = "block"
 }
 
 
 
 
 
-
-
 function iaini() {
-  // Aquí puedes colocar el código que deseas ejecutar cuando se presione Enter.
-  // Por ejemplo, enviar los datos del input a un servidor, o realizar una búsqueda.
+
 IAR.innerHTML += `
 
 <div id="ResizeIAR" style="position: relative;margin:auto 0 0 auto;float:right;color:gold;font-size:11px; font-weight:bold;display:flex;margin-top:20px;margin-right:-18px;margin-bottom:-10px;font-family:arial;font-weight:bold;font-size:14px;">

@@ -8,6 +8,69 @@
 /* AJAX */
 
 
+function uploadFile(options) {
+  const fileInput = document.getElementById(options.fileInput);
+  const file = fileInput.files[0];
+  if (!file) {
+    document.getElementById(options.fileOutput).innerHTML = "Por favor, selecciona un archivo.";
+    return;
+  }
+  const fileExtension = file.name.split('.').pop().toLowerCase();
+  const fileMimeType = file.type;
+
+  if (!options.allowedExtensions.includes(fileExtension) || !options.allowedMimeTypes.includes(fileMimeType)) {
+    document.getElementById(options.fileOutput).innerHTML = "Tipo de archivo no permitido.";
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const xhr = new XMLHttpRequest();
+  xhr.open("POST", "upload.php", true); // Reemplaza con tu URL de servidor
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      document.getElementById(options.fileOutput).innerHTML = " " + xhr.responseText;
+    } else {
+      document.getElementById(options.fileOutput).innerHTML = "Error al subir el archivo: " + xhr.status;
+    }
+  };
+  xhr.onerror = function() {
+    document.getElementById(options.fileOutput).innerHTML = "Error de red al subir el archivo.";
+  };
+  xhr.upload.onprogress = function(e) {
+    if (e.lengthComputable) {
+      const progress = Math.round((e.loaded / e.total) * 100);
+      document.getElementById(options.fileProgress).innerHTML = "Progreso:"+ progress + "%"
+      console.log("Progreso:", progress + "%");
+      // Actualizar una barra de progreso aquí (opcional)
+    }
+  };
+  xhr.send(formData);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 $ajax = [{
 
 info:`

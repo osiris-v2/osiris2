@@ -1,6 +1,6 @@
 <?php
 session_start();
-set_time_limit(300);
+set_time_limit(3000);
 if(!isset($_SESSION["CONTEXT_ID"])):
 $_SESSION["CONTEXT_ID"] = md5(rand(100,10000000000).date("DmYhis"));
 endif;
@@ -66,7 +66,7 @@ $ask = base64_encode($ask);
 
 
 if(!$noExec){
-$response = shell_exec("/var/osiris2/bin/com/web/iask.sh  \"$selectModel\" ". $ask ." ".$NContext." ".$raddr." CXID-".$context_id." ".$xdata." ".$context_mode);
+$response = shell_exec("../../bin/com/web/iask.sh  \"$selectModel\" ". $ask ." ".$NContext." ".$raddr." CXID-".$context_id." ".$xdata." ".$context_mode);
 }
 
 
@@ -77,14 +77,21 @@ $response = addcslashes($response, "`\$\\");
 #$response = htmlentities($response);
 #$response = nl2br($response);
 $ask_dec = htmlentities(base64_decode($ask));
+
+if(isset($_POST["rewid"])){
+$rewid = $_POST["rewid"];
+echo<<<JS
+mktparse(getId(`responsediv_$rewid`),`$response`);
+JS;
+} else {
 echo<<<JS
 constmenu(iardiv.id);
 mktparse(rsdiv,`$response`);
 iardiv.style = `overflow:auto;margin:5px;margin-top:10px;border-radius:10px;font-weight:500;border:solid 2px;background:#fdffde;padding:15px;font-size:15.2px;line-height:19.5px;word-spacing:1.5px;letter-spacing:1.00px;font-family:Roboto;`
 JS;
+}
+
 endif;
-
-
 else:
 echo<<<JS
 iardiv.innerHTML = "No se ha recibido una respuesta correctamente";

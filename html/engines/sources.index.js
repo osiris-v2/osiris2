@@ -110,7 +110,7 @@ a6.className = "lmenu"
 a6.onclick = function(){
 
 if(datasInfo.src=="about:blank"){
-	datasInfo.src="https://"+window.location.hostname+":8081/datas/index.007.html"
+	datasInfo.src="ws://"+window.location.hostname+":8081"
 }
 
 dmenu('datasInfo','dispApp')
@@ -147,11 +147,11 @@ dmenu('EDITORc21','dispApp')
 
 
 
-a9.innerHTML = "Documentación"
+a9.innerHTML = "Dir TMP"
 a9.className = "lmenu"
 a9.onclick = function(){
 if(DOC.src=="about:blank"){
-	DOC.src="https://"+window.location.hostname+"/app/freedirectory/web/2"
+	DOC.src="https://"+window.location.hostname+"/app/freedirectory/tmp"
 }
 dmenu('DOC','dispApp')
 }
