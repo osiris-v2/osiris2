@@ -5,8 +5,8 @@ import signal
 
 user_agent = ["-headers","user-agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36'"]
 
-
 user_agent = []
+
 
 ffmpeg_exec="/var/osiris2/bin/com/osiris_env/ffmpeg/bin/ffmpeg"
 
@@ -90,7 +90,6 @@ def start_ffmpeg(url,com):
     kill_last_process()  # Mata el proceso actual antes de iniciar uno nuevo
 
 
-
 #, cwd=cwd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, stdin=subprocess.PIPE, close_fds=True
     finput = [
     '-y',
@@ -141,7 +140,7 @@ def start_ffmpeg(url,com):
     
     print("UA: ",user_agent)
     command =   [ffmpeg_exec] + user_agent + finput + foutput
-
+    print(command)
     # si se recibe el comando se sustituye command
     if com:
         com = com
