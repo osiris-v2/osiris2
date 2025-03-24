@@ -1,4 +1,5 @@
-**MEMORIA: JUSTIFICACIÓN DE MAYOR IMPACTO AMBIENTAL DE LA PRODUCCIÓN DE CELULOSA EN COMPARACIÓN CON LA FIBRA TEXTIL A BASE DE CELULOSA (LYOCELL) EN BASE A DOCUMENTOS PROPORCIONADOS**
+
+## MEMORIA: JUSTIFICACIÓN DE MAYOR IMPACTO AMBIENTAL DE LA PRODUCCIÓN DE CELULOSA EN COMPARACIÓN CON LA FIBRA TEXTIL A BASE DE CELULOSA (LYOCELL) EN BASE A DOCUMENTOS PROPORCIONADOS
 
 **Objetivo:**
 
@@ -13,7 +14,7 @@ Anuncios de Augas de Galicia y Consellería de Economía, Industria e Innovació
 La diferencia en el impacto ambiental radica en el diferente enfoque y procesos involucrados en la producción de celulosa como producto final frente a su uso como *insumo* en la producción de Lyocell.
 
 | Aspecto | Producción de Celulosa Soluble (Como producto principal) | Producción de Lyocell (Uso de celulosa como Insumo) | Justificación del Mayor Impacto |
-|---|---|---|
+|---|---|---|---|
 | **Proceso Central** | *Extracción y purificación de celulosa*: El enfoque está en obtener celulosa lo más pura posible a partir de la madera, con procesos intensivos de pulpeo y blanqueo. | *Transformación de la celulosa en fibra*: El enfoque está en transformar la celulosa en una fibra textil con propiedades específicas, minimizando residuos y maximizando la eficiencia del uso de la celulosa. | La extracción y purificación intensivas de celulosa generan mayor cantidad de residuos y consumen más recursos en comparación con un proceso que utiliza celulosa como paso intermedio para crear un producto final con valor añadido |
 | **Químicos y Recuperación** | El blanqueo *podría* generar subproductos contaminantes dependiendo del método (sin detalles en documentos). | Recuperación casi total del solvente NMMO en circuito cerrado. | La no recuperación de químicos y subproductos contaminantes incrementa el impacto.  La recuperación del solvente y del agua reduce el impacto del proceso Lyocell |
 | **Residuos Generados** | Mayor volumen de residuos de lignina y otros subproductos del proceso de pulpeo. | Menor volumen de residuos, enfocándose en la recuperación y reutilización de materiales. | Los desechos de la pulpa generan mas cantidad de elementos contaminantes que la reutilización del agua y los liquidos del proceso Lyocell|
