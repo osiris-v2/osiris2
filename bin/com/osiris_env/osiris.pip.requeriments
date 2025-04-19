@@ -16,4 +16,12 @@ python-nmap
 websockets
 numpy
 matplotlib
+librosa
+soundfile
+pyperclip
+PyAudio
+SpeechRecognition
+whisper
+boto3
+torch
 

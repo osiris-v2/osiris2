@@ -30,13 +30,10 @@ check_command_installed /usr/bin/py3env --version
 echo "Esta opción instala  python "
 check_command_installed /usr/bin/py3pip --version
 
-echo "Esta opción instala  xcblib librerias necesarias para usar Qt con python "
+echo "Esta opción instala  xcblib librerias necesarias para usar Qt con python y otras"
 
 check_command_installed /usr/bin/xcblib 
-
-
-echo "Esta opción instala  librerias necesarias para desarrollo con C "
-
+check_command_installed /usr/bin/port-audio 
 check_command_installed /usr/bin/cdevlibs 
 
 
@@ -102,7 +99,7 @@ check_command_installed /usr/bin/php --version
 check_command_installed /usr/bin/mariadb 
 #check_command_installed /usr/bin/ffmpeg -version
 #check_command_installed /usr/bin/transmission-cli --version 
-#check_command_installed /usr/bin/port-audio 
+
 check_command_installed /usr/bin/tcptrack -v 
 #check_command_installed /usr/bin/yt-dlp --version
 #check_command_installed /usr/bin/rustc "--version -v"

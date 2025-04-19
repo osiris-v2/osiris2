@@ -180,6 +180,7 @@ bin/com/gemini.py
 bin/com/gemini-web.py
 bin/com/desktop.py
 bin/com/screenshot.py
+bin/com/audio.py
 
 #TV
 bin/com/otvkill
