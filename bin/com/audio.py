@@ -6,9 +6,13 @@ import subprocess
 import json
 import lib.core as core
 from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
-                             QPushButton, QTextEdit, QLabel, QFileDialog, QMessageBox,QComboBox)
-from PyQt5.QtCore import QThread, pyqtSignal
+                             QPushButton, QTextEdit, QLabel, QFileDialog, QMessageBox, QComboBox)
+from PyQt5.QtCore import QThread, pyqtSignal, QCoreApplication
 import os
+from PyQt5 import QtGui  # Asegúrate de importar QtGui
+import pyaudio
+
+
 def generar_comando_gemini(archivo_audio, nombre_archivo, prompt):
     """
     Genera el comando gemini3.py --tvl para procesar el audio.
@@ -23,6 +27,8 @@ def generar_comando_gemini(archivo_audio, nombre_archivo, prompt):
     """
     comando = f"gemini3.py --tvl {archivo_audio} \"{prompt}\""
     return comando
+
+
 def generar_nombre_archivo(datos_audio):
     """
     Genera un nombre de archivo basado en los subsegmentos del audio.
@@ -39,6 +45,8 @@ def generar_nombre_archivo(datos_audio):
     subsegmento2 = segmentos[1].get("tipo_segmento", "desconocido") if len(segmentos) > 1 else "continuacion"
     nombre_archivo = f"nombre_{subsegmento1}_{subsegmento2}".replace(" ", "_")
     return nombre_archivo
+
+
 def crear_prompt(datos_audio):
     """
     Crea un prompt optimizado para Gemini basado en los datos del audio.
@@ -61,18 +69,19 @@ def crear_prompt(datos_audio):
         emocion = segmento.get("sensacion") if segmento.get("sensacion") else "N/A"
         ruidos = segmento.get("ruidos") if not tiene_voz else "N/A"
         tipo_ruidos = segmento.get("tipo_ruidos") if not tiene_voz else "N/A"
-        
+
         prompt += f"Segmento {i+1}: Tiempo {tiempo_inicio}-{tiempo_fin} ({duracion}s). "
         if tiene_voz:
-             prompt += f"Voz detectada (Edad: {edad}, Sexo: {sexo}, Emoción: {emocion}).\n"
+            prompt += f"Voz detectada (Edad: {edad}, Sexo: {sexo}, Emoción: {emocion}).\n"
         else:
-             prompt += f"Sin voz. Ruidos: {ruidos} ({tipo_ruidos}), Sensación: {emocion}.\n"
+            prompt += f"Sin voz. Ruidos: {ruidos} ({tipo_ruidos}), Sensación: {emocion}.\n"
 
     # Aquí se podría añadir lógica más compleja para personalizar el prompt en función de los datos.
     prompt += "Genera subtítulos creativos y precisos para este audio."
     return prompt
 
-def comprobar_microfono(texto_transcripcion=None):
+
+def comprobar_microfono(texto_transcripcion=None, device_index=None):
     """
     Comprueba si un micrófono está disponible en el sistema.
     Retorna True o false y actualiza el cuadro de texto de la GUI.
@@ -80,83 +89,24 @@ def comprobar_microfono(texto_transcripcion=None):
     sistema = platform.system()
     try:
         reconocedor = sr.Recognizer()
-        microfono = sr.Microphone()
+        microfono = sr.Microphone(device_index=device_index)
         with microfono as source:
-         reconocedor.adjust_for_ambient_noise(source)
-         return True
+            reconocedor.adjust_for_ambient_noise(source)
+            return True
     except sr.exceptions.WaitTimeoutError:
-        print("Error: No se detectó ningún sonido del micrófono en 5 segundos. Asegúrate de que esté conectado y funcionando.")
-        if  texto_transcripcion!= None :
-           texto_transcripcion.insertPlainText("Error: No se detectó ningún sonido del micrófono. Asegúrate de que esté conectado y funcionando.\n")
+        print(
+            "Error: No se detectó ningún sonido del micrófono en 5 segundos. Asegúrate de que esté conectado y funcionando.")
+        if texto_transcripcion != None:
+            texto_transcripcion.insertPlainText(
+                "Error: No se detectó ningún sonido del micrófono. Asegúrate de que esté conectado y funcionando.\n")
         return False
     except Exception as e:
-        print("Error con reconocimiento, probablemente falten librerías: ",e)
-        if  texto_transcripcion!= None :
-           texto_transcripcion.insertPlainText("Error con reconocimiento, probablemente falten librerías: "+str(e)+"\n")
+        print("Error con reconocimiento, probablemente falten librerías: ", e)
+        if texto_transcripcion != None:
+            texto_transcripcion.insertPlainText(
+                "Error con reconocimiento, probablemente falten librerías: " + str(e) + "\n")
         return False
-def generar_comando_gemini(archivo_audio, nombre_archivo, prompt):
-    """
-    Genera el comando gemini3.py --tvl para procesar el audio.
 
-    Args:
-        archivo_audio (str): Ruta al archivo de audio.
-        nombre_archivo (str): Nombre del archivo (sin extensión).
-        prompt (str): Prompt para Gemini.
-
-    Returns:
-        str: El comando gemini3.py --tvl.
-    """
-
-    comando = f"gemini3.py --tvl {archivo_audio} \"{prompt}\""
-    return comando
-def generar_nombre_archivo(datos_audio):
-    """
-    Genera un nombre de archivo basado en los subsegmentos del audio.
-
-    Args:
-        datos_audio (dict): Diccionario con la información estructurada del audio.
-
-    Returns:
-        str: Un nombre de archivo.
-    """
-    # Extraer los dos primeros subsegmentos (si existen) para generar el nombre del archivo
-    segmentos = datos_audio.get("segmentos", [])
-    subsegmento1 = segmentos[0].get("tipo_segmento", "desconocido") if len(segmentos) > 0 else "inicio"
-    subsegmento2 = segmentos[1].get("tipo_segmento", "desconocido") if len(segmentos) > 1 else "continuacion"
-    nombre_archivo = f"nombre_{subsegmento1}_{subsegmento2}".replace(" ", "_")
-    return nombre_archivo
-def crear_prompt(datos_audio):
-    """
-    Crea un prompt optimizado para Gemini basado en los datos del audio.
-    Args:
-        datos_audio (dict): Diccionario con la información estructurada del audio.
-    Returns:
-        str: Un prompt para Gemini.
-    """
-    # Extraer informacion relevante para construir el prompt.
-    segmentos = datos_audio.get("segmentos", [])
-    prompt = "Instrucciones para Gemini: \n"
-
-    for i, segmento in enumerate(segmentos):
-        tiempo_inicio = segmento.get("tiempo_inicio")
-        tiempo_fin = segmento.get("tiempo_fin")
-        duracion = segmento.get("duracion")
-        tiene_voz = segmento.get("tiene_voz")
-        edad = segmento.get("edad") if tiene_voz else "N/A"
-        sexo = segmento.get("sexo") if tiene_voz else "N/A"
-        emocion = segmento.get("sensacion") if segmento.get("sensacion") else "N/A"
-        ruidos = segmento.get("ruidos") if not tiene_voz else "N/A"
-        tipo_ruidos = segmento.get("tipo_ruidos") if not tiene_voz else "N/A"
-        
-        prompt += f"Segmento {i+1}: Tiempo {tiempo_inicio}-{tiempo_fin} ({duracion}s). "
-        if tiene_voz:
-             prompt += f"Voz detectada (Edad: {edad}, Sexo: {sexo}, Emoción: {emocion}).\n"
-        else:
-             prompt += f"Sin voz. Ruidos: {ruidos} ({tipo_ruidos}), Sensación: {emocion}.\n"
-
-    # Aquí se podría añadir lógica más compleja para personalizar el prompt en función de los datos.
-    prompt += "Genera subtítulos creativos y precisos para este audio."
-    return prompt
 
 def generar_comentario_humano(datos_audio):
     """
@@ -173,30 +123,32 @@ def generar_comentario_humano(datos_audio):
     comentario = f"Comando Gemini para procesar un audio con {num_segmentos} segmentos. El primer segmento es de tipo '{primer_segmento_tipo}'."
     return comentario
 
-def analizar_audio(archivo_audio,texto_transcripcion=None):
+
+def analizar_audio(archivo_audio, texto_transcripcion=None):
     """
     Analiza un archivo de audio utilizando un programa externo y retorna la información estructurada.
     Realiza comprobaciones del dispositivo de micrófono y manejo de errores.
     """
     analisis = {}
     # 1. Comprobación del dispositivo de micrófono:
-    
+
     try:
-     if not comprobar_microfono(texto_transcripcion):
-        print("Error: No se detectó un micrófono. Imposible continuar con el análisis.")
-        return None
+        # if not comprobar_microfono(texto_transcripcion): #Comentado pues ahora el check es en la GUI.
+        #    print("Error: No se detectó un micrófono. Imposible continuar con el análisis.")
+        #    return None
+        pass  # se asegura que pase el check de microfono
     except Exception as e:
-        print("Error detectando Microfono:",e)
+        print("Error detectando Microfono:", e)
     try:
         # 2. Ejecutar el analizador de audio (aquí es donde grabas el audio):
         print("Grabando audio...")
-        if  texto_transcripcion!= None :
-            texto_transcripcion.insertPlainText("Grabando Audio...\n") # transcribir al panel
+        if texto_transcripcion != None:
+            texto_transcripcion.insertPlainText("Grabando Audio...\n")  # transcribir al panel
             texto_transcripcion.moveCursor(QtGui.QTextCursor.End)
         # Simulación del analizador de audio
-        analisis["segmentos"] = [] #Declaracion de segmentos
-        analisis["parametros"] = {} #Declaracion de parametros
-        #Segmento 1
+        analisis["segmentos"] = []  # Declaracion de segmentos
+        analisis["parametros"] = {}  # Declaracion de parametros
+        # Segmento 1
         segmento = {}
         segmento["tiempo_inicio"] = "00:00:00"
         segmento["tiempo_fin"] = "00:00:05"
@@ -207,7 +159,7 @@ def analizar_audio(archivo_audio,texto_transcripcion=None):
         segmento["emocion"] = "Neutro"
         segmento["tipo_segmento"] = "Inicio"
         analisis["segmentos"].append(segmento)
-        #Segmento 2
+        # Segmento 2
         segmento = {}
         segmento["tiempo_inicio"] = "00:00:05"
         segmento["tiempo_fin"] = "00:00:10"
@@ -218,23 +170,23 @@ def analizar_audio(archivo_audio,texto_transcripcion=None):
         segmento["sensacion"] = "Urbano"
         segmento["tipo_segmento"] = "Continuacion"
         analisis["segmentos"].append(segmento)
-        #Parametros
+        # Parametros
         parametro = {}
         parametro["Frecuencia_cardiaca"] = 80
         analisis["parametros"] = parametro
-        
-        #Genera Ficheros para pruebas
-        f = open("com/audiodata.json","w")
-        json.dump(analisis,f,indent=4)
+
+        # Genera Ficheros para pruebas
+        f = open("com/audiodata.json", "w")
+        json.dump(analisis, f, indent=4)
         f.close()
-        if  texto_transcripcion!= None :
-            texto_transcripcion.insertPlainText("Ejecutando analisis de audio simulado\n") # Transcribe
+        if texto_transcripcion != None:
+            texto_transcripcion.insertPlainText("Ejecutando analisis de audio simulado\n")  # Transcribe
             texto_transcripcion.moveCursor(QtGui.QTextCursor.End)
 
         return analisis
     except subprocess.CalledProcessError as e:
         print(f"Error al ejecutar analizador_de_audio: {e}")
-        print(f"Salida del error: {e.stderr}") # Mostrar la salida de error
+        print(f"Salida del error: {e.stderr}")  # Mostrar la salida de error
         return None
     except json.JSONDecodeError as e:
         print(f"Error al decodificar la salida JSON: {e}")
@@ -242,28 +194,8 @@ def analizar_audio(archivo_audio,texto_transcripcion=None):
     except subprocess.TimeoutExpired:
         print("Error: El análisis de audio excedió el tiempo límite.")
         return None
-def comprobar_microfono(texto_transcripcion=None):
-    """
-    Comprueba si un micrófono está disponible en el sistema.
-    Retorna True o false y actualiza el cuadro de texto de la GUI.
-    """
-    sistema = platform.system()
-    try:
-        reconocedor = sr.Recognizer()
-        microfono = sr.Microphone()
-        with microfono as source:
-         reconocedor.adjust_for_ambient_noise(source)
-         return True
-    except sr.exceptions.WaitTimeoutError:
-        print("Error: No se detectó ningún sonido del micrófono en 5 segundos. Asegúrate de que esté conectado y funcionando.")
-        if  texto_transcripcion!= None :
-           texto_transcripcion.insertPlainText("Error: No se detectó ningún sonido del micrófono. Asegúrate de que esté conectado y funcionando.\n")
-        return False
-    except Exception as e:
-        print("Error con reconocimiento, probablemente falten librerías: ",e)
-        if  texto_transcripcion!= None :
-           texto_transcripcion.insertPlainText("Error con reconocimiento, probablemente falten librerías: "+str(e)+"\n")
-        return False
+
+
 class HiloReconocimientoVoz(QThread):
     """
     Clase para ejecutar el reconocimiento de voz en un hilo separado para evitar bloquear la interfaz.
@@ -286,9 +218,11 @@ class HiloReconocimientoVoz(QThread):
         try:
             with self.microfono as fuente:
                 try:
-                    self.reconocedor.adjust_for_ambient_noise(fuente)  # Ajusta para el ruido ambiental
+                    self.reconocedor.adjust_for_ambient_noise(
+                        fuente)  # Ajusta para el ruido ambiental
                 except sr.exceptions.WaitTimeoutError:
-                    self.error_signal.emit("Error: No se detectó ningún sonido del micrófono. Asegúrate de que esté conectado y funcionando.")
+                    self.error_signal.emit(
+                        "Error: No se detectó ningún sonido del micrófono. Asegúrate de que esté conectado y funcionando.")
                     self.fin_proceso.emit()
                     return
                 except Exception as e:
@@ -315,23 +249,28 @@ class HiloReconocimientoVoz(QThread):
             self.error_signal.emit(f"Error al iniciar el hilo de grabacion: {e}\n")  # Emite la señal de finalización
         finally:
             self.fin_proceso.emit()
+
     def detener(self):
         """
         Función para detener el hilo de reconocimiento de voz.
         """
         self.correr = False
-from PyQt5 import QtGui
+
+
 class VentanaPrincipal(QWidget):
     """
     Clase principal que define la interfaz de usuario de la aplicación.
     """
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Análisis de Audio y Transcripción en Tiempo Real")
         # Inicializar componentes
         self.reconocedor = sr.Recognizer()
-        self.microfono = sr.Microphone()
+        self.microfono = None  # Inicializar a None
         self.hilo_reconocimiento = None
+        self.available_microphones = self.get_available_microphones()  # Obtener los microfonos disponibles
+        self.selected_device_index = None  # device index
         # Crear widgets
         self.area_texto = QTextEdit()
         self.area_texto.setReadOnly(True)  # Hace que no se pueda escribir en la GUI
@@ -340,22 +279,30 @@ class VentanaPrincipal(QWidget):
         self.boton_detener = QPushButton("Detener Grabación")
         self.boton_analizar = QPushButton("Analizar Audio")  # Boton para iniciar el analisis
         self.boton_exportar = QPushButton("Exportar a Archivo")  # Boton para exportar
-        self.combo_fuente_audio = QComboBox() # Combo box
+        self.boton_recargar = QPushButton("Recargar Dispositivos")  # Boton para recargar los dispositivos
+        self.combo_fuente_audio = QComboBox()  # Combo box
         self.combo_fuente_audio.addItem("Microfono")  # Add item to combo box
         self.combo_fuente_audio.addItem("Archivo")  # Add item to combo box
 
+        self.combo_microfonos = QComboBox()
+        self.populate_microphone_combo()  # Llenar el combo box con los micrófonos
+        self.combo_microfonos.currentIndexChanged.connect(
+            self.on_microphone_changed)  # Conectar la señal al combo
+
         self.boton_detener.setEnabled(False)  # Empieza desactivado el botón de detener
         self.boton_analizar.setEnabled(False)
-       
+
         # Configurar layouts
         layout_horizontal = QHBoxLayout()
         layout_horizontal.addWidget(self.boton_iniciar)
         layout_horizontal.addWidget(self.boton_detener)
         layout_horizontal.addWidget(self.boton_analizar)
         layout_horizontal.addWidget(self.boton_exportar)
-       
+        layout_horizontal.addWidget(self.boton_recargar)  # Agrega el botón de recargar
+
         layout_vertical = QVBoxLayout()
-        layout_vertical.addWidget(self.combo_fuente_audio) #Agrega Combo a la GUI
+        layout_vertical.addWidget(self.combo_fuente_audio)  # Agrega Combo a la GUI
+        layout_vertical.addWidget(self.combo_microfonos)  # agrega los microfonos al combo
         layout_vertical.addWidget(self.area_texto)
         layout_vertical.addWidget(self.etiqueta_estado)
         layout_vertical.addLayout(layout_horizontal)
@@ -363,26 +310,80 @@ class VentanaPrincipal(QWidget):
         # Conectar eventos
         self.boton_iniciar.clicked.connect(self.iniciar_grabacion)
         self.boton_detener.clicked.connect(self.detener_grabacion)
-        self.boton_analizar.clicked.connect(self.analizar_audio_main) # Conectar Boton a funcion
-        self.boton_exportar.clicked.connect(self.exportar_texto) # Conectar Boton a funcion
+        self.boton_analizar.clicked.connect(self.analizar_audio_main)  # Conectar Boton a funcion
+        self.boton_exportar.clicked.connect(self.exportar_texto)  # Conectar Boton a funcion
+        self.boton_recargar.clicked.connect(self.recargar_dispositivos)  # Conectar el boton de recargar
+
+    def closeEvent(self, event):
+        """
+        Maneja el evento de cierre de la ventana para detener el hilo correctamente.
+        """
+        try:
+            if self.hilo_reconocimiento and self.hilo_reconocimiento.isRunning():
+                self.hilo_reconocimiento.detener()
+                self.hilo_reconocimiento.wait()  # Espera a que el hilo termine
+        except Exception as e:
+            print(f"Error al cerrar la ventana: {e}")
+        finally:
+            # Terminate PyAudio explicitly
+            try:
+                self.p.terminate()
+            except Exception as e:
+                print(f"Error terminating PyAudio: {e}")
+            event.accept()  # Acepta el evento de cierre
+
+    def get_available_microphones(self):
+        """
+        Obtiene una lista de los micrófonos disponibles en el sistema.
+        """
+        devices = []
+        self.p = pyaudio.PyAudio()  # Initialize PyAudio here
+        for i in range(self.p.get_device_count()):
+            device_info = self.p.get_device_info_by_index(i)
+            if device_info['maxInputChannels'] > 0:  # Es un dispositivo de entrada
+                devices.append({'index': i, 'name': device_info['name']})
+        return devices
+
+    def populate_microphone_combo(self):
+        """
+        Llena el combo box con la lista de micrófonos disponibles.
+        """
+        self.available_microphones = self.get_available_microphones()
+        self.combo_microfonos.clear()  # Limpia el combo box antes de volver a llenarlo
+        for device in self.available_microphones:
+            self.combo_microfonos.addItem(device['name'])
+
+        if self.available_microphones:
+            self.selected_device_index = self.available_microphones[0]['index']  # selecciona el indice del primero
+            self.combo_microfonos.setCurrentIndex(0)  # Selecciona el primer micrófono en el combo
+        else:
+            self.selected_device_index = None
+
+    def on_microphone_changed(self, index):
+        """
+        Función para manejar el cambio de selección en el combo de micrófonos.
+        """
+        self.selected_device_index = self.available_microphones[index]['index']
+        print(f"Micrófono seleccionado: {self.available_microphones[index]['name']}")
 
     def iniciar_grabacion(self):
         """
         Inicia el proceso de reconocimiento de voz en un hilo separado.
         """
-        self.area_texto.clear() # Limpia el area de texto
+        self.area_texto.clear()  # Limpia el area de texto
 
-        #Funcion para elegir que metodo de grabacion utilizar
+        # Funcion para elegir que metodo de grabacion utilizar
         if self.combo_fuente_audio.currentText() == "Microfono":
-                self.grabar_micro()
+            self.grabar_micro()
         elif self.combo_fuente_audio.currentText() == "Archivo":
-                self.grabar_archivo()
+            self.grabar_archivo()
+
     def detener_grabacion(self):
         """
         Detiene el proceso de reconocimiento de voz.
         """
         if self.hilo_reconocimiento:
-            self.hilo_reconocimiento.detener() # Llama a la funcion del hilo
+            self.hilo_reconocimiento.detener()  # Llama a la funcion del hilo
             self.etiqueta_estado.setText("Deteniendo...")
         else:
             self.etiqueta_estado.setText("No hay hilo en ejecución.")
@@ -400,9 +401,11 @@ class VentanaPrincipal(QWidget):
         """
         self.etiqueta_estado.setText("Listo.")
         self.boton_iniciar.setEnabled(True)  # Activa el botón de inicio
-        self.boton_detener.setEnabled(False) # Desactiva el botón de detener
+        self.boton_detener.setEnabled(False)  # Desactiva el botón de detener
         self.boton_analizar.setEnabled(True)
-        self.hilo_reconocimiento.wait()  # Espera a que el hilo termine completamente
+        if self.hilo_reconocimiento is not None:
+            self.hilo_reconocimiento.wait()  # Espera a que el hilo termine completamente
+            self.hilo_reconocimiento = None  # Anula la variable para que pueda volver a ejecutarlo
 
     def mostrar_error(self, mensaje):
         """
@@ -414,61 +417,91 @@ class VentanaPrincipal(QWidget):
         msg.setInformativeText(mensaje)
         msg.setWindowTitle("Error")
         msg.exec_()
+
     def exportar_texto(self):
         """
         Exporta el texto del area de texto a un archivo.
         """
-        texto = self.area_texto.toPlainText() # Obtiene el texto del area de texto
+        texto = self.area_texto.toPlainText()  # Obtiene el texto del area de texto
         if not texto:
-            self.mostrar_error("No hay texto para exportar.") #Muestra el error y sale
+            self.mostrar_error("No hay texto para exportar.")  # Muestra el error y sale
             return
-        nombre_archivo, _ = QFileDialog.getSaveFileName(self, "Guardar archivo", "", "Text Files (*.txt);;All Files (*.*)")
+        nombre_archivo, _ = QFileDialog.getSaveFileName(self, "Guardar archivo", "",
+                                                           "Text Files (*.txt);;All Files (*.*)")
         if nombre_archivo:
             try:
                 with open(nombre_archivo, "w", encoding="utf-8") as archivo:
-                    archivo.write(texto) #Escribe el texto en el archivo
-                self.etiqueta_estado.setText(f"Texto exportado a {nombre_archivo}") #Actualiza la GUI
+                    archivo.write(texto)  # Escribe el texto en el archivo
+                self.etiqueta_estado.setText(f"Texto exportado a {nombre_archivo}")  # Actualiza la GUI
             except Exception as e:
-                self.mostrar_error(f"Error al exportar el texto: {e}") # Envia el Error
+                self.mostrar_error(f"Error al exportar el texto: {e}")  # Envia el Error
+
     def grabar_micro(self):
+        """
+        Inicia la grabación desde el micrófono seleccionado.
+        """
         try:
-            self.hilo_reconocimiento = HiloReconocimientoVoz(self.reconocedor, self.microfono,self.area_texto) # Crea el hilo
-            self.hilo_reconocimiento.texto_actualizado.connect(self.actualizar_texto) # Conecta la señal de texto actualizado
-            self.hilo_reconocimiento.fin_proceso.connect(self.finalizar_proceso) # Conecta la señal de finalizacion
-            self.hilo_reconocimiento.error_signal.connect(self.mostrar_error) #Conecta con el nuevo mensaje de error en la GUI
+            # Comprobar si hay un dispositivo seleccionado
+            if self.selected_device_index is None:
+                self.mostrar_error("No se ha seleccionado ningún micrófono.")
+                return
+            # Inicializar el micrófono con el índice seleccionado
+            self.microfono = sr.Microphone(device_index=self.selected_device_index)
+            # Antes de iniciar el hilo Comprueba si el dispositivo funciona.
+            if not comprobar_microfono(self.area_texto, self.selected_device_index):
+                self.mostrar_error("El micrófono seleccionado no funciona correctamente.")
+                return
+            self.hilo_reconocimiento = HiloReconocimientoVoz(self.reconocedor, self.microfono,
+                                                            self.area_texto)  # Crea el hilo
+            self.hilo_reconocimiento.texto_actualizado.connect(
+                self.actualizar_texto)  # Conecta la señal de texto actualizado
+            self.hilo_reconocimiento.fin_proceso.connect(
+                self.finalizar_proceso)  # Conecta la señal de finalizacion
+            self.hilo_reconocimiento.error_signal.connect(
+                self.mostrar_error)  # Conecta con el nuevo mensaje de error en la GUI
             self.etiqueta_estado.setText("Grabando...")
-            self.boton_iniciar.setEnabled(False) # Desactiva el botón de inicio
-            self.boton_detener.setEnabled(True) # Activa el botón de detener
-            self.boton_analizar.setEnabled(False) # Activa el botón de Análisis hasta que tenga datos para hacerlo
-            self.hilo_reconocimiento.start() # Inicia el hilo
-        except Exception as e: #Gestion de errores de primer nivel
+            self.boton_iniciar.setEnabled(False)  # Desactiva el botón de inicio
+            self.boton_detener.setEnabled(True)  # Activa el botón de detener
+            self.boton_analizar.setEnabled(False)  # Activa el botón de Análisis hasta que tenga datos para hacerlo
+            self.hilo_reconocimiento.start()  # Inicia el hilo
+
+        except Exception as e:  # Gestion de errores de primer nivel
             self.etiqueta_estado.setText(f"Error al Iniciar: {str(e)}")
             self.boton_iniciar.setEnabled(True)  # Asegura que el botón se active de nuevo en caso de error
             self.boton_detener.setEnabled(False)
             self.boton_analizar.setEnabled(False)
+        finally:
+            pass  # No hay nada que hacer
 
     def grabar_archivo(self):
-      print("En construccion Funcion para procesar con archivo de audio en un futuro")
+        print("En construccion Funcion para procesar con archivo de audio en un futuro")
 
     def analizar_audio_main(self):
         """
         Función para accionar el Analisis y preparacion de datos que se enviaran
         a la API para su uso.
         """
-        texto = self.area_texto.toPlainText() # Obtiene el texto del area de texto
+        texto = self.area_texto.toPlainText()  # Obtiene el texto del area de texto
         if not texto:
-            self.mostrar_error("No hay texto para analizar.") #Muestra el error y sale
+            self.mostrar_error("No hay texto para analizar.")  # Muestra el error y sale
             return
-        self.boton_analizar.setEnabled(False) #El analisis es un proceso unico que no requiere multi ejecucion para evitar confictos
-        analisis = analizar_audio("audio.mp3",self.area_texto) #Obtiene datos
-        print("\n\n DATOS OBTENIDOS",analisis)
+        self.boton_analizar.setEnabled(
+            False)  # El analisis es un proceso unico que no requiere multi ejecucion para evitar confictos
+        analisis = analizar_audio("audio.mp3", self.area_texto)  # Obtiene datos
+        print("\n\n DATOS OBTENIDOS", analisis)
         nombre_archivo = generar_nombre_archivo(analisis)  # nombre del archivo
-        print("\n\n ARCHIVO OBTENIDOS",nombre_archivo)
+        print("\n\n ARCHIVO OBTENIDOS", nombre_archivo)
         prompt = crear_prompt(analisis)  # propmt de texto
-        print("\n\n EL PROMPT GENERADO",prompt)
-        comando_gemini = generar_comando_gemini("audio.mp3",nombre_archivo,prompt)
+        print("\n\n EL PROMPT GENERADO", prompt)
+        comando_gemini = generar_comando_gemini("audio.mp3", nombre_archivo, prompt)
         self.etiqueta_estado.setText(f"Comando Generado: {comando_gemini}\n")
 
+    def recargar_dispositivos(self):
+        """
+        Recarga la lista de dispositivos de audio disponibles.
+        """
+        self.populate_microphone_combo()
+        self.etiqueta_estado.setText("Dispositivos recargados.")
 
 
 def main(argv):
@@ -476,5 +509,7 @@ def main(argv):
     ventana = VentanaPrincipal()
     ventana.show()
     sys.exit(app.exec_())
-    
-    
+
+
+if __name__ == "__main__":
+    main(sys.argv)
