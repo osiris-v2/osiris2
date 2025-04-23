@@ -206,6 +206,7 @@ bin/com/web/install/
 bin/com/demo/keyspp.py
 bin/com/demo/keysppqt.py
 bin/com/demo/keysppgen.py
+bin/com/demo/execgitdemo.sh
 
 #html - WWW
 
