@@ -7,7 +7,7 @@
 PYTHON_SCRIPT_URL="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/keysppgen.py"
 # Archivo temporal para guardar el script descargado
 # mktemp crea un nombre de archivo temporal único y seguro
-TEMP_SCRIPT=$(mktemp /tmp/downloaded_python_script.XXXXXX.py)
+TEMP_SCRIPT=$(mktemp $HOME/downloaded_python_script.XXXXXX.py)
 # Lista de paquetes Python necesarios (usar los nombres que usa pip)
 REQUIRED_PACKAGES=("cryptography" "PyQt5")
 # Comando Python a usar (se recomienda python3 para compatibilidad con las libs)
