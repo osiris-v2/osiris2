@@ -14,6 +14,9 @@ py3				apt install python3.11
 py3full				apt install python3.11-full
 py3pip			 	apt install python3-pip 
 py3env				apt install python3.11-venv
+
+py3Virtualenv			apt install python3-virtualenv
+
 pip				apt install pip pip3
 php				apt install php php8.2 php8.2-fpm php-mysqli php-all-dev
 apache2 			apt install apache2 libapache2-mod-php libapache2-mod-fcgid 

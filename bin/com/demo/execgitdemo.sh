@@ -70,7 +70,7 @@ if [ ${#MISSING_PACKAGES[@]} -gt 0 ]; then
     echo "--- Intentando instalar paquetes faltantes... ---"
     # Añadir el flag --user para intentar instalar en el directorio del usuario si no hay permisos globales
     # O puedes usar sudo si estás seguro de que es necesario y permitido: sudo "$PIP_CMD" install "${MISSING_PACKAGES[@]}"
-    if "$PIP_CMD" install --user "${MISSING_PACKAGES[@]}"; then
+    if "$PIP_CMD" install  "${MISSING_PACKAGES[@]}"; then
         echo "--- Paquetes instalados exitosamente (posiblemente en el directorio del usuario) ---"
         # Opcional: Re-verificar después de instalar (útil si --user instaló correctamente)
         # for package in "${MISSING_PACKAGES[@]}"; do
@@ -80,7 +80,7 @@ if [ ${#MISSING_PACKAGES[@]} -gt 0 ]; then
         # done
     else
         echo "Error: No se pudieron instalar uno o más paquetes necesarios." >&2
-        echo "Por favor, intenta instalar manualmente con: $PIP_CMD install ${MISSING_PACKAGES[@]} --user"
+        echo "Por favor, intenta instalar manualmente con: $PIP_CMD install ${MISSING_PACKAGES[@]} "
         echo "O contacta a un administrador si necesitas instalar globalmente."
         exit 1 # Sale del script si la instalación falla
     fi

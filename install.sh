@@ -25,6 +25,7 @@ check_command_installed /usr/bin/py3full --version
 
 echo "Esta opción instala  python "
 check_command_installed /usr/bin/py3env --version
+check_command_installed /usr/bin/py3Virtualenv --version
 
 
 echo "Esta opción instala  python "
