@@ -286,6 +286,7 @@ html/app/mitv/channels/main/live-ts/info.txt
 #mod+x 5
 ##?!> request
 osiris2release.deb
+bio.deb
 #!
 
 #Archivos tmp release
