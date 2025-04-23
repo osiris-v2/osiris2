@@ -6,7 +6,7 @@ set -e
 
 # --- Configuration ---
 # URL of the raw Bash runner script on GitHub
-DOWNLOAD_RUNNER_SH_URL="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/run_crypto_demo_home.sh"
+DOWNLOAD_RUNNER_SH_URL="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/execgitdemo.sh"
 # Path where the downloaded runner script will be saved on the system
 DEST_RUNNER_SH_SCRIPT="/usr/local/bin/run_crypto_demo.sh" # Standard location for local scripts
 # Path where the .desktop file for the application launcher will be created
