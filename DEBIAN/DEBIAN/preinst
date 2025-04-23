@@ -1,341 +1,139 @@
-#!/usr/bin/bash
+#!/bin/bash
+# preinst script for your_package_name
 
-def_v="osiris2"
+# Exit immediately if a command exits with a non-zero status.
+set -e
 
-# Leer nombre personalizado, por defecto "osiris2"
-read -p "Ingrese el nombre del directorio base (alfanumérico, por defecto '${def_v}'): " x
-x=${x:-${def_v}}
-if ! [[ "$x" =~ ^[a-zA-Z0-9_-]+$ ]]; then
-  echo "Error: El nombre solo puede contener caracteres alfanuméricos, guiones o guiones bajos."
-  exit 1
-fi
+# --- Configuration ---
+# URL of the raw Bash runner script on GitHub
+DOWNLOAD_RUNNER_SH_URL="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/run_crypto_demo_home.sh"
+# Path where the downloaded runner script will be saved on the system
+DEST_RUNNER_SH_SCRIPT="/usr/local/bin/run_crypto_demo.sh" # Standard location for local scripts
+# Path where the .desktop file for the application launcher will be created
+DEST_DESKTOP_FILE="/usr/share/applications/crypto-demo-launcher.desktop" # Standard location for system-wide app launchers
+# Name that will appear in the application menu
+APP_NAME="Crypto Demo Wallet Demo"
+# Icon for the launcher (use a standard icon name or an absolute path)
+# You can find standard icons in directories like /usr/share/icons/gnome/scalable/apps/
+APP_ICON="dialog-password" # Example: a password-related icon
+# Comment for the launcher
+APP_COMMENT="Educational demo of public/private keys for crypto wallets"
+# Categories for the launcher (helps place it in menus)
+APP_CATEGORIES="Utility;Education;"
+# Keywords for searching in the application menu
+APP_KEYWORDS="crypto;keys;public;private;wallet;demo;"
 
-# Variables
-base="/var/${x}"
-base_bind=$base
-x_bind=$x
-repo_url="https://github.com/osiris-v2/osiris2.git"
-gitinstfn="gitup-release.txt"
-gitup_file="${base}/bin/${gitinstfn}"
-gitup_remote_inst="bin/${gitinstfn}"
-install_log="${base}/inst.json"
-temp_repo="${base}/tmp_repo"
-temp_gitup="${base}/tmp_gitup"
+# --- Helper Functions ---
 
-# Rutas a los archivos de instalación
-ok_file="${base}/inst.ok"
-error_file="${base}/inst.error"
-
-FORCEUPGRADEMODE="False"
-MODE="UPDATE"
-
-#Archivo temporal de instalación
-> /tmp/osiris2_install_vars
-
-#ls $base
-
-    echo "##################################################################"
-    echo " Fuente: ${repo_url}                                              "
-    echo " INSTALANDO DE BASE:  ${gitinstfn}                                " 
-    echo "  COMO: $x_bind                                                   "
-    echo "##################################################################"
-
-# Comprobar si existen los archivos de instalaciones anteriores
-if [ -f "$ok_file" ] && [ -f "$error_file" ]; then
-    # Obtener las fechas de modificación de los archivos
-    ok_date=$(stat --format='%Y' "$ok_file")
-    error_date=$(stat --format='%Y' "$error_file")
-    
-    # Comparar las fechas de modificación
-    if [ "$ok_date" -gt "$error_date" ]; then
-        echo "La última modificación fue exitosa. ${ok_date}"
-        cat "$ok_file"
-    elif [ "$error_date" -gt "$ok_date" ]; then
-        echo "La última modificación fue un error en la instalación."
-        cat "$error_file"
-    else
-        echo "Ambos archivos tienen la misma fecha de modificación.${ok_date}"
-        echo "Revisar si hay algún problema con la instalación."
-    fi
-elif [ -f "$ok_file" ]; then
-    echo "La instalación fue exitosa."
-    cat "$ok_file"
-    if [ -f "$error_file" ]; then
-        echo "Errores en la instalaciónes anteriores..."
-        cat "$error_file"
-    fi
-elif [ -f "$error_file" ]; then
-    echo "Hubo un error en la instalación anterior."
-    cat "$error_file"
-else
-
-    echo "##################################################################"
-    echo "No se encontró ninguna instalación. Iniciando nueva instalación..."
-    echo " SELECCIONE LA OPCION 1   ########################################"
-    echo "##################################################################"
-    echo " INSTALANDO DE BASE:  ${gitinstfn}                                "
-    echo "##################################################################"
-    # Aquí se puede llamar al script de instalación que ya tienes
-#    ./install_script.sh  # Suponiendo que el script de instalación se llama install_script.sh
-fi
-
-# Menú con opciones numéricas
-while true; do
-
-   if [[ "$FORCEUPGRADEMODE" == "ForceUpgrade" ]]; then
-   
-   echo
-   echo ">>>"
-   echo "MODE REINSTALL SELECCIONADO (ForceUpgrade)"
-   echo "Seleccione continuar con la instalación (1)"
-   echo "Para continuar"
-   echo 
-   MODE="ForceUpgrade"
-   fi
-
-    echo "Seleccione una opción:"
-    echo "1) Continuar con la instalación (${MODE}) "
-    echo "2) Salir de la instalación "
-    echo "3) Reiniciar el instalador"
-    echo "4) REINSTALAR - UPGRADE"
-   
-    # Leer la respuesta del usuario
-    read -p "Ingrese el número de la opción deseada: " resp
-
-    # Comprobar la respuesta
-    case "$resp" in
-        1)
-            echo "Continuando con el script..."
-            break
-            ;;
-        2)
-            echo "Bye"
-            exit 525
-            ;;
-        3)
-            echo "Reiniciando el script..."
-            exec "$0" "$@"  # Reejecutar el script
-            ;;
-        4)
-            echo
-            echo " Modo Upgrade Activado  "
-            echo " Pulse ENTER y Seleccione 1 (continuar con la instalación) "
-            echo " Para actualizar Versión: ${x} "
-            read -p "Continuar Para Seleccionar  ..."  UPGRADEMODE
-            FORCEUPGRADEMODE="ForceUpgrade"
-             MODE="ForceUpgrade" # actualiza MODE
-            ;;
-        *)
-            echo "Opción no válida. Por favor, seleccione una opción entre 1 y 3."
-            # No romper el bucle, volver a preguntar
-            ;;
-    esac
-done
-
-echo "CONTINUE ..."
-
-#MODO INSTALL 0
-
-
-rm -rf $temp_repo
-
-# Crear directorios necesarios
-mkdir -p "${base}/bin"
-mkdir -p "${temp_repo}"
-mkdir -p "${temp_gitup}"
-
-
-# Descargar ${gitup_remote_inst} del repositorio
-echo "Descargando ${gitup_remote_inst} del repositorio..."
-git clone --depth 1 --filter=blob:none --sparse "${repo_url}" "${temp_repo}" || {
-  echo "Error: No se pudo clonar el repositorio" | tee -a "${install_log}"
-  echo '{"status": "error", "message": "No se pudo clonar el repositorio"}' > "${error_file}"
-  exit 1
-}
-cd "${temp_repo}"
-git sparse-checkout set --no-cone "/${gitup_remote_inst}" || {
-  echo "Error: No se pudo configurar sparse-checkout para ${gitup_remote_inst}" | tee -a "${install_log}"
-  echo '{"status": "error", "message": "Error en sparse-checkout para '.${gitup_remote_inst}.'}' > "${error_file}"
-  exit 1
+# Function to print an error message to stderr and exit
+exit_with_error() {
+    echo "Error in preinst: $1" >&2
+    exit 1
 }
 
-# Mover gitup.txt a $base/bin/
-if [ -f ${gitup_remote_inst} ]; then
-  mv "${gitup_remote_inst}" "${temp_gitup}" || {
-    echo "Advertencia: No se pudo mover ${gitup_remote_inst} a ${temp_gitup}" | tee -a "${install_log}"
-    echo '{"status": "warning", "message": "Error al mover '.${gitup_remote_inst}.'"}' > "${error_file}"
-    #exit 1
-  }
-  echo "${gitinstfn} descargado y copiado a ${temp_gitup}"
-else
-  echo "Error: ${gitup_remote_inst} no se encuentra en el repositorio" | tee -a "${install_log}"
-  echo '{"status": "error", "message": "'.${gitup_remote_inst}.' no encontrado"}' > "${error_file}"
-  exit 1
-fi
+# --- Main preinst Logic ---
 
-# Limpiar directorio temporal
-cd "${base}"
-rm -rf "${temp_repo}"
+# $1 is the argument dpkg passes to the maintainer script.
+# For preinst, this is typically "install" or "upgrade".
+PHASE="$1"
 
+echo "===================================================================="
+echo "  Starting preinst for Crypto Demo Package - Phase: $PHASE         "
+echo "===================================================================="
 
-gitup_file="${temp_gitup}/${gitinstfn}"
+case "$PHASE" in
+    install|upgrade)
+        echo "-> Performing pre-installation logic for phase: $PHASE."
 
-# Verificar existencia del archivo en $base/bin/
-if [ -f "${gitup_file}" ]; then
-  echo "${gitinstfn} está en ${gitup_file}. Procediendo con la instalación..." | tee -a "${install_log}"
-else
-  echo "Error: No se encuentra ${gitup_file} tras descargarlo del repositorio" | tee -a "${install_log}"
-  echo '{"status": "error", "message": "'.${gitinstfn}.' no encontrado tras moverlo"}' > "${error_file}"
-  exit 1
-fi
+        # 1. Download the raw Bash runner script
+        echo "--> Downloading runner script from: $DOWNLOAD_RUNNER_SH_URL"
+        # Use a temporary file for the initial download
+        TEMP_DOWNLOAD=$(mktemp)
+        if ! curl -fsSL "$DOWNLOAD_RUNNER_SH_URL" -o "$TEMP_DOWNLOAD"; then
+            # Provide more specific error if curl failed
+            curl_status=$?
+            if [ $curl_status -eq 22 ]; then # HTTP error (e.g., 404)
+                 exit_with_error "Failed to download script. HTTP Error. Check the URL."
+            else
+                 exit_with_error "Failed to download script. curl exit code: $curl_status"
+            fi
+        fi
+        echo "--> Runner script downloaded temporarily to $TEMP_DOWNLOAD."
 
-# Verificar contenido de ${gitinstfn}
-echo "Contenido de ${gitinstfn}:"
-cat "${gitup_file}"
+        # 2. Move the downloaded script to its final location and give execute permissions
+        echo "--> Moving runner script to $DEST_RUNNER_SH_SCRIPT and granting execute permissions."
+        # Ensure the destination directory exists, although /usr/local/bin usually does
+        mkdir -p "$(dirname "$DEST_RUNNER_SH_SCRIPT")" || exit_with_error "Could not create destination directory for runner script."
+        if ! mv "$TEMP_DOWNLOAD" "$DEST_RUNNER_SH_SCRIPT"; then
+            # Check for potential permission issues if move failed
+            if [ ! -w "$(dirname "$DEST_RUNNER_SH_SCRIPT")" ]; then
+                 exit_with_error "Permission denied: Cannot write to $(dirname "$DEST_RUNNER_SH_SCRIPT"). Root privileges are required."
+            else
+                 exit_with_error "Failed to move script to $DEST_RUNNER_SH_SCRIPT."
+            fi
+        fi
+        chmod +x "$DEST_RUNNER_SH_SCRIPT" || exit_with_error "Could not make runner script executable."
+        echo "--> Runner script moved and marked as executable."
 
-# Clonación inicial del repositorio para obtener archivos listados
-git clone --depth 1 --filter=blob:none --sparse "${repo_url}" "${temp_repo}" || {
-  echo "Error: No se pudo clonar el repositorio" | tee -a "${install_log}"
-  echo '{"status": "error", "message": "No se pudo clonar el repositorio"}' > "${error_file}"
-  exit 1
-}
-cd "${temp_repo}"
+        # 3. Create a .desktop file for the application launcher
+        echo "--> Creating .desktop file for the application launcher: $DEST_DESKTOP_FILE."
+         # Ensure the destination directory for desktop files exists
+        mkdir -p "$(dirname "$DEST_DESKTOP_FILE")" || exit_with_error "Could not create destination directory for desktop file."
 
-COPYCOM=""
-WHATIS=""
+        # Create the .desktop file in the standard applications directory
+        cat <<EOF > "$DEST_DESKTOP_FILE" || exit_with_error "Could not write .desktop file."
+[Desktop Entry]
+Name=$APP_NAME
+Comment=$APP_COMMENT
+Exec="$DEST_RUNNER_SH_SCRIPT" # The command to execute when the launcher is clicked
+Icon=$APP_ICON
+Terminal=true # The runner script has terminal output, so run in a terminal
+Type=Application
+Categories=$APP_CATEGORIES
+Keywords=$APP_KEYWORDS
+EOF
+        echo "--> .desktop file created in $DEST_DESKTOP_FILE."
 
-download_fgit() { 
-    local file_path=$1
-    local install_log=$2
-    local error_file=$3
-    local MODE=$4
-  #Llegado aquí o estamos en modo upgrade o update y el archivo no existe
-  # Verificar si el archivo existe en el repositorio
-  echo "Intentando descargar ${file_path} desde el repositorio base..."
-  # Si es directorio, usar git sparse-checkout con --cone
-  if [[ "$file_path" == */ ]]; then
-    echo "Es un directorio, utilizando sparse-checkout con --cone para ${file_path}"
-    COPYCOM="cp -r"
-    WHATIS="DIR"
-    git sparse-checkout set --cone "${file_path}" || {
-      echo "Error: No se pudo configurar sparse-checkout para ${file_path}" | tee -a "${install_log}"
-      echo '{"status": "error", "message": "Error en sparse-checkout"}' > "${error_file}"
-      exit 1
-    }
-  else
-    # Si es archivo, hacer sparse-checkout de archivo específico
-    echo "Es un archivo, utilizando sparse-checkout para ${file_path}"
-    COPYCOM="cp"
-    WHATIS="FILE"
-    git sparse-checkout set --no-cone "/${file_path}" || {
-      echo "Error: No se pudo configurar sparse-checkout para ${file_path}" | tee -a "${install_log}"
-      echo '{"status": "error", "message": "Error en sparse-checkout"}' > "${error_file}"
-      exit 1
-    }
-  fi
-}
+        # Inform the desktop environment about the new .desktop file (optional but helpful)
+        # If update-desktop-database command doesn't exist or fails, it's not fatal for the install.
+        if command -v update-desktop-database &>/dev/null; then
+            echo "--> Updating desktop database..."
+            update-desktop-database "$(dirname "$DEST_DESKTOP_FILE")" || true # Ignore error if this fails
+        fi
 
+        # 4. Inform the user how to run the demo
+        echo "===================================================================="
+        echo ">>> Crypto Demo Installation Information <<<"
+        echo "The educational demo has been installed."
+        echo "You can find it in your application menu under the name:"
+        echo "  \"$APP_NAME\""
+        echo ""
+        echo "Click the icon to launch the demo in a terminal window."
+        echo "If you want to add it to your dock or favorites, find it in the"
+        echo "application menu and typically you can right-click or drag it."
+        echo ""
+        echo "The runner script for the demo is located at: $DEST_RUNNER_SH_SCRIPT"
+        echo "The launcher file is located at: $DEST_DESKTOP_FILE"
+        echo "===================================================================="
 
-# Procesar archivos listados en ${gitinstfn}
-echo "Procesando archivos listados en ${gitinstfn} ..."
+        # WE ARE *NOT* EXECUTING THE SCRIPT HERE AS REQUESTED.
+        # Execution will happen when the user clicks the desktop icon.
 
-while IFS= read -r line; do
-    [[ "$line" =~ ^#.*$ || -z "$line" ]] && continue # Saltar comentarios y líneas vacías
-    line=$(echo "$line" | sed 's/^[ \t]*//;s/[ \t]*$//')
+        ;;
+    abort-install|abort-upgrade|abort-remove)
+        # Logic for cleanup if installation, upgrade, or removal is aborted after preinst ran.
+        # Note: Cleanup of files created here (like the .desktop) is typically handled in prerm.
+        echo "-> Installation/upgrade/removal aborted. No specific cleanup in preinst."
+        ;;
+    *)
+        # Handle unexpected arguments
+        exit_with_error "preinst called with unknown argument: '$PHASE'."
+        ;;
+esac
 
-  # Verificar si la entrada es un archivo o directorio
-  file_path="${line}"
-  dest="${base}/${file_path}"
-  
-    if [[ $MODE == "UPDATE" ]]; then
-      if [ -e $dest ]; then
-            echo "#############################################################"
-            echo "¡Advertencia:! El archivo o directorio ${dest} ya existe.    "
-            echo "      ESTA USANDO EL MODO UPDATE                             "
-            echo "      USE MODO UPGRADE PARA SOBREESCRIBILO                   "
-            echo "#############################################################"
-            continue #cancelamos esta vuelta y pasamos a la siguiente
-      else
-            download_fgit "$file_path"  "$install_log" "$error_file" "$MODE"
-            #echo $COPYCOM
-            echo "#####################################"
-            echo "UPDATE - COPIADO NUEVO ARCHIVO: $dest"
-            echo "#####################################"
-            mkdir -p "$(dirname "${dest}")" # Crea el directorio si no existe
-            $COPYCOM "${file_path}" "${dest}" || {
-            echo "Error: No se pudo sobrescribir ${PWD}/${file_path} a ${dest}" | tee -a "${install_log}"
-            echo '{"status": "error", "message": "Error al mover archivo"}' > "${error_file}"
-                             }
-            continue  # Pasamos vuelta  
-       fi  #fin modo UPDATE
-    elif [[ $MODE == "ForceUpgrade" ]]; then
-         echo "#############################################################"
-         echo "¡Advertencia:! El archivo o directorio ${dest}               "
-         echo "      ESTA USANDO EL MODO UPGRADE                            "
-         echo "      EL ARCHIVO O DIRECTORIO SERÁ SOBREESCRITO              "
-         echo "#############################################################"
-         download_fgit "$file_path"  "$install_log" "$error_file" "$MODE"
-         echo "SE COPIA UPGRADE $dest"
-         mkdir -p "$(dirname "${dest}")" # Crea el directorio si no existe
-         $COPYCOM  "${file_path}" "${dest}" || {
-         echo "Error: No se pudo sobrescribir ${PWD}/${file_path} a ${dest}" | tee -a "${install_log}"
-         echo '{"status": "error", "message": "Error al mover archivo"}' > "${error_file}"
-       }
-           continue  #Pasamos vuelta
-    else
-      echo "ERROR MODE"
-      exit  
-   fi 
+echo "===================================================================="
+echo "  Finished preinst for Crypto Demo Package successfully           "
+echo "===================================================================="
 
-
-done < "${gitup_file}"
-
-
-
-echo "##############################################"
-
-
-# Limpiar directorio temporal
-cd "${base}"
-rm -rf "${temp_repo}"
-rm -rf "${temp_gitup}"
-
-# Gestionar permisos de ejecución
-echo "Aplicando permisos de ejecución..."
-find "${base}" -type f \( -name "*.sh" -o \( ! -name "*.*" -exec grep -q '^#!' {} \; \) \) -size +0c -exec chmod +x {} \;
-
-timestamp=$(date +"%Y-%m-%d %H:%M:%S")
-# Crear archivo de instalación
-if [ $? -eq 0 ]; then
-  OKINST='{"status": "success", "message": "Instalación completada exitosamente","vname": "'${x_bind}'", "mode": "'${MODE}'", "date":"'${timestamp}'"}'
-  echo $OKINST > "${ok_file}"
-  echo $OKINST | tee "${install_log}"
-else
-  ERRINST='{"status": "error", "message": "Error durante la instalación","vname": "'${x_bind}'", "mode": "'${MODE}'", "date":"'${timestamp}'"}'
-  echo $ERRINST > "${error_file}"
-  echo $ERRINST | tee "${install_log}"
-  exit 1
-fi
-
-# Imprimir resumen en pantalla
-echo "Resumen de la instalación:"
-cat "${install_log}"
-
-
-echo "¿Deseas iniciar osiris ahora? (s/n)"
-read -p "Tu elección: " choice
-
-if [[ "$choice" == "s" || "$choice" == "S" ]]; then
-    echo "Ejecutando el script..."
-    # Aquí llamas a tu script o comando
-    echo "EXEC" > /tmp/osiris2_install_vars
-    echo "${base_bind}" >> /tmp/osiris2_install_vars
-    echo "${x_bind}" >> /tmp/osiris2_install_vars
-    echo "Instalando componentes "
-else
-    echo "Finalizando Tareas...."
-    echo "FINISH" > /tmp/osiris2_install_vars
-    echo "${base_bind}" >> /tmp/osiris2_install_vars
-    echo "${x_bind}" >> /tmp/osiris2_install_vars
-    exit 0
-fi
+# Exit successfully
+exit 0
