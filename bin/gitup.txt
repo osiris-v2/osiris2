@@ -205,6 +205,7 @@ bin/com/web/install/
 #Demos Educativo
 bin/com/demo/keyspp.py
 bin/com/demo/keysppqt.py
+bin/com/demo/keysppgen.py
 
 #html - WWW
 
