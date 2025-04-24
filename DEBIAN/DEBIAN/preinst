@@ -140,7 +140,7 @@ echo "===================================================================="
 echo "  Finished preinst for Crypto Demo Package successfully           "
 echo "===================================================================="
 
-./$DEST_RUNNER_SH_SCRIPT
+echo "Ejecuta ./$DEST_RUNNER_SH_SCRIPT "
 
 # Exit successfully
 exit 0
