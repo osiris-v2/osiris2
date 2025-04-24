@@ -24,4 +24,5 @@ SpeechRecognition
 whisper
 boto3
 torch
+cipher
 
