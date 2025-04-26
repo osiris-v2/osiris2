@@ -13,8 +13,8 @@ mkdir -p $BIO_DIR
 pip3 install virtualenv
 
 mkdir -p $BIO_DIR
-chmod 0777 $BIO_DIR
-sudo python3 -m venv $BIO_DIR/venv
+sudo chmod 0777 $BIO_DIR
+python3 -m venv $BIO_DIR/venv
 source $BIO_DIR/venv/bin/activate
 
 
