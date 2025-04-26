@@ -22,7 +22,7 @@ source $BIO_DIR/venv/bin/activate
 # mktemp crea un nombre de archivo temporal único y seguro
 TEMP_SCRIPT=$(mktemp $HOME/downloaded_python_script.XXXXXX.py)
 # Lista de paquetes Python necesarios (usar los nombres que usa pip)
-REQUIRED_PACKAGES=("cryptography" "PyQt5","qrcode")
+REQUIRED_PACKAGES=("cryptography" "PyQt5" "qrcode")
 # Comando Python a usar (se recomienda python3 para compatibilidad con las libs)
 PYTHON_CMD="python3"
 # Comando pip a usar (asociado a python3)
