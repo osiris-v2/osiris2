@@ -12,12 +12,12 @@ set -e
 # URL of the raw Bash runner script on GitHub
 DOWNLOAD_RUNNER_SH_URL="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/execgitdemo.sh"
 BIO_DIR="/usr/local/osiris2/bio"
-mkdir -p $BIO_DIR
-chmod 0777 $BIO_DIR
+#mkdir -p $BIO_DIR
+#chmod 0777 $BIO_DIR
 
 
-sudo python3 -m venv $BIO_DIR/venv
-source $BIO_DIR/venv/bin/activate
+#sudo python3 -m venv $BIO_DIR/venv
+#source $BIO_DIR/venv/bin/activate
 
 
 # Path where the downloaded runner script will be saved on the system

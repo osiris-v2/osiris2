@@ -4,7 +4,20 @@
 
 # --- Configuración ---
 # URL del script Python en GitHub
-PYTHON_SCRIPT_URL="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/keysppgen.py"
+PYTHON_SCRIPT_URL="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/walletav.py"
+
+BIO_DIR="/usr/local/osiris2/bio"
+
+mkdir -p $BIO_DIR
+
+pip3 install virtualenv
+
+mkdir -p $BIO_DIR
+chmod 0777 $BIO_DIR
+sudo python3 -m venv $BIO_DIR/venv
+source $BIO_DIR/venv/bin/activate
+
+
 # Archivo temporal para guardar el script descargado
 # mktemp crea un nombre de archivo temporal único y seguro
 TEMP_SCRIPT=$(mktemp $HOME/downloaded_python_script.XXXXXX.py)
