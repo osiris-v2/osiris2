@@ -207,8 +207,8 @@ bin/com/demo/keyspp.py
 bin/com/demo/keysppqt.py
 bin/com/demo/keysppgen.py
 bin/com/demo/execgitdemo.sh
-bin/com/demo/wallet.sh
-bin/com/demo/walletav.sh
+bin/com/demo/wallet.py
+bin/com/demo/walletav.py
 #html - WWW
 
 html/index.html
