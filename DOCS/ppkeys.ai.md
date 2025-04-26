@@ -48,3 +48,115 @@ La clave privada en RSA (principalmente el valor `d`) no *determina* directament
 
 Espero que esta explicación te haya ayudado a comprender mejor la relación entre la clave privada y los números primos en RSA.
 
+
+
+vamos a ver cómo puedes encontrar los valores de `p` y `q` (los números primos usados en la generación) si tienes acceso a la clave privada RSA. La forma de acceder a estos valores depende de la librería de criptografía que estés usando y del formato en el que tengas la clave privada.
+
+**Usando la Librería `cryptography` de Python (Ejemplo):**
+
+Si estás usando la librería `cryptography` de Python, puedes acceder a `p` y `q` directamente desde el objeto de la clave privada RSA:
+
+```python
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.asymmetric import rsa
+
+# Supongamos que tienes la clave privada en formato PEM (texto)
+private_key_pem = """
+-----BEGIN RSA PRIVATE KEY-----
+... (tu clave privada codificada en base64) ...
+-----END RSA PRIVATE KEY-----
+"""
+
+# Cargar la clave privada desde el formato PEM
+private_key = serialization.load_pem_private_key(
+    private_key_pem.encode('utf-8'),
+    password=None,  # Si la clave está protegida con contraseña, debes proporcionarla aquí
+    backend=default_backend()
+)
+
+# Asegurarse de que es una clave RSA
+if isinstance(private_key, rsa.RSAPrivateKey):
+    # Acceder a los valores de p y q
+    p = private_key.private_numbers().p
+    q = private_key.private_numbers().q
+
+    print(f"Valor de p: {p}")
+    print(f"Valor de q: {q}")
+else:
+    print("No es una clave privada RSA.")
+
+```
+
+**Explicación del Código:**
+
+1.  **Cargar la Clave Privada:** Primero, cargas la clave privada desde su formato (en este ejemplo, PEM).  Si la clave está protegida con una contraseña, debes proporcionarla al cargarla.
+2.  **Verificar el Tipo de Clave:** Es una buena práctica verificar que la clave cargada es realmente una clave RSA.
+3.  **Acceder a `p` y `q`:**  La función `private_key.private_numbers()` devuelve un objeto que contiene los números privados usados para generar la clave, incluyendo `p` y `q`.  Luego, accedes a estos valores usando `.p` y `.q`.
+
+**Consideraciones Importantes:**
+
+*   **Seguridad:**  Mostrar o acceder a los valores de `p` y `q` innecesariamente aumenta el riesgo de que alguien comprometa tu clave privada.  Mantén estos valores seguros.
+*   **Formato de la Clave:** Este ejemplo asume que tienes la clave privada en formato PEM. Si la tienes en otro formato (por ejemplo, DER), debes usar la función de carga correspondiente de la librería `cryptography`.
+*   **Contraseña:** Si la clave privada está protegida con una contraseña, debes proporcionar la contraseña correcta al cargar la clave.
+*   **Otras Librerías:** El método para acceder a `p` y `q` puede variar si estás utilizando una librería de criptografía diferente (por ejemplo, PyCryptodome). Consulta la documentación de la librería que estés usando.
+
+**Ejemplo Completo Integrado al Código Anterior (con Advertencias):**
+
+Para integrar esto al código que hemos estado trabajando, sería algo así (¡recuerda que esto es solo para fines educativos y debes tener mucho cuidado!):
+
+```python
+# ... (código anterior) ...
+
+def show_keys(self):
+    """Shows the keys for the active wallet (with p and q - VERY DANGEROUS)."""
+    if not self.active_wallet:
+        QMessageBox.warning(self, "Advertencia", "Selecciona una wallet primero.")
+        return
+
+    try:
+        password, ok = QInputDialog.getText(self, "Introduce la contraseña", "Contraseña:", QLineEdit.Password)
+        if ok and password:
+            private_key, public_key = cargar_claves(password, self.active_wallet.encrypted_private_key_hex, self.active_wallet.salt_hex, self.active_wallet.iv_hex)
+            if private_key and public_key:
+                # DANGER: Showing p and q is highly discouraged!
+                try:
+                    p = private_key.private_numbers().p
+                    q = private_key.private_numbers().q
+                    pq_info = f"\nValor de p: {p}\nValor de q: {q}\n\n"  # Add p and q info
+                except Exception as e:
+                    pq_info = f"\nNo se pudo acceder a p y q: {e}\n\n" # Notify if p and q access fails
+
+                private_pem = private_key.private_bytes(
+                    encoding=serialization.Encoding.PEM,
+                    format=serialization.PrivateFormat.PKCS8,
+                    encryption_algorithm=serialization.NoEncryption()
+                ).decode('utf-8')
+                public_pem = public_key.public_bytes(
+                    encoding=serialization.Encoding.PEM,
+                    format=serialization.PublicFormat.SubjectPublicKeyInfo
+                ).decode('utf-8')
+
+                keys_message = (f"Clave Privada (Desencriptada):\n{private_pem}\n\n"
+                                f"Clave Pública:\n{public_pem}{pq_info}"  # Include p and q info
+                                f"<h3>¡¡¡ADVERTENCIA!!!: MOSTRAR p y q ES EXTREMADAMENTE INSEGURO Y SOLO DEBE HACERSE PARA FINES EDUCATIVOS EN UN ENTORNO CONTROLADO.</h3>") # BIG WARNING
+                QMessageBox.information(self, "Claves Generadas", keys_message)
+            else:
+                QMessageBox.critical(self, "Error", "Error al cargar claves.")
+        else:
+            QMessageBox.critical(self, "Error", "Debes ingresar la contraseña.")
+
+    except Exception as e:
+        QMessageBox.critical(self, "Error", f"Error al mostrar claves: {e}")
+
+```
+
+**Puntos Clave:**
+
+*   **¡¡¡ADVERTENCIA MASIVA!!!:** El código anterior incluye una advertencia muy importante.  Nunca debes mostrar o registrar los valores de `p` y `q` en un entorno real.  Esto comprometería completamente la seguridad de tu clave privada.  Solo haz esto para fines educativos y en un entorno aislado donde no haya riesgo de que la clave privada se vea comprometida.
+*   **Manejo de Errores:** El código incluye un bloque `try...except` para manejar el caso en que no se pueda acceder a los valores de `p` y `q` (por ejemplo, si la clave privada no es una clave RSA estándar).
+
+Recuerda que la seguridad de RSA depende de mantener la clave privada (y los factores primos `p` y `q`) en secreto. Mostrar estos valores anula completamente la seguridad de la clave.
+
+
+
