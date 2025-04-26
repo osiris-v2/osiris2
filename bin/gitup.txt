@@ -208,6 +208,7 @@ bin/com/demo/keysppqt.py
 bin/com/demo/keysppgen.py
 bin/com/demo/execgitdemo.sh
 bin/com/demo/wallet.sh
+bin/com/demo/walletav.sh
 #html - WWW
 
 html/index.html

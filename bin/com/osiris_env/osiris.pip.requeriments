@@ -23,6 +23,8 @@ PyAudio
 SpeechRecognition
 whisper
 boto3
+qrcode
+
 torch
 cipher
 
