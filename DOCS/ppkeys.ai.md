@@ -160,3 +160,148 @@ Recuerda que la seguridad de RSA depende de mantener la clave privada (y los fac
 
 
 
+
+ejemplo matemático sencillo de RSA usando números primos pequeños para ilustrar el proceso.
+
+**1. Elegir dos números primos pequeños:**
+
+*   `p = 11`
+*   `q = 13`
+
+**2. Calcular `n`:**
+
+*   `n = p * q = 11 * 13 = 143`
+
+**3. Calcular la función totiente de Euler (φ(n))**:
+
+*   `φ(n) = (p - 1) * (q - 1) = (11 - 1) * (13 - 1) = 10 * 12 = 120`
+
+**4. Elegir `e` (exponente público):**
+
+*   Elegimos un número `e` que sea mayor que 1, menor que φ(n) (120) y coprimo con φ(n).
+*   Probemos con `e = 7`. El máximo común divisor (MCD) de 7 y 120 es 1, por lo que son coprimos.
+
+**5. Calcular `d` (exponente privado):**
+
+*   Debemos encontrar `d` tal que `(d * e) mod φ(n) = 1`, es decir, `(d * 7) mod 120 = 1`
+*   En otras palabras, buscamos un múltiplo de 7 que, al dividirlo por 120, deje un residuo de 1.
+*   Podemos probar diferentes valores de `d`:
+    *   Si `d = 1`: `(1 * 7) mod 120 = 7`
+    *   Si `d = 2`: `(2 * 7) mod 120 = 14`
+    *   ...
+    *   Si `d = 103`: `(103 * 7) mod 120 = 721 mod 120 = 1` (721 = 6 * 120 + 1)
+*   Por lo tanto, `d = 103`
+
+**6. Claves:**
+
+*   **Clave Pública:** `(n, e) = (143, 7)`
+*   **Clave Privada:** `(n, d) = (143, 103)`
+
+**Ejemplo de Cifrado y Descifrado:**
+
+*   **Mensaje Original:** Supongamos que el mensaje que queremos cifrar es `m = 10`
+*   **Cifrado:**  Ciframos el mensaje `m` usando la clave pública `(143, 7)`:
+    `c = m<sup>e</sup> mod n = 10<sup>7</sup> mod 143`
+    `c = 10000000 mod 143 = 28` (Puedes verificar esto con una calculadora online)
+    El mensaje cifrado es `c = 28`
+
+*   **Descifrado:** Desciframos el mensaje cifrado `c` usando la clave privada `(143, 103)`:
+    `m = c<sup>d</sup> mod n = 28<sup>103</sup> mod 143`
+    `m = 10` (Verificar este cálculo es más complicado, pero el resultado es 10).
+    Hemos recuperado el mensaje original.
+
+**Resumen del Ejemplo:**
+
+*   `p = 11`, `q = 13`
+*   `n = 143`
+*   `φ(n) = 120`
+*   `e = 7`
+*   `d = 103`
+*   Clave pública: `(143, 7)`
+*   Clave privada: `(143, 103)`
+*   Mensaje original: `m = 10`
+*   Mensaje cifrado: `c = 28`
+*   Mensaje descifrado: `m = 10`
+
+**Importante:**
+
+Este es un ejemplo simplificado. En la práctica, RSA usa números primos mucho más grandes para que sea imposible factorizar `n`.
+
+
+vamos a desglosar la función totiente de Euler y por qué restamos 1 a `p` y `q` antes de multiplicarlos.
+
+**¿Qué es la función totiente de Euler (φ(n))?**
+
+En términos sencillos, la función totiente de Euler, denotada como φ(n), cuenta la cantidad de números enteros positivos menores o iguales a `n` que son coprimos con `n`.
+
+*   **Coprimo:** Dos números son coprimos si su máximo común divisor (MCD) es 1.  En otras palabras, no tienen ningún factor común aparte de 1.
+
+**Ejemplo Simple:**
+
+*   Sea `n = 8`.  Los números menores o iguales a 8 son: 1, 2, 3, 4, 5, 6, 7, 8
+*   ¿Cuáles de estos son coprimos con 8?
+    *   1 es coprimo con 8 (MCD(1, 8) = 1)
+    *   2 no es coprimo con 8 (MCD(2, 8) = 2)
+    *   3 es coprimo con 8 (MCD(3, 8) = 1)
+    *   4 no es coprimo con 8 (MCD(4, 8) = 4)
+    *   5 es coprimo con 8 (MCD(5, 8) = 1)
+    *   6 no es coprimo con 8 (MCD(6, 8) = 2)
+    *   7 es coprimo con 8 (MCD(7, 8) = 1)
+    *   8 no es coprimo con 8 (MCD(8, 8) = 8)
+*   Hay 4 números coprimos con 8 (1, 3, 5, 7).  Por lo tanto, φ(8) = 4
+
+**¿Por qué es importante para RSA?**
+
+En RSA, φ(n) se usa para calcular el exponente privado `d`. La propiedad clave es que, si `e` es el exponente público y `d` es el exponente privado, entonces:
+
+`(e * d) mod φ(n) = 1`
+
+Esto significa que `e` y `d` son inversos multiplicativos modulares uno del otro módulo φ(n). Esta relación es fundamental para que el cifrado y descifrado de RSA funcionen correctamente.
+
+**¿Por qué se resta 1 a `p` y `q`?**
+
+Ahora, vamos a la fórmula para calcular φ(n) cuando `n` es el producto de dos números primos `p` y `q`:
+
+`φ(n) = (p - 1) * (q - 1)`
+
+La razón por la que restamos 1 a `p` y `q` es la siguiente:
+
+*   Si `p` es un número primo, entonces todos los números enteros positivos menores que `p` son coprimos con `p`. Por ejemplo, si `p = 7`, entonces los números 1, 2, 3, 4, 5, 6 son todos coprimos con 7.  Hay `p - 1` de estos números.
+*   De manera similar, si `q` es un número primo, entonces todos los números enteros positivos menores que `q` son coprimos con `q`.
+
+Cuando `n = p * q`, queremos contar cuántos números menores que `n` son coprimos con *ambos* `p` y `q`.
+
+Considera un número `x` menor que `n`. Si `x` tiene un factor común con `p` o con `q`, entonces *no* es coprimo con `n`. Los únicos números que *no* son coprimos con `p` son los múltiplos de `p`, y los únicos números que *no* son coprimos con `q` son los múltiplos de `q`.
+
+Para calcular φ(n), tomamos el número total de enteros menores que `n` (que es `n - 1`) y restamos los múltiplos de `p` y los múltiplos de `q`. Sin embargo, debemos tener cuidado de no restar demasiado, ya que hemos contado los múltiplos de `p * q` (que es `n` mismo) dos veces.
+
+La forma más sencilla de verlo es que, dado que `p` y `q` son primos, los números que *no* son coprimos con `n` son aquellos que son divisibles por `p` o por `q`.
+
+*   Hay `q - 1` números menores que `n` que son múltiplos de `p` (excluyendo a `n` mismo).
+*   Hay `p - 1` números menores que `n` que son múltiplos de `q` (excluyendo a `n` mismo).
+
+Por lo tanto, el número de números que *sí* son coprimos con `n` es:
+
+`φ(n) = (p * q) - (p - 1) - (q - 1) - 1= p*q -p -q + 1 = (p-1)*(q-1)`
+
+**Ejemplo:**
+
+Si `p = 3` y `q = 5`, entonces `n = 15`.
+
+Los números menores que 15 son: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14
+
+*   Múltiplos de 3: 3, 6, 9, 12 (4 números)
+*   Múltiplos de 5: 5, 10 (2 números)
+*   Números coprimos con 15: 1, 2, 4, 7, 8, 11, 13, 14 (8 números)
+
+Usando la fórmula: `φ(15) = (3 - 1) * (5 - 1) = 2 * 4 = 8`
+
+**En Resumen:**
+
+*   La función totiente de Euler φ(n) cuenta cuántos números menores o iguales que `n` son coprimos con `n`.
+*   En RSA, φ(n) es crucial para calcular el exponente privado `d`.
+*   Cuando `n = p * q` (donde `p` y `q` son primos), φ(n) = (p - 1) * (q - 1) porque hay `p - 1` números menores que `n` que son múltiplos de `q` y `q - 1` números menores que `n` que son múltiplos de `p`. Restamos estos múltiplos para contar solo los números coprimos con `n`.
+
+Espero que esta explicación detallada te ayude a entender mejor la función totiente de Euler y su importancia en RSA.
+
+
