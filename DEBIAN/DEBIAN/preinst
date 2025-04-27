@@ -4,10 +4,6 @@
 # Exit immediately if a command exits with a non-zero status.
 set -e
 
-#sudo apt install python3.11-venv
-#sudo apt install python3-virtualenv
-
-
 # --- Configuration ---
 # URL of the raw Bash runner script on GitHub
 DOWNLOAD_RUNNER_SH_URL="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/execgitdemo.sh"
@@ -16,16 +12,12 @@ mkdir -p $BIO_DIR
 chmod 0777 -R $BIO_DIR
 
 
-#sudo python3 -m venv $BIO_DIR/venv
-#source $BIO_DIR/venv/bin/activate
-
-
 # Path where the downloaded runner script will be saved on the system
 DEST_RUNNER_SH_SCRIPT="${BIO_DIR}/bio.sh" # Standard location for local scripts
 # Path where the .desktop file for the application launcher will be created
 DEST_DESKTOP_FILE="/usr/share/applications/crypto-demo-launcher.desktop" # Standard location for system-wide app launchers
 # Name that will appear in the application menu
-APP_NAME="Crypto Demo Wallet Demo"
+APP_NAME="BIO BETA"
 # Icon for the launcher (use a standard icon name or an absolute path)
 # You can find standard icons in directories like /usr/share/icons/gnome/scalable/apps/
 APP_ICON="dialog-password" # Example: a password-related icon
@@ -150,7 +142,7 @@ echo "===================================================================="
 echo "  Finished preinst for Crypto Demo Package successfully           "
 echo "===================================================================="
 
-echo "Ejecuta ./$DEST_RUNNER_SH_SCRIPT "
+echo "Ejecuta .$DEST_RUNNER_SH_SCRIPT "
 
 # Exit successfully
 exit 0
