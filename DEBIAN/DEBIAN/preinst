@@ -12,7 +12,7 @@
 DOWNLOAD_RUNNER_SH_URL="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/execgitdemo.sh"
 BIO_DIR="$HOME/osiris2/bio"
 mkdir -p $BIO_DIR/tmp
-chmod 0777 -R $BIO_DIR
+
 
 
 # Path where the downloaded runner script will be saved on the system
@@ -145,7 +145,10 @@ echo "===================================================================="
 echo "  Finished preinst for Crypto Demo Package successfully           "
 echo "===================================================================="
 
-echo " Ejecuta .$DEST_RUNNER_SH_SCRIPT "
+
+chmod +x $DEST_RUNNER_SH_SCRIPT
+chmod 0777 $DEST_RUNNER_SH_SCRIPT 
+echo " -> Ejecuta .$DEST_RUNNER_SH_SCRIPT "
 
 # Exit successfully
 exit 0
