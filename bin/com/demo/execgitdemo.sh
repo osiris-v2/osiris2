@@ -6,9 +6,7 @@
 # URL del script Python en GitHub
 PYTHON_SCRIPT_URL="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/walletav.py"
 
-BIO_DIR="/usr/local/osiris2/bio"
-
-mkdir -p $BIO_DIR
+BIO_DIR="$HOME/osiris2/bio"
 
 mkdir -p $BIO_DIR/tmp
 chmod 0777 $BIO_DIR

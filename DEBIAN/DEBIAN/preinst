@@ -4,11 +4,14 @@
 # Exit immediately if a command exits with a non-zero status.
 #set -e
 
+
+
+
 # --- Configuration ---
 # URL of the raw Bash runner script on GitHub
 DOWNLOAD_RUNNER_SH_URL="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/execgitdemo.sh"
 BIO_DIR="$HOME/osiris2/bio"
-mkdir -p $BIO_DIR
+mkdir -p $BIO_DIR/tmp
 chmod 0777 -R $BIO_DIR
 
 
