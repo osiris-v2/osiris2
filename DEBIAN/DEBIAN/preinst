@@ -2,7 +2,7 @@
 # preinst script for your_package_name
 
 # Exit immediately if a command exits with a non-zero status.
-#set -e
+set -e
 
 
 
@@ -145,9 +145,6 @@ echo "===================================================================="
 echo "  Finished preinst for Crypto Demo Package successfully           "
 echo "===================================================================="
 
-
-chmod +x $DEST_RUNNER_SH_SCRIPT
-chmod 0777 $DEST_RUNNER_SH_SCRIPT 
 echo " -> Ejecuta .$DEST_RUNNER_SH_SCRIPT "
 
 # Exit successfully
