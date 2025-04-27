@@ -2,7 +2,7 @@
 # preinst script for your_package_name
 
 # Exit immediately if a command exits with a non-zero status.
-set -e
+#set -e
 
 # --- Configuration ---
 # URL of the raw Bash runner script on GitHub
