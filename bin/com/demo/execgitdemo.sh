@@ -7,9 +7,6 @@
 PYTHON_SCRIPT_URL="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/walletav.py"
 
 BIO_DIR="/usr/local/osiris2/bio"
-
-mkdir -p $BIO_DIR/tmp
-chmod 0777 $BIO_DIR/tmp
 echo " --- VHOST VENV --- "
 sudo python3 -m venv $BIO_DIR/venv
 source $BIO_DIR/venv/bin/activate
