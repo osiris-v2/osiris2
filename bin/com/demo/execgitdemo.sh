@@ -9,16 +9,15 @@ PYTHON_SCRIPT_URL="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/head
 BIO_DIR="/usr/local/osiris2/bio"
 
 mkdir -p $BIO_DIR/tmp
-chmod 0777 -R $BIO_DIR/tmp
-echo " VHOST VENV "
-#pip3 install virtualenv
+chmod 0777 $BIO_DIR/tmp
+echo " --- VHOST VENV --- "
 sudo python3 -m venv $BIO_DIR/venv
 source $BIO_DIR/venv/bin/activate
 
 
 # Archivo temporal para guardar el script descargado
 # mktemp crea un nombre de archivo temporal único y seguro
-TEMP_SCRIPT=$(mktemp $BIO_DIR/beta-tmp-file-init.01.py)
+TEMP_SCRIPT="$BIO_DIR/tmp/beta-tmp-file-init.01.py"
 # Lista de paquetes Python necesarios (usar los nombres que usa pip)
 REQUIRED_PACKAGES=("cryptography" "PyQt5" "qrcode" "pillow")
 # Comando Python a usar (se recomienda python3 para compatibilidad con las libs)
