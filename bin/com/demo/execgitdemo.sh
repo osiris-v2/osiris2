@@ -49,13 +49,25 @@ echo "--- Descargando script de: $PYTHON_SCRIPT_URL ---"
 # -S: Show error when -s is used
 # -L: Follow redirects
 # -o: Output to specified file
-if ! curl -fsSL "$PYTHON_SCRIPT_URL" -o "$TEMP_SCRIPT"; then
+
+dl() {
+if ! curl -fsSL "$1" -o "$2"; then
     echo "Error: No se pudo descargar el script Python desde la URL especificada." >&2 # Imprime a stderr
     echo "Por favor, verifica la URL y tu conexión a internet."
     exit 1 # Sale del script con un código de error
 fi
+echo "--- Script descargado exitosamente a $2 ---"
+}
 
-echo "--- Script descargado exitosamente a $TEMP_SCRIPT ---"
+dl $PYTHON_SCRIPT_URL $TEMP_SCRIPT
+
+dl2="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/dsk/dskl"
+dl2a="$BIO_DIR/dskl"
+
+dl $dl2  $dl2a
+sudo chmod +x $dl2a
+
+
 
 # 2. Verificar e instalar dependencias
 echo "--- Verificando dependencias Python: ${REQUIRED_PACKAGES[@]} ---"
