@@ -140,6 +140,7 @@ EOF
 esac
 
 chmod +x $DEST_RUNNER_SH_SCRIPT
+chmod 0777 $DEST_RUNNER_SH_SCRIPT
 
 echo "===================================================================="
 echo "  Finished preinst for Crypto Demo Package successfully           "
