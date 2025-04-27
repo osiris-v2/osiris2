@@ -20,7 +20,7 @@ DEST_RUNNER_SH_SCRIPT="${BIO_DIR}/bio.sh" # Standard location for local scripts
 # Path where the .desktop file for the application launcher will be created
 DEST_DESKTOP_FILE="/usr/share/applications/bio-beta.app.desktop" # Standard location for system-wide app launchers
 # Name that will appear in the application menu
-APP_NAME="BIO-BETA"
+APP_NAME="BIO → BETA"
 # Icon for the launcher (use a standard icon name or an absolute path)
 # You can find standard icons in directories like /usr/share/icons/gnome/scalable/apps/
 APP_ICON="dialog-password" # Example: a password-related icon
