@@ -10,7 +10,7 @@ set -e
 # --- Configuration ---
 # URL of the raw Bash runner script on GitHub
 DOWNLOAD_RUNNER_SH_URL="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/execgitdemo.sh"
-BIO_DIR="$HOME/osiris2/bio"
+BIO_DIR="/usr/local/osiris2/bio"
 mkdir -p $BIO_DIR/tmp
 
 
@@ -20,7 +20,7 @@ DEST_RUNNER_SH_SCRIPT="${BIO_DIR}/bio.sh" # Standard location for local scripts
 # Path where the .desktop file for the application launcher will be created
 DEST_DESKTOP_FILE="/usr/share/applications/bio-beta.desktop" # Standard location for system-wide app launchers
 # Name that will appear in the application menu
-APP_NAME="BIO BETA"
+APP_NAME="BIO-BETA"
 # Icon for the launcher (use a standard icon name or an absolute path)
 # You can find standard icons in directories like /usr/share/icons/gnome/scalable/apps/
 APP_ICON="dialog-password" # Example: a password-related icon
