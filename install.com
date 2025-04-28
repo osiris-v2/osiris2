@@ -32,6 +32,8 @@ tor 				apt install tor
 
 port-audio     			apt install portaudio19-dev 
 
+QtCppLib                        apt install qtbase5-dev g++ qtdeclarative5-dev
+
 xcblib    			apt install libxcb-xinerama0 libxcb1 libx11-xcb1 libxcb-glx0 libxcb-shape0 libxcb-render0 libxcb-render-util0 libxcb-xfixes0 libxcb-sync1 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-util1 libxcb-xkb1
 
 cdevlibs 			apt install libreadline-dev  libncurses-dev libxcb-cursor0

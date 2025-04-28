@@ -56,6 +56,9 @@ bin/gitup-release.txt
 
 bin/OPS/ops.c
 bin/OPS/ops
+bin/OPS/win.cpp
+bin/OPS/makewin.sh
+bin/OPS/win
 
 
 #... cliente - servidor (chat_server) rust 

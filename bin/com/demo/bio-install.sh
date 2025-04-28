@@ -134,7 +134,7 @@ else
   exit 1
 fi
 }
-
+#exec file
 ef $dl3a
 ef $dl2a
 

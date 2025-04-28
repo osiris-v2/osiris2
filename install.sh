@@ -7,7 +7,7 @@ type check_command_installed >/dev/null 2>&1 || . osiris.sh
 
 check_command_installed /usr/bin/date -R 
 
-sleep 4
+sleep 2
 
 echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 
@@ -33,9 +33,11 @@ check_command_installed /usr/bin/py3pip --version
 
 echo "Esta opción instala  xcblib librerias necesarias para usar Qt con python y otras"
 
+check_command_installed /usr/bin/QtCppLib
 check_command_installed /usr/bin/xcblib 
 check_command_installed /usr/bin/port-audio 
 check_command_installed /usr/bin/cdevlibs 
+
 
 
 echo "Esta opción instala  pip "
