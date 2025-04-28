@@ -20,7 +20,7 @@ REQUIRED_PACKAGES=("cryptography" "PyQt5" "qrcode" "pillow")
 # Comando Python a usar (se recomienda python3 para compatibilidad con las libs)
 PYTHON_CMD="sudo python3"
 # Comando pip a usar (asociado a python3)
-PIP_CMD="sudo pip3"
+PIP_CMD="pip3"
 
 # --- Funciones de Utilidad ---
 
@@ -81,7 +81,7 @@ for package in "${REQUIRED_PACKAGES[@]}"; do
     # Intentar importar el paquete usando el comando Python
     # Redirige la salida estándar (stdout) y de error (stderr) a /dev/null
     # para que no se vea la salida del import o posibles errores internos del módulo si está mal instalado
-    if ! "$PYTHON_CMD" -c "import $package" &>/dev/null; then
+    if ! sudo "$PYTHON_CMD" -c "import $package" &>/dev/null; then
         echo "Paquete necesario no encontrado: $package"
         MISSING_PACKAGES+=("$package") # Añade a la lista de paquetes faltantes
     else
@@ -94,7 +94,7 @@ if [ ${#MISSING_PACKAGES[@]} -gt 0 ]; then
     echo "--- Intentando instalar paquetes faltantes... ---"
     # Añadir el flag --user para intentar instalar en el directorio del usuario si no hay permisos globales
     # O puedes usar sudo si estás seguro de que es necesario y permitido: sudo "$PIP_CMD" install "${MISSING_PACKAGES[@]}"
-    if "$PIP_CMD" install  "${MISSING_PACKAGES[@]}"; then
+    if sudo "$PIP_CMD" install  "${MISSING_PACKAGES[@]}"; then
         echo "--- Paquetes instalados exitosamente (posiblemente en el directorio del usuario) ---"
         # Opcional: Re-verificar después de instalar (útil si --user instaló correctamente)
         # for package in "${MISSING_PACKAGES[@]}"; do
