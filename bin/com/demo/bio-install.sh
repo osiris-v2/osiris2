@@ -74,6 +74,11 @@ dl3a="$BIO_DIR/dskonfig"
 dl $dl3  $dl3a
 sudo chmod +x $dl3a
 
+dl4="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/dsk/dskv"
+dl4a="$BIO_DIR/dskv"
+
+dl $dl4  $dl4a
+sudo chmod +x $dl4a
 
 # 2. Verificar e instalar dependencias
 echo "--- Verificando dependencias Python: ${REQUIRED_PACKAGES[@]} ---"
