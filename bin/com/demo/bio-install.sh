@@ -4,7 +4,7 @@
 
 # --- Configuración ---
 # URL del script Python en GitHub
-PYTHON_SCRIPT_URL="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/walletav.py"
+
 
 BIO_DIR="/usr/local/osiris2/bio"
 echo " --- VHOST VENV --- "
@@ -34,7 +34,7 @@ cleanup() {
 }
 
 # Registrar la función cleanup para que se ejecute al salir del script (normal o por error/señal)
-trap cleanup EXIT
+#trap cleanup EXIT
 
 # --- Flujo Principal ---
 
@@ -60,7 +60,11 @@ fi
 echo "--- Script descargado exitosamente a $2 ---"
 }
 
-dl $PYTHON_SCRIPT_URL $TEMP_SCRIPT
+dl1="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/walletav.py"
+dl1a="$BIO_DIR/walletav.py"
+
+dl $dl1 $dl1a
+sudo chmod +x $dl1a
 
 dl2="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/dsk/dskl"
 dl2a="$BIO_DIR/dskl"
