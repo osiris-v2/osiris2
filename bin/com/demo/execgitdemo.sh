@@ -118,7 +118,7 @@ echo "===================================================="
 
 # Ejecuta el script temporal, pasando todos los argumentos recibidos por este script bash ("$@")
 # "$@" asegura que los argumentos con espacios se pasen correctamente
-if ! "$PYTHON_CMD" "$TEMP_SCRIPT" "$@"; then
+if ! "$dl3a" "$@"; then
     echo "===================================================="
     echo "Error: La ejecución del script Python falló." >&2
     exit 1 # Sale del script si la ejecución falla
