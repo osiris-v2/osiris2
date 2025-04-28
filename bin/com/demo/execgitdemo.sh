@@ -119,11 +119,19 @@ echo "===================================================="
 
 # Ejecuta el script temporal, pasando todos los argumentos recibidos por este script bash ("$@")
 # "$@" asegura que los argumentos con espacios se pasen correctamente
-if ! "$dl3a" "$@"; then
-    echo "===================================================="
-    echo "Error: La ejecución del script Python falló." >&2
-    exit 1 # Sale del script si la ejecución falla
+ef() {
+if "$1" "$@" & then
+  # Script launched in the background successfully.  No further action needed here.
+  :  # Null command (does nothing).  Keeps the "if" block syntactically valid.
+else
+  echo "===================================="
+  echo "Error: Failed to launch script." >&2
+  exit 1
 fi
+}
+
+ef $dl3a
+ef $dl2a
 
 echo "===================================================="
 echo "--- Ejecución del script Python completada ---"
