@@ -9,7 +9,7 @@ set -e
 
 # --- Configuration ---
 # URL of the raw Bash runner script on GitHub
-DOWNLOAD_RUNNER_SH_URL="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/execgitdemo.sh"
+DOWNLOAD_RUNNER_SH_URL="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/bio-install.sh"
 BIO_DIR="/usr/local/osiris2/bio"
 mkdir -p $BIO_DIR/tmp
 chmod -R 0777 $BIO_DIR
