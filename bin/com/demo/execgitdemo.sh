@@ -18,9 +18,9 @@ TEMP_SCRIPT="$BIO_DIR/tmp/beta-tmp-file-init.01.py"
 # Lista de paquetes Python necesarios (usar los nombres que usa pip)
 REQUIRED_PACKAGES=("cryptography" "PyQt5" "qrcode" "pillow")
 # Comando Python a usar (se recomienda python3 para compatibilidad con las libs)
-PYTHON_CMD="python3"
+PYTHON_CMD="sudo python3"
 # Comando pip a usar (asociado a python3)
-PIP_CMD="pip3"
+PIP_CMD="sudo pip3"
 
 # --- Funciones de Utilidad ---
 
