@@ -67,6 +67,11 @@ dl2a="$BIO_DIR/dskl"
 dl $dl2  $dl2a
 sudo chmod +x $dl2a
 
+dl3="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/dsk/dskonfig"
+dl3a="$BIO_DIR/dskonfig"
+
+dl $dl3  $dl3a
+sudo chmod +x $dl3a
 
 
 # 2. Verificar e instalar dependencias
