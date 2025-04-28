@@ -9,6 +9,7 @@ PYTHON_SCRIPT_URL="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/head
 BIO_DIR="/usr/local/osiris2/bio"
 echo " --- VHOST VENV --- "
 sudo python3 -m venv $BIO_DIR/venv
+sudo chmod -R 0777 $BIO_DIR/venv
 source $BIO_DIR/venv/bin/activate
 
 
