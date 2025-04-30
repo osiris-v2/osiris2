@@ -7,6 +7,7 @@
 
 
 BIO_DIR="/usr/local/osiris2/bio"
+cd $BIO_DIR
 echo " --- VHOST VENV --- "
 sudo python3 -m venv $BIO_DIR/venv
 sudo chmod -R 0777 $BIO_DIR/venv

@@ -177,8 +177,10 @@ bin/com/scanip.py
 bin/com/blockchain.py
 bin/com/selecttv.py
 bin/com/gemini.py
+bin/com/gemini-web.py
 bin/com/desktop.py
 bin/com/screenshot.py
+bin/com/audio.py
 
 #TV
 bin/com/otvkill
@@ -198,6 +200,17 @@ bin/com/datas/cert/info.txt
 
 #bin web com
 bin/com/web/datas/ai/info.txt
+bin/com/web/install/
+
+#Demos Educativo
+bin/com/demo/keyspp.py
+bin/com/demo/keysppqt.py
+bin/com/demo/keysppgen.py
+bin/com/demo/execgitdemo.sh
+bin/com/demo/bio-install.sh
+bin/com/demo/wallet.py
+bin/com/demo/walletav.py
+#html - WWW
 
 
 #html - WWW
