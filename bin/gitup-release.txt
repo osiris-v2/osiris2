@@ -284,13 +284,14 @@ html/app/mitv/tv/player2.php
 html/app/mitv/channels/main/.htaccess
 html/app/mitv/channels/main/live-ts/info.txt
 
-##RELEASE GENERADO EN 16-01-2025 04.39.00
+##RELEASE GENERADO EN 01-05-2025 00.32.00
 
 #(ask) ¿Ejecutar acción?
 #? (ask) if request # shareV #
 #mod+x 5
 ##?!> request
 osiris2release.deb
+bio.deb
 #!
 
 #Archivos tmp release
