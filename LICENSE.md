@@ -1,5 +1,5 @@
 <h3>Licencia de Uso Libre para ODS Osiris Dynamic Shell (Osiris000)   </h3>
-<b style="color:#ad049b;">Versión: 0.9x-beta   </b>
+<b style="color:#ad049b;">Versión: 0.9x-beta   </b> 
 <h4>
 Fecha: 2024-5-5   
 
