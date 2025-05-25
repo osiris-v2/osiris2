@@ -5,7 +5,7 @@ use std::io::Write; // Importa Write para flush síncrono
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let addr = "ws://77.26.134.168:8081"; // <--- Port changed here
+    let addr = "ws://127.0.0.69:8081"; // <--- Port changed here
     let (ws_stream, _) = connect_async(addr).await?;
     println!("Conectado al servidor WebSocket en {}", addr);
 

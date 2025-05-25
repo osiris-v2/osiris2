@@ -42,7 +42,7 @@ def obtener_datos_multimedia(ruta_archivo):
 
     try:
         # Ejecuta ffprobe y captura la salida
-        comando = ['com/osiris_env/ffmpeg/bin/ffprobe', '-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', ruta_archivo]
+        comando = ['ffprobe', '-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', ruta_archivo]
         resultado = subprocess.run(comando, capture_output=True, text=True, check=True)
         datos_json = json.loads(resultado.stdout)
 

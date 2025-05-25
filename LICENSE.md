@@ -3,7 +3,7 @@
 <h4>
 Fecha: 2024-5-5   
 
-Titular de los derechos: AMMM   
+Titular de los derechos: ****     
 </h4>  
 
 	1. Concesión de la licencia:   
@@ -15,7 +15,7 @@ Por la presente, se concede a cualquier persona que obtenga una copia de este so
 Se debe dar crédito a los autores originales del Software en cualquier forma de redistribución del mismo.   
 Se debe mantener la siguiente mención de copyright en todas las copias del Software:   
 
-Copyright (c) 2024 AMM   
+Copyright (c) 2024 ****   
 
 Se debe incluir una copia de esta licencia en todas las distribuciones del Software.   
 

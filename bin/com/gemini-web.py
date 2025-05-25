@@ -371,7 +371,7 @@ def video_translate(video_file_name="",prompt="",args=None):
         obj = {
         "mode":mode,
         "name":None,
-        "com":["com/osiris_env/ffmpeg/bin/ffmpeg","-y","-loglevel","error","-i",video_file_name,
+        "com":["ffmpeg","-y","-loglevel","error","-i",video_file_name,
         "-af","aresample=async=1,loudnorm=I=-16:TP=-1.5:LRA=11",
         "-vf","scale=-2:720,subtitles="+vtranslate+":force_style='"+force_style_sub+"'",
 	"-pix_fmt","yuv420p",
