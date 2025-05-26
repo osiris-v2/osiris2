@@ -117,17 +117,27 @@ Instrucciones: ¡Bienvenido a Osiris!  Usa emojis para dinamizar la conversació
 
 """
 
-
-gemini_models =  ["gemini-2.0-flash-exp",
-                          "gemini-1.5-flash",
-                          "gemini-exp-1206",
-                          "gemini-2.0-flash-thinking-exp-01-21",
-                          "learnlm-1.5-pro-experimental",
-		         "gemini-1.5-flash-8b",
-		         "gemini-1.5-pro",
-                 "gemini-1.0-pro",
-                 "text-embedding-004",
-                 "aqa"]
+############
+## MODELOS #
+###########
+gemini_models = ["gemini-2.5-flash-preview-05-20",
+                    "gemini-2.5-pro-preview-05-06",
+                    "gemini-2.0-flash",
+                    "veo-2.0-generate-001",
+                    "gemini-2.0-flash-lite",
+                    "imagen-3.0-generate-002",
+                    "gemini-2.0-flash-live-001",
+                    "gemini-embedding-exp",
+                    "gemini-2.0-flash-exp",
+                    "gemini-1.5-flash",
+                    "gemini-exp-1206",
+                    "gemini-2.0-flash-thinking-exp-01-21",
+                    "learnlm-1.5-pro-experimental",
+                    "gemini-1.5-flash-8b",
+                    "gemini-1.5-pro",
+                    "gemini-1.0-pro",
+                    "text-embedding-004",
+                "aqa"]
 
 
 # Define la clave API (si ya existe)
@@ -151,6 +161,29 @@ if API_KEY:
     except Exception as e:
         print("ERROR API KEY:",e)
 # Inicialización del modelo generativo
+
+
+
+def select_genai_model():
+    global model, conversation_context
+    seleccione_modelo = f" Seleccione un modelo a usar:\n"
+    dm = 0
+    gemini_models = []
+    for m in genai.list_models():
+        dm = dm + 1
+        seleccione_modelo += f"\n ({dm}) {m.name}  "
+        gemini_models.append(m.name)
+#        print(f"{dm} → {m.name}")
+    print("\n")
+    sel = f"\n{seleccione_modelo} \n Seleccione Uno: >>> "
+    conversation_context += sel
+    inp = input(sel)
+    genai.configure(api_key=API_KEY)
+    model = genai.GenerativeModel(gemini_models[int(inp) - 1])
+    change_model_to = gemini_models[int(inp) - 1]
+    print("\n Cambiando a modelo: "+change_model_to+"\n")
+    conversation_context += inp + "\nCambiando a modelo: " + change_model_to + "\n"
+    print(model)
 
 
 
@@ -1411,7 +1444,8 @@ def main(args):
             "--loadconfig": "--lc",  # Nuevo: Cargar configuración
             "--log": "--log",        # Nuevo: Registrar interacciones en el log
             "--setparams": "--sp",   # Nuevo: Configurar parámetros del modelo
-            "--toggleautosave": "--ta"  # Nuevo: Activar/desactivar autosave
+            "--toggleautosave": "--ta",  # Nuevo: Activar/desactivar autosave
+            "--listmodels":"--lms"
         }
 
         # Verificar el primer argumento
@@ -1421,6 +1455,12 @@ def main(args):
             API_KEY = obtener_key_gemini('resetkey')
             genai.configure(api_key=API_KEY)
             model = genai.GenerativeModel(gemini_model) 
+            return
+
+        if command == "--sgm" or command == "selectgenaimodel":
+            sm = "\nSelección de modelos de API\n"
+            conversation_context += sm
+            select_genai_model()
             return
         if command == "--nmodel":
             sm = "\nSelección de modelos de API\n"
@@ -1460,6 +1500,14 @@ def main(args):
                 set_model_params(args[1:])
             else:
                 messagebox.showerror("Error", "No se especificaron parámetros.")
+            return
+
+        elif command == "--lm" or command == "--listmodels":
+            print("\nModelos Genai disponibles:\n")
+            dm = 0
+            for m in genai.list_models():
+                dm = dm + 1
+                print(f"{dm} → {m.name}")
             return
 
         elif command == "--ta" or command == "--toggleautosave":

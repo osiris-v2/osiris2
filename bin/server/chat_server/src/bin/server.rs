@@ -8,6 +8,15 @@ use log::{info, error, warn};
 use uuid::Uuid;
 
 /* APP */
+
+/*
+struct Config {
+    ip: Option<String>,
+    port: Option<u16>,
+    servers: Option<HashMap<String, String>>,
+}
+*/
+
 #[tokio::main]
 
 async fn main() -> Result<(), Box<dyn Error>> {

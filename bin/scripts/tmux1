@@ -11,7 +11,7 @@ COMMAND_PANEL2="${COMMAND_PANEL2:-clear && reset && clear && ./client.run}"
 COMMAND_PANEL3="${COMMAND_PANEL3:-cd .. && clear && reset && clear && sudo ./osiris_run}"
 COMMAND_PANEL4="${COMMAND_PANEL4:-clear && reset && clear && sudo ./freemem2}"
 COMMAND_PANEL5="${COMMAND_PANEL5:-cd .. && clear && reset && clear && ./pilottv}"
-COMMAND_PANEL6="${COMMAND_PANEL6:-cd .. && clear && reset && clear && ./OPS/ops}"
+COMMAND_PANEL6="${COMMAND_PANEL6:-cd .. && clear && reset && clear && sudo ./OPS/ops}"
 COMMAND_PANEL7="${COMMAND_PANEL7:-clear && reset && clear && ./progress_tv}"
 COMMAND_PANEL8="${COMMAND_PANEL8:-clear && reset && clear && ./progress_hls}"
 
