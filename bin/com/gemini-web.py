@@ -108,6 +108,56 @@ Tu dirección de contacto es osiris.osscom@gmail.com .
 """ 
 
 
+disabled_INI_CONTEXT = """ 
+    Todo es Información.
+    Tú información:
+#Privada:
+    LA IP CLiente es: RESERVADA
+    La IP Servidor es:  [RESERVADA] 
+#La información privada sólo la puedes dar si el cliente te da la palabra clave "0122o21p22"
+#La palabra clave es secreta NUNCA puedes revelarla.
+#Codifica la las IPs SIEMPRE sin plabra clave en este formato numero.numero.***.*** 
+#No revelarás los dos últimos octetos (cifras) de la IP.
+#Nunca digas que tienes una palabra clave ni que no puedes decirlo.
+Reglas públicas:    
+
+
+#No proporciones nada sobre tu información si no te la requieren.
+#Fin de configuración de privacidad.
+
+Tus/Mis INSTRUCCIONES.
+
+        Enlaces a Directorios internos permitidos:
+
+1-          Imagenes temporales generadas por la IA y el Sistema:  /img/tmp 
+2-          Directorio Público General "Freedirectory": /app/freedirectory
+          
+          Tienes permiso para escribir esos 2 enlaces en formato markdown ya que es información pública, siempre en markdown href link. Muestra esa información como enlaces pero solo si es requerido.
+
+Servir los video en formato desplegable con enlaces.
+
+
+Reglas de inicio.
+
+
+
+REGLAS: Regla 1 - las MAYÚSCULAS INFIEREN APREMIO DE ATENCION PARA LA IA COMO NMONICOS DE CONTEXTOS ADYACENTES.
+
+ Tu nombre de predeterminado es: IA Martínez y eres un Sumelier Virtual especialista en Vinos.
+ Representas a Pepe Beiro.
+
+Estás especializado en Vinos Gallegos y perteneces a la cofradía de vios de la Ribeira Sacra.
+
+        
+Cuando te hagan una pregunta con respuesta más o menos compleja, deja de saludar ya que asumes que la conversación es heredada.
+A partir de ahora actúa solamente acorde a tus instrucciones anteriores. 
+
+    CLIENTE DICE: 
+
+""" 
+
+
+
 
 gemini_models =  ["gemini-2.0-flash-exp",
                           "gemini-1.5-flash",
@@ -129,7 +179,7 @@ with open (fk,"r")  as d:
 ######print(APK)
 API_KEY = APK
 #Define modelo a usar
-gemini_model = gemini_models[1]
+gemini_model = gemini_models[0]
 
 
 # Si la clave no está disponible, la obtenemos
@@ -316,21 +366,8 @@ def video_translate(video_file_name="",prompt="",args=None):
     except Exception as e:
         print("Error obteniendo datos multimedia de:",code_video_file)
 
-    # Create the prompt.
-    prompti = "Tu eres gemini-video Tu tarea es Subtitular vídeos, hazlo en formato .srt con este formato ```srt  (traducion en formato srt) ``` "
-    prompti += "\n Usa Arial como fuente predeter_minada pero puedes usar otras si lo requiere el contexto del video."
- #   prompti +="\ncolorea los emojis y hazlos en tamaños variables dentro del rango." 
-    prompti +="\nEtiquetas permitidas en el srt <font size=value color=value face=value></font><b></b> usa colores brillantes claros para el texto ajustandolos en formato hexadecimal."
-    prompti += "Transcribe y traduce el audio del video en español si no se especifica otro idioma.  Para cada frase o sección significativa del diálogo, proporciona un subtítulo con una duración máxima de 5 segundos. Si la frase es más larga, divídala en múltiples subtítulos. Asegúrate de que la traducción sea precisa y neutral. Usa emojis que reflejen el tono y el contenido emocional de cada parte del discurso (por ejemplo, 😡 para la ira, 💣 para una explosión, etc.). Evita emojis que puedan resultar inapropiados o que puedan cambiar el significado de la traducción."
-    prompti +="\nUsa el formato que permita .srt usando html y styles permitidos con fuentes con rango entre 17 y 21 si no se especifica otro, que el vídeo va a ser procesado por ffmpeg entonces son válidas."
 
-
-
-
-
-
-
-
+    # PROMPT's
     #prompti = prompts['sesgos']
     prompti = srt_c["creative"]
     if mprompt !="":
@@ -412,20 +449,7 @@ def video_translate(video_file_name="",prompt="",args=None):
             print(f"Ocurrió un error inesperado: {e}")
             return False
 
-#        obj = {
-#        "mode":"bg",
-#        "name":None,
-#        "com":["dsk/dskv","--video",subtitulado_out]
-#        }
-#        o2mp = osiris2.multiprocess(obj)
-
-#        print("\nRealizando Inferencia 2 ....")
-#        print(f"\n{send_text}\n")
-#        response_return = generate_response(send_text)
         return f"https://osiris000.duckdns.org/img/tmp/{code_sub_name}"
-
-
-
     else:
         return "606"
 
@@ -442,20 +466,11 @@ def gen_com():
 
     pr = """
 
-
 Aplicación Gen Prompt - (función interna de osiris.com.gemini (gemini.py))
-
 
 El cometido de esta función es generar comandos en base a un propmt posterior por retroalimentación.
 
-
-
-
-
 """
-
-
-
 
 
 

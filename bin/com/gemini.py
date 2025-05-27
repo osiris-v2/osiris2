@@ -182,7 +182,7 @@ def select_genai_model():
     model = genai.GenerativeModel(gemini_models[int(inp) - 1])
     change_model_to = gemini_models[int(inp) - 1]
     print("\n Cambiando a modelo: "+change_model_to+"\n")
-    conversation_context += inp + "\nCambiando a modelo: " + change_model_to + "\n"
+    conversation_context += inp + "\nCambiando a modelo: " + change_model_to + "\n" + str(model) + "\n"
     print(model)
 
 
@@ -968,15 +968,6 @@ Debes generar un solo archivo srt
 
 
 
-
-
-
-
-
-
-
-
-
 def video_translate(video_file_name="",prompt="",args=None):
     global personajes, modos, sesgos, desing_mode, last_response,conversation_context,srt_c
     global script_dir
@@ -991,10 +982,7 @@ def video_translate(video_file_name="",prompt="",args=None):
             if xarg in srt_c:
                 mprompt += srt_c[xarg]
                 print(f"\n\n   EXIST:  {arg}   \n\n")
-            
-
         print("End Args")
-#        return
     else:
         print("No Args")
     if video_file_name.startswith('http://') or video_file_name.startswith('https://'):
@@ -1013,9 +1001,7 @@ def video_translate(video_file_name="",prompt="",args=None):
         print("video_file")
         code_video_file = "com/tmp/"+hashlib.md5(video_file_name.encode()).hexdigest()+".mp4"
         input_video_info = "VIDEO PATH: "+ code_video_file + "\n"
-#        return
-        #vídeo file
-#        return
+
 
     ct = f"Uploading file..."
     conversation_context += ct
@@ -1046,20 +1032,6 @@ def video_translate(video_file_name="",prompt="",args=None):
         print("Error obteniendo datos multimedia de:",code_video_file)
 
     # Create the prompt.
-    prompti = "Tu eres gemini-video Tu tarea es Subtitular vídeos, hazlo en formato .srt con este formato ```srt  (traducion en formato srt) ``` "
-    prompti += "\n Usa Arial como fuente predeter_minada pero puedes usar otras si lo requiere el contexto del video."
- #   prompti +="\ncolorea los emojis y hazlos en tamaños variables dentro del rango." 
-    prompti +="\nEtiquetas permitidas en el srt <font size=value color=value face=value></font><b></b> usa colores brillantes claros para el texto ajustandolos en formato hexadecimal."
-    prompti += "Transcribe y traduce el audio del video en español si no se especifica otro idioma.  Para cada frase o sección significativa del diálogo, proporciona un subtítulo con una duración máxima de 5 segundos. Si la frase es más larga, divídala en múltiples subtítulos. Asegúrate de que la traducción sea precisa y neutral. Usa emojis que reflejen el tono y el contenido emocional de cada parte del discurso (por ejemplo, 😡 para la ira, 💣 para una explosión, etc.). Evita emojis que puedan resultar inapropiados o que puedan cambiar el significado de la traducción."
-    prompti +="\nUsa el formato que permita .srt usando html y styles permitidos con fuentes con rango entre 17 y 21 si no se especifica otro, que el vídeo va a ser procesado por ffmpeg entonces son válidas."
-
-
-
-
-
-
-
-
     #prompti = prompts['sesgos']
     prompti = srt_c["def"]
     if mprompt !="":
@@ -1445,7 +1417,8 @@ def main(args):
             "--log": "--log",        # Nuevo: Registrar interacciones en el log
             "--setparams": "--sp",   # Nuevo: Configurar parámetros del modelo
             "--toggleautosave": "--ta",  # Nuevo: Activar/desactivar autosave
-            "--listmodels":"--lms"
+            "--listmodels":"--lms", #Lista los modelos genai
+            "--selectgenailmodel":"--sgm" # Seleccionar un Modelo Genai
         }
 
         # Verificar el primer argumento
