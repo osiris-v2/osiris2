@@ -222,7 +222,7 @@ bin/com/datas/cert/info.txt
 bin/com/web/datas/ai/info.txt
 bin/com/web/install/
 
-#Demos Educativo
+#Programas fuente y Demos para BIO esencialmente
 bin/com/demo/keyspp.py
 bin/com/demo/keysppqt.py
 bin/com/demo/keysppgen.py
@@ -230,6 +230,10 @@ bin/com/demo/execgitdemo.sh
 bin/com/demo/bio-install.sh
 bin/com/demo/wallet.py
 bin/com/demo/walletav.py
+bin/com/demo/aplicaciones.json
+
+
+
 #html - WWW
 
 html/index.html

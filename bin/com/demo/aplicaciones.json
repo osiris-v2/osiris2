@@ -1,0 +1,37 @@
+[
+    {
+        "id": 1,
+        "name": "dskv",
+        "alias": "dskv",
+        "path": "./",
+        "enabled": true
+    },
+    {
+        "id": 2,
+        "name": "dskonfig",
+        "alias": "dskonfig",
+        "path": "./",
+        "enabled": true
+    },
+    {
+        "id": 3,
+        "name": "Demo educativa Cripto-Wallet",
+        "alias": "walletav.py",
+        "path": "./",
+        "enabled": true
+    },
+    {
+        "id": 4,
+        "name": "Editor Sublime Text - Desarrollo - Programas de Escritorio",
+        "alias": "subl",
+        "path": "/usr/bin",
+        "enabled": true
+    },
+    {
+        "id": 5,
+        "name": "Lanzador de Aplicaciones - Programa dskl (this) link json",
+        "alias": "dskl",
+        "path": "./",
+        "enabled": true
+    }
+]
