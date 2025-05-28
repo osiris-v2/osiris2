@@ -18,7 +18,7 @@ source $BIO_DIR/venv/bin/activate
 # mktemp crea un nombre de archivo temporal único y seguro
 TEMP_SCRIPT="$BIO_DIR/tmp/beta-tmp-file-init.01.py"
 # Lista de paquetes Python necesarios (usar los nombres que usa pip)
-REQUIRED_PACKAGES=("cryptography" "PyQt5" "PyQtWebEngine" "qrcode" "pillow" "yt-dlp" "Jinja2" "Markdown")
+REQUIRED_PACKAGES=("cryptography" "PyQt5" "PyQtWebEngine" "qrcode" "pillow" "yt-dlp" "Jinja2" "Markdown" "psutil")
 # Comando Python a usar (se recomienda python3 para compatibilidad con las libs)
 PYTHON_CMD="python3"
 # Comando pip a usar (asociado a python3)
