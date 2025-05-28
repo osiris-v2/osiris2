@@ -176,7 +176,7 @@ def analizar_audio(archivo_audio, texto_transcripcion=None):
         analisis["parametros"] = parametro
 
         # Genera Ficheros para pruebas
-        f = open("com/audiodata.json", "w")
+        f = open("audiodata.json", "w")
         json.dump(analisis, f, indent=4)
         f.close()
         if texto_transcripcion != None:
