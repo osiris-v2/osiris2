@@ -114,6 +114,12 @@ dl $dl8  $dl8a
 sudo chmod +x $dl8a
 
 
+dl9="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/dsk/dskvc"
+dl9a="$BIO_DIR/dskvc"
+
+dl $dl9  $dl9a
+sudo chmod +x $dl9a
+
 
 
 # 2. Verificar e instalar dependencias
@@ -171,7 +177,7 @@ else
 fi
 }
 #exec file
-ef $dl3a
+#ef $dl3a
 ef $dl2a
 
 echo "===================================================="

@@ -35,6 +35,13 @@
         "enabled": true
     },
     {
+        "id": 9,
+        "name": "Conversor de formatos de vídeo",
+        "alias": "dskvc",
+        "path": "./",
+        "enabled": true
+    },
+    {
         "id": 3,
         "name": "Demo educativa Cripto-Wallet",
         "alias": "walletav.py",
