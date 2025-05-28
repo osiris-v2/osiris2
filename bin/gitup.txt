@@ -167,7 +167,7 @@ bin/tool/diagnosis1
 #genera reporte de picos y comprobaciones de memoria
 bin/tool/memory
 
-#herraientas desktop (ventanas)
+#herraientas desktop (ventanas) 
 bin/dsk/
 
 #modulos pip inicial - requerimientos globales
