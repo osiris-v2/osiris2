@@ -107,6 +107,7 @@ sudo chmod +x $dl7a
 
 
 
+
 # 2. Verificar e instalar dependencias
 echo "--- Verificando dependencias Python: ${REQUIRED_PACKAGES[@]} ---"
 MISSING_PACKAGES=()
