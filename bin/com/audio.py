@@ -1,10 +1,10 @@
+#!/usr/bin/env python3
 import sys
 import speech_recognition as sr
 import threading
 import platform
 import subprocess
 import json
-import lib.core as core
 from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
                              QPushButton, QTextEdit, QLabel, QFileDialog, QMessageBox, QComboBox)
 from PyQt5.QtCore import QThread, pyqtSignal, QCoreApplication

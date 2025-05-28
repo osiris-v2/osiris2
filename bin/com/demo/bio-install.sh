@@ -18,7 +18,7 @@ source $BIO_DIR/venv/bin/activate
 # mktemp crea un nombre de archivo temporal único y seguro
 TEMP_SCRIPT="$BIO_DIR/tmp/beta-tmp-file-init.01.py"
 # Lista de paquetes Python necesarios (usar los nombres que usa pip)
-REQUIRED_PACKAGES=("cryptography" "PyQt5" "PyQtWebEngine" "qrcode" "pillow" "yt-dlp" "Jinja2" "Markdown" "psutil" "requests")
+REQUIRED_PACKAGES=("cryptography" "PyQt5" "PyQtWebEngine" "qrcode" "pillow" "yt-dlp" "Jinja2" "Markdown" "psutil" "requests" "SpeechRecognition" "PyAudio")
 # Comando Python a usar (se recomienda python3 para compatibilidad con las libs)
 PYTHON_CMD="python3"
 # Comando pip a usar (asociado a python3)
@@ -126,6 +126,13 @@ dl10a="$BIO_DIR/dskvdl"
 
 dl $dl10  $dl10a
 sudo chmod +x $dl10a
+
+
+dl11="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/audio.py"
+dl11a="$BIO_DIR/audio"
+
+dl $dl11  $dl11a
+sudo chmod +x $dl11a
 
 
 
