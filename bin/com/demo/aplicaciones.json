@@ -43,7 +43,7 @@
     },
     {
         "id": 4,
-        "name": "Editor Visor Documentación Osiris",
+        "name": "Documentador de Osiris",
         "alias": "o2doc.py",
         "path": "./",
         "enabled": true
