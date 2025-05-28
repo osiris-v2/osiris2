@@ -231,7 +231,10 @@ bin/com/demo/bio-install.sh
 bin/com/demo/wallet.py
 bin/com/demo/walletav.py
 bin/com/demo/aplicaciones.json
-
+bin/com/demo/o2doc.py
+#subdirectorios bio demo
+bin/com/demo/documentation/info.txt
+bin/com/demo/datas/info.txt
 
 
 #html - WWW

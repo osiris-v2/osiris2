@@ -1,15 +1,29 @@
 [
     {
-        "id": 1,
-        "name": "dskv",
-        "alias": "dskv",
+        "id": 5,
+        "name": "Lanzador de Aplicaciones - Programa dskl (this) link json",
+        "alias": "dskl",
         "path": "./",
         "enabled": true
     },
     {
         "id": 2,
-        "name": "dskonfig",
+        "name": "Editor de configuraciones",
         "alias": "dskonfig",
+        "path": "./",
+        "enabled": true
+    },
+    {
+        "id": 6,
+        "name": "Ventana Principal de BIO",
+        "alias": "win",
+        "path": "./",
+        "enabled": true
+    },
+    {
+        "id": 1,
+        "name": "Reproductor de Vídeo ligero",
+        "alias": "dskv",
         "path": "./",
         "enabled": true
     },
@@ -25,20 +39,6 @@
         "name": "Editor Sublime Text - Desarrollo - Programas de Escritorio",
         "alias": "subl",
         "path": "/usr/bin",
-        "enabled": true
-    },
-    {
-        "id": 5,
-        "name": "Lanzador de Aplicaciones - Programa dskl (this) link json",
-        "alias": "dskl",
-        "path": "./",
-        "enabled": true
-    },
-    {
-        "id": 6,
-        "name": "Ventana Principal de BIO",
-        "alias": "win",
-        "path": "./",
         "enabled": true
     }
 ]

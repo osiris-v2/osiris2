@@ -18,7 +18,7 @@ source $BIO_DIR/venv/bin/activate
 # mktemp crea un nombre de archivo temporal único y seguro
 TEMP_SCRIPT="$BIO_DIR/tmp/beta-tmp-file-init.01.py"
 # Lista de paquetes Python necesarios (usar los nombres que usa pip)
-REQUIRED_PACKAGES=("cryptography" "PyQt5" "qrcode" "pillow" "yt-dlp")
+REQUIRED_PACKAGES=("cryptography" "PyQt5" "qrcode" "pillow" "yt-dlp" "jinja2")
 # Comando Python a usar (se recomienda python3 para compatibilidad con las libs)
 PYTHON_CMD="python3"
 # Comando pip a usar (asociado a python3)
@@ -89,7 +89,7 @@ dl5="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/c
 dl5a="$BIO_DIR/aplicaciones.json"
 
 dl $dl5  $dl5a
-sudo chmod +x $dl5a
+#sudo chmod +x $dl5a
 
 
 dl6="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/OPS/win"
@@ -97,6 +97,14 @@ dl6a="$BIO_DIR/win"
 
 dl $dl6  $dl6a
 sudo chmod +x $dl6a
+
+
+dl7="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/o2doc.py.json"
+dl7a="$BIO_DIR/o2doc.py"
+
+dl $dl7  $dl7a
+sudo chmod +x $dl7a
+
 
 
 # 2. Verificar e instalar dependencias
