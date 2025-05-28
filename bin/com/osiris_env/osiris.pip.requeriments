@@ -1,6 +1,7 @@
 google-generativeai
 Pillow
 datetime
+psutil
 requests
 cryptography
 cffi
