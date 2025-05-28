@@ -40,5 +40,12 @@
         "alias": "subl",
         "path": "/usr/bin",
         "enabled": true
+    },
+    {
+        "id": 4,
+        "name": "Editor Visor Documentación Osiris",
+        "alias": "o2doc.py",
+        "path": "./",
+        "enabled": true
     }
 ]
