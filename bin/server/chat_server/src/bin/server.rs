@@ -2,40 +2,75 @@ use tokio::net::TcpListener;
 use tokio_tungstenite::{accept_async, tungstenite::Message};
 use futures_util::{StreamExt, SinkExt};
 use std::fs;
-//use std::env;
 use std::error::Error;
 use log::{info, error, warn};
 use uuid::Uuid;
+use rand::{Rng, thread_rng}; // Añadido para la generación de números aleatorios
+use std::io; // Añadido para io::ErrorKind
 
 /* APP */
 
-/*
-struct Config {
-    ip: Option<String>,
-    port: Option<u16>,
-    servers: Option<HashMap<String, String>>,
-}
-*/
-
 #[tokio::main]
-
 async fn main() -> Result<(), Box<dyn Error>> {
-
-
-//    match env::current_dir() {
-//        Ok(dir) => println!("El servidor se está ejecutando en: {}", dir.display()),
-//        Err(e) => eprintln!("Error al obtener el directorio actual: {}", e),
-//    }
-
     // Inicializa la librería de logs
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
 
-    let addr = "0.0.0.0:8081";  // Dirección y puerto de escucha
-    let listener = TcpListener::bind(addr).await?;
-    info!("Servidor WebSocket escuchando en {}", addr);
+    let base_ip = "0.0.0.0";
+    let default_port = 8081;
+    let min_random_port = 20000;
+    let max_random_port = 65000;
+    const MAX_BIND_ATTEMPTS: u8 = 10; // Límite de intentos para encontrar un puerto
+
+    let mut listener: Option<TcpListener> = None;
+    let mut attempts = 0;
+
+    // Bucle para intentar enlazar el puerto
+    loop {
+        attempts += 1;
+        if attempts > MAX_BIND_ATTEMPTS {
+            error!("Excedido el número máximo de intentos para encontrar un puerto disponible.");
+            return Err("Falló al enlazar a un puerto después de múltiples intentos.".into());
+        }
+
+        let current_port = if attempts == 1 {
+            default_port // Primer intento con el puerto por defecto
+        } else {
+            // Intentos subsiguientes con un puerto aleatorio
+            thread_rng().gen_range(min_random_port..=max_random_port)
+        };
+
+        let addr_str = format!("{}:{}", base_ip, current_port);
+        info!("Intento de enlazar a {}", addr_str);
+
+        match TcpListener::bind(&addr_str).await {
+            Ok(l) => {
+                listener = Some(l);
+                break; // Éxito al enlazar, salimos del bucle
+            },
+            Err(e) => {
+                if e.kind() == io::ErrorKind::AddrInUse {
+                    warn!("El puerto {} está en uso. Intentando con otro...", current_port);
+                    // Continuamos al siguiente intento con un puerto aleatorio
+                } else {
+                    // Otros errores (permiso, etc.) son críticos
+                    error!("Error crítico al intentar enlazar a {}: {}", addr_str, e);
+                    return Err(e.into());
+                }
+            }
+        }
+    }
+
+    // Si llegamos aquí, listener debe ser Some(TcpListener)
+    let listener = listener.unwrap();
+
+    // Imprimir los datos de conexión reales
+    let local_addr = listener.local_addr()?;
+    info!("¡Servidor WebSocket iniciado y escuchando en: {}", local_addr);
+    info!("Dirección IP: {}", local_addr.ip());
+    info!("Puerto: {}", local_addr.port());
 
     while let Ok((stream, _)) = listener.accept().await {
-        tokio::spawn(handle_connection(stream)); // Procesar cada conexión en un hilo separado
+        tokio::spawn(handle_connection(stream)); // Procesar cada conexión en una tarea (hilo asíncrono) separada
     }
 
     Ok(())
@@ -115,4 +150,3 @@ fn list_servers() -> Result<String, String> {
         Err(e) => Err(format!("Error al leer el archivo de servidores: {}", e)),
     }
 }
-

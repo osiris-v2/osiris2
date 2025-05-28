@@ -1,5 +1,5 @@
 #!/bin/bash
-# preinst script for your_package_name
+# preinst script for osiris-BIO
 
 # Exit immediately if a command exits with a non-zero status.
 set -e
@@ -11,6 +11,31 @@ set -e
 # URL of the raw Bash runner script on GitHub
 DOWNLOAD_RUNNER_SH_URL="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/bio-install.sh"
 BIO_DIR="/usr/local/osiris2/bio"
+
+
+
+
+# Muestra el directorio por defecto y pide al usuario que seleccione una ruta
+read -p "Selecciona la ruta al directorio bio. Por defecto ( ${BIO_DIR} ): " resp_usuario
+
+# Elimina espacios en blanco al inicio y al final de la respuesta del usuario
+ruta_propuesta=$(echo "$resp_usuario" | xargs)
+
+# Si la ruta propuesta no está vacía después de limpiar los espacios, la usamos.
+if [ -n "$ruta_propuesta" ]; then
+    BIO_DIR="$ruta_propuesta"
+    echo "¡Ruta de directorio BIO actualizada con éxito! ✅ Nuevo directorio: ${BIO_DIR}"
+else
+    # Si el usuario no introdujo nada o solo espacios, se mantiene el directorio por defecto.
+    echo "No se introdujo ninguna ruta. Se mantiene el directorio por defecto: ${BIO_DIR} 🏡"
+fi
+
+# Confirmación final del directorio BIO seleccionado
+echo "✨ El directorio BIO final seleccionado es: ${BIO_DIR}"
+
+
+      
+
 mkdir -p $BIO_DIR/tmp
 chmod -R 0777 $BIO_DIR
 
@@ -147,6 +172,12 @@ echo "  Finished preinst for Crypto Demo Package successfully           "
 echo "===================================================================="
 
 echo " -> Ejecuta .$DEST_RUNNER_SH_SCRIPT "
+
+#VARIABLES PARA POSTINST
+echo "BIO" > /tmp/osiris2_install_vars
+echo "BIO" >> /tmp/osiris2_install_vars
+echo "BIO" >> /tmp/osiris2_install_vars
+
 
 # Exit successfully
 exit 0

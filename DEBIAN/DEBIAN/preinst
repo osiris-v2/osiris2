@@ -1,4 +1,5 @@
 #!/usr/bin/bash
+#OSIRIS o3 INSTALLER 
 
 def_v="osiris2"
 

@@ -126,6 +126,16 @@ bin/lib/osiris2/__init__.py
 #Armadura para tmux (agrupamiento de terminales)
 #tmux1 es la composición por defecto
 bin/scripts/tmux1
+
+#cargador de perfiles
+bin/scripts/osiris_tmux.sh
+
+#tmux de inicio
+bin/scripts/o2tmux
+
+#perfil default
+bin/scripts/config/default.json
+
 #Lectura continua de progreso tv y hls
 bin/scripts/progress_hls
 bin/scripts/progress_tv
@@ -284,25 +294,19 @@ html/app/mitv/tv/default.css
 html/app/mitv/tv/index.php
 html/app/mitv/tv/player2.php
 
-
-
 html/app/mitv/channels/main/.htaccess
 html/app/mitv/channels/main/live-ts/info.txt
 
 ##RELEASE GENERADO EN 16-01-2025 04.39.00
 
-#(ask) ¿Ejecutar acción?
-#? (ask) if request # shareV #
-#mod+x 5
-##?!> request
 osiris2release.deb
 bio.deb
-#!
 
 #Archivos tmp release
 bin/com/tmp/zj91enedg3.png
 
 #Generado con la consola C  > ods>>
+#Comandos para la consola vars
 bin/com.vars
 
 #EOF

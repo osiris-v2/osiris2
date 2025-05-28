@@ -24,6 +24,11 @@ if [ -f /tmp/osiris2_install_vars ]; then
     echo "Path: ${lines[1]}"
     echo "VN: ${lines[2]}"
     base=${lines[1]}
+
+    #Finalizamos el programa si es instalador BIO
+    if [[ ${lines[0]} == "BIO" ]]; then
+    exit 0
+    fi
     # Verificar si la primera línea es "EXEC"
     if [[ ${lines[0]} == "EXEC" ]]; then
         
