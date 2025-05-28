@@ -49,7 +49,7 @@ class DownloaderApp:
         tk.Label(options_frame, text="URLs para descargar (una por línea):").grid(row=0, column=0, padx=5)
         self.urls_entry = scrolledtext.ScrolledText(options_frame, width=50, height=5)
         self.urls_entry.grid(row=1, column=0, columnspan=3, padx=5, pady=5)
-
+        self._setup_url_entry_context_menu()
         self.parallel_button = tk.Radiobutton(options_frame, text="Descarga en Paralelo", variable=self.download_mode, value="parallel")
         self.parallel_button.grid(row=2, column=0)
         self.sequential_button = tk.Radiobutton(options_frame, text="Descarga Secuencial", variable=self.download_mode, value="sequential")
@@ -80,6 +80,33 @@ class DownloaderApp:
         self.output_dir = filedialog.askdirectory()
         if self.output_dir:
             self.output_text.insert(tk.END, f"Directorio de salida: {self.output_dir}\n")
+
+
+    def _setup_url_entry_context_menu(self):
+        """Configura el menú contextual (clic derecho) para el área de texto de URLs."""
+        
+        # 1. Crear el objeto tk.Menu
+        # El padre del menú puede ser el widget mismo (self.urls_entry) o la ventana principal (self.master)
+        # tearoff=0 evita la línea discontinua en la parte superior del menú.
+        context_menu = tk.Menu(self.urls_entry, tearoff=0) 
+        
+        # 2. Añadir comandos al menú
+        # Usamos lambda para que las funciones se llamen sin argumentos y para referenciar self.urls_entry
+        context_menu.add_command(label="Cut", command=lambda: self.urls_entry.event_generate("<<Cut>>"))
+        context_menu.add_command(label="Copy", command=lambda: self.urls_entry.event_generate("<<Copy>>"))
+        context_menu.add_command(label="Paste", command=lambda: self.urls_entry.event_generate("<<Paste>>"))
+        context_menu.add_separator() # Una línea separadora para mejor organización
+        context_menu.add_command(label="Select All", command=lambda: self.urls_entry.tag_add(tk.SEL, "1.0", tk.END))
+        
+        # 3. Definir la función que muestra el menú
+        def show_menu(event):
+            # post(x_root, y_root) muestra el menú en las coordenadas absolutas de la pantalla
+            context_menu.post(event.x_root, event.y_root)
+
+        # 4. Vincular el widget al evento del clic derecho (<Button-3>)
+        self.urls_entry.bind("<Button-3>", show_menu)
+
+
 
     def start_download(self):
         if not self.output_dir:
