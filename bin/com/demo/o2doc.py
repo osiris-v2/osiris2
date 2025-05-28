@@ -3,6 +3,7 @@ import os
 import subprocess
 from jinja2 import Environment, FileSystemLoader
 import markdown # Para convertir Markdown a HTML para la visualización en Qt
+import sys
 
 # Importar los módulos de PyQt5
 from PyQt5.QtWidgets import (
