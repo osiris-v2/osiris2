@@ -155,6 +155,9 @@ bin/scripts/server.run
 #corre el cliente rust
 bin/scripts/client.run
 
+#Importa Archivos de programa osiris a paquete instalador
+bin/scripts/files2deb.sh
+
 
 
 #Herramientas del directorio bin/tool
