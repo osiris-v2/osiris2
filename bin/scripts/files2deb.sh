@@ -14,5 +14,3 @@ BASEBIO="${DEBIAN}${USRBIO}"
 
 cp $USRBIN/osiris2tmux  ${BASEBIN}/osiris2tmux
 cp $USRBIN/o2load  ${BASEBIN}/o2load
-
-cp $USRBIO/release/bio.deb $BASEBIO/release/bio.deb
