@@ -9,9 +9,10 @@ DIST="osiris2"
 USRBIN="/usr/bin"
 USRBIO="/usr/local/${DIST}/bio"
 DEBIAN="../../DEBIAN"
+BASEBIN="${DEBIAN}${USRBIN}"
 BASEBIO="${DEBIAN}${USRBIO}"
 
-cp $USRBIN/osiris2tmux  ${BASEBIO}/osiris2tmux
-cp $USRBIN/o2load  ${BASEBIO}/o2load
+cp $USRBIN/osiris2tmux  ${BASEBIN}/osiris2tmux
+cp $USRBIN/o2load  ${BASEBIN}/o2load
 
 cp $USRBIO/release/bio.deb $BASEBIO/release/bio.deb
