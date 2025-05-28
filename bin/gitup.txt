@@ -159,7 +159,6 @@ bin/scripts/client.run
 bin/scripts/files2deb.sh
 
 
-
 #Herramientas del directorio bin/tool
 #genera reporte para diagnostico servers
 bin/tool/mrls

@@ -5,7 +5,7 @@
 # --- Configuración ---
 # URL del script Python en GitHub
 
-echo $OLDPWD
+echo $PWD
 echo "EXIT"
 exit 44
 
