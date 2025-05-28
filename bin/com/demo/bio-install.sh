@@ -6,12 +6,7 @@ cd $script_dir
 # --- Configuración ---
 # URL del script Python en GitHub
 
-echo $PWD
-echo "EXIT"
-exit 44
-
-
-BIO_DIR="/usr/local/osiris2/bio"
+BIO_DIR=$script_dir
 cd $BIO_DIR
 echo " --- VHOST VENV --- "
 sudo python3 -m venv $BIO_DIR/venv
