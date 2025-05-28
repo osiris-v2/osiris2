@@ -1,5 +1,6 @@
 #!/bin/bash
-
+script_dir=$(dirname "$(readlink -f "$0")")
+cd $script_dir
 # Script para descargar, verificar dependencias e ejecutar un script Python desde una URL.
 
 # --- Configuración ---
