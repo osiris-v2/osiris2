@@ -42,6 +42,13 @@
         "enabled": true
     },
     {
+        "id": 10,
+        "name": "Vídeo Downloader",
+        "alias": "dskdl",
+        "path": "./",
+        "enabled": true
+    },
+    {
         "id": 3,
         "name": "Demo educativa Cripto-Wallet",
         "alias": "walletav.py",
