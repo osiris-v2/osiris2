@@ -5,6 +5,10 @@
 # --- Configuración ---
 # URL del script Python en GitHub
 
+echo $OLDPWD
+echo "EXIT"
+exit 44
+
 
 BIO_DIR="/usr/local/osiris2/bio"
 cd $BIO_DIR
