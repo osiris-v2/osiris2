@@ -21,7 +21,7 @@ BASE_DOCS_DIR = 'documentation'
 TEMPLATES_DIR = os.path.join(BASE_DOCS_DIR, 'templates')
 CONFIG_FILE = 'doc_config.json' # Este archivo estará en la raíz del proyecto
 OUTPUT_FILE = os.path.join(BASE_DOCS_DIR, 'osiris_documentation.html') # Cambiado a HTML para QTextBrowser
-EDITOR_COMMAND = os.getenv('EDITOR', 'code --wait') # Por defecto a VS Code (con espera), ajusta para tu OS/editor
+EDITOR_COMMAND = "gedit" # Por defecto a VS Code (con espera), ajusta para tu OS/editor
 
 # Asegurarse de que los directorios base existan
 if not os.path.exists(BASE_DOCS_DIR):
