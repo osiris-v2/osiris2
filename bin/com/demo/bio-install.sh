@@ -121,8 +121,8 @@ dl $dl9  $dl9a
 sudo chmod +x $dl9a
 
 
-dl10="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/dsk/dskdl"
-dl10a="$BIO_DIR/dskdl"
+dl10="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/dsk/dskvdl"
+dl10a="$BIO_DIR/dskvdl"
 
 dl $dl10  $dl10a
 sudo chmod +x $dl10a

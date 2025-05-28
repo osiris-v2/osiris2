@@ -44,7 +44,7 @@
     {
         "id": 10,
         "name": "Vídeo Downloader",
-        "alias": "dskdl",
+        "alias": "dskvdl",
         "path": "./",
         "enabled": true
     },
