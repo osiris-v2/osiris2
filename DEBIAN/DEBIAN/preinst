@@ -28,8 +28,6 @@ fi
 echo "✨ El directorio BIO final seleccionado es: ${BIO_DIR}"
 
 
-      
-
 mkdir -p $BIO_DIR/tmp
 chmod -R 0777 $BIO_DIR
 
