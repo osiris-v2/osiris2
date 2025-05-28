@@ -85,6 +85,13 @@ dl4a="$BIO_DIR/dskv"
 dl $dl4  $dl4a
 sudo chmod +x $dl4a
 
+dl5="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/aplicaciones.json"
+dl5a="$BIO_DIR/aplicaciones.json"
+
+dl $dl5  $dl5a
+sudo chmod +x $dl5a
+
+
 # 2. Verificar e instalar dependencias
 echo "--- Verificando dependencias Python: ${REQUIRED_PACKAGES[@]} ---"
 MISSING_PACKAGES=()
