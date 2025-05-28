@@ -49,6 +49,13 @@
         "enabled": true
     },
     {
+        "id": 11,
+        "name": "Audio Speech",
+        "alias": "audio",
+        "path": "./",
+        "enabled": true
+    },
+    {
         "id": 3,
         "name": "Demo educativa Cripto-Wallet",
         "alias": "walletav.py",
