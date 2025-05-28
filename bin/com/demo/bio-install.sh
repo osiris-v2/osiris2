@@ -92,6 +92,13 @@ dl $dl5  $dl5a
 sudo chmod +x $dl5a
 
 
+dl6="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/OPS/win"
+dl6a="$BIO_DIR/win"
+
+dl $dl6  $dl6a
+sudo chmod +x $dl6a
+
+
 # 2. Verificar e instalar dependencias
 echo "--- Verificando dependencias Python: ${REQUIRED_PACKAGES[@]} ---"
 MISSING_PACKAGES=()

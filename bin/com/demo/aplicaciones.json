@@ -33,5 +33,12 @@
         "alias": "dskl",
         "path": "./",
         "enabled": true
+    },
+    {
+        "id": 6,
+        "name": "Ventana Principal de BIO",
+        "alias": "win",
+        "path": "./",
+        "enabled": true
     }
 ]
