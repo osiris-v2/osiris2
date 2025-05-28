@@ -8,6 +8,7 @@ pyOpenSSL
 pyperclip
 PyQt5
 PyQt6
+PyQtWebEngine
 yt-dlp
 ffmpeg
 dnspython

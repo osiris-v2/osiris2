@@ -18,7 +18,7 @@ source $BIO_DIR/venv/bin/activate
 # mktemp crea un nombre de archivo temporal único y seguro
 TEMP_SCRIPT="$BIO_DIR/tmp/beta-tmp-file-init.01.py"
 # Lista de paquetes Python necesarios (usar los nombres que usa pip)
-REQUIRED_PACKAGES=("cryptography" "PyQt5" "qrcode" "pillow" "yt-dlp" "Jinja2" "Markdown")
+REQUIRED_PACKAGES=("cryptography" "PyQt5" "PyQtWebEngine" "qrcode" "pillow" "yt-dlp" "Jinja2" "Markdown")
 # Comando Python a usar (se recomienda python3 para compatibilidad con las libs)
 PYTHON_CMD="python3"
 # Comando pip a usar (asociado a python3)
@@ -85,6 +85,7 @@ dl4a="$BIO_DIR/dskv"
 dl $dl4  $dl4a
 sudo chmod +x $dl4a
 
+
 dl5="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/aplicaciones.json"
 dl5a="$BIO_DIR/aplicaciones.json"
 
@@ -104,6 +105,13 @@ dl7a="$BIO_DIR/o2doc.py"
 
 dl $dl7  $dl7a
 sudo chmod +x $dl7a
+
+
+dl8="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/dsk/dskvu"
+dl8a="$BIO_DIR/dskvu"
+
+dl $dl8  $dl8a
+sudo chmod +x $dl8a
 
 
 
