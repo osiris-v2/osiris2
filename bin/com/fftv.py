@@ -66,8 +66,7 @@ ffprobe_exec="com/osiris_env/ffmpeg/bin/ffprobe"
 
 
 lineInput = None
-def_output = "rtmp://rtmp.rumble.com/live/r-3enppr-kk9w-l1xl-1abb59"
-def_output = "rtmp://a.rtmp.youtube.com/live2/svvb-yk73-asfv-0krs-5v57"
+def_output = "rtmp://a.rtmp.youtube.com/live2/hypq-r4z9-9r8g-3phm-9py4"
 def_fout = "flv"
 def_progress_file = "com/datas/progress_tv.txt"
 def_seek_start = None #"00:38:17"
@@ -116,7 +115,7 @@ profiles = {
         "crf":def_crf,
         "screen":"1280x720",
         "audio_filter":def_audio_filter,
-        "logo": "logos/mtosierratv-p.png"
+        "logo": def_logo_tv
     },
 
         "rumble:860": {

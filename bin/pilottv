@@ -22,7 +22,7 @@ randomDir="com/datas/ffmpeg/random"
 datasDir="com/datas"
 profundidad="1"
 INSPECTOR_TIME=${2:-0.3}
-OUTPUT_URL=${1:-"rtmp://a.rtmp.youtube.com/live2/svvb-yk73-asfv-0krs-5v57"}
+OUTPUT_URL=${1:-"rtmp://a.rtmp.youtube.com/live2/hypq-r4z9-9r8g-3phm-9py4"}
 #OUTPUT_URL=${2:-"rtmp://rtmp.rumble.com/live/r-3enppr-kk9w-l1xl-1abb59"}
 FFMPEG_FILE_PILOT="com/datas/ffmpeg/intro.mp4"
 progress_file="${datasDir}/progress_tv.txt"
@@ -104,7 +104,7 @@ loglevel="warning"
     -tune zerolatency \
     -b:v 0 -bufsize 3000k -c:v h264 -c:a aac \
     -bsf:v h264_mp4toannexb -bsf:a aac_adtstoasc -movflags +faststart -af "$audiofilter" \
-    -pix_fmt yuv420p -g 12 -r 24 -maxrate 1500k \
+    -pix_fmt yuv420p -g 12 -r 24 -maxrate 1000k \
     -s 856x540 \
     -cpu-used 0 \
     -progress "$progress_file" \
