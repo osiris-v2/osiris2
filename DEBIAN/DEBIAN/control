@@ -1,8 +1,8 @@
-Package: osiris2
+Package: osiris-release
 Version: 1.0
 Architecture: amd64
 Maintainer: Desarrollo principal <osiris.osscom@gmail.com>
-Depends: bash (>= 5.0)
+Depends: bash, git
 Replaces: osiris000, osiris, osiris2tmux, osiristv
 Description: Paquete Osiris2.
  Este es un paquete que instala Osiris2 y gestiona conflictos automáticamente.
