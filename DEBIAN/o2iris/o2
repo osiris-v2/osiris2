@@ -1,0 +1,6 @@
+#!/bin/bash
+#verified paths Root (vpr)
+cd /var/osiris2/bin/scripts/
+echo "Get Verified Code"
+echo "Make Pub Key"
+source verified

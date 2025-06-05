@@ -20,11 +20,10 @@ import lib.multiprocess as osiris2
 import time
 import hashlib
 #import datetime
-
-
 from pathlib import Path
 
 script_dir = Path(__file__).resolve().parent
+print(script_dir)
 
 core.dynmodule("lib.gemini.utils","win")
 win = core.win
@@ -164,9 +163,9 @@ if API_KEY:
 
 
 
-def select_genai_model():
+def select_genai_model(sm="action"):
     global model, conversation_context
-    seleccione_modelo = f" Seleccione un modelo a usar:\n"
+    seleccione_modelo = f" sm:{sm} - Seleccione un modelo a usar:\n"
     dm = 0
     gemini_models = []
     for m in genai.list_models():
@@ -182,9 +181,12 @@ def select_genai_model():
     model = genai.GenerativeModel(gemini_models[int(inp) - 1])
     change_model_to = gemini_models[int(inp) - 1]
     print("\n Cambiando a modelo: "+change_model_to+"\n")
-    conversation_context += inp + "\nCambiando a modelo: " + change_model_to + "\n" + str(model) + "\n"
-    print(model)
-
+    conversation_context += inp + "\nCambiando a modelo: " + change_model_to + "\n" + str(model) + "\n MODEL:"
+    print("MODEL:",model)
+    cmd= str(conversation_context) + str(model)
+    resp = generate_response("Se ha cambio de modelo. Resumen de cambio de modelos.")
+    print("RESPONSE:",resp)
+    return cmd
 
 
 
@@ -1432,8 +1434,9 @@ def main(args):
 
         if command == "--sgm" or command == "selectgenaimodel":
             sm = "\nSelección de modelos de API\n"
-            conversation_context += sm
-            select_genai_model()
+            nmx = select_genai_model(sm)
+            conversation_context += str(nmx)
+            print("--------------:\n\n")
             return
         if command == "--nmodel":
             sm = "\nSelección de modelos de API\n"

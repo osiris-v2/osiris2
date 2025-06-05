@@ -15,7 +15,10 @@ for pid in $pids; do
   if [[ "$pid" -ne "$my_pid" ]]; then
     # Matar el proceso 'server.run' si no es el script actual
    sudo kill -9 "$pid" 2>/dev/null  # Redirigir stderr a /dev/null para suprimir errores si el proceso ya no existe
-   echo "Proceso server.run  con PID $pid terminado."
+
+#echo "DISABLED in++"
+
+  echo "++  PID $pid terminado."
   else
     echo "Conservando el proceso server.run padre con PID $pid"
   fi

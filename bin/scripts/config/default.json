@@ -2,10 +2,13 @@
   "panel0": "clear && reset && clear && cd ../../ && bash ./osiris",
   "panel1": "clear && reset && clear && ./server.run",
   "panel2": "clear && reset && clear && ./client.run",
-  "panel3": "cd .. && clear && reset && clear && sudo ./osiris_run",
-  "panel4": "clear && reset && clear && sudo ./freemem2",
-  "panel5": "cd .. && clear && reset && clear && ./pilottv",
+
+  "panel3": "clear && reset && clear && cd ../../ && bash ./osiris",
+  "panel4": "clear && reset && clear && ./server.run",
+
+  "panel5": "clear && reset && clear && ./client.run",
+
   "panel6": "cd .. && clear && reset && clear && sudo ./OPS/ops",
-  "panel7": "clear && reset && clear && ./progress_tv",
+  "panel7": "clear && reset && clear && python3 /var/osiris2/bin/com/gemini.py",
   "panel8": "clear && reset && clear && ./progress_hls"
 }

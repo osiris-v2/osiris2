@@ -1,19 +1,24 @@
 #!/bin/bash
 clear
 
+fdir=$( dirname $0 )
+echo $fdir
+echo "ND"
+#exit
+
 
 source '/etc/environment'
 
 
-sudo killall -9 -g 'server.run'
-sudo killall -9 -g client
+#sudo killall -9 -g 'server.run'
+#sudo killall -9 -g client
 
 echo $OSIRIS000_BIN
 
 cargo="/root/.cargo/bin/cargo"
 
 
-echo ""$OSIRIS000_BIN
+echo $OSIRIS000_BIN
 
 serversPath=$OSIRIS000_BIN/server/chat_server
 
@@ -30,7 +35,8 @@ cd $serversPath/target/release
 #. cargo
 #cd server
 #echo "SERVER START"
-#./server
+cd /var/osiris2/bin/scripts
+./server.run
 echo "SERVER EXIT"
 
 

@@ -1,0 +1,10 @@
+#!/bin/bash
+# /var/osiris2 is the by default verified dir system
+cat /var/osiris2/inst.json
+ls /var/osiris2
+cat /var/osiris2/inst.ok
+cat /var/osiris2/inst.error
+
+
+
+

@@ -452,46 +452,41 @@ autoplay></video>
                      document.getElementById('video').style.height = '100%';
                      " style="display: block; text-align: center; font-weight: bold; margin-top: 5px; color: #fff; font-size:16px; background-color: #333; padding: 5px 10px; border-radius: 5px; text-decoration: none;">Cerrar</a>
  
- </div>
- 
- 
-<span style="font-size:3.5vh;font-weight:bold;color:#de3444;margin:18px;"> Consola </span>
 
- <div id="progress_c"></div>
- 
- 
+ </div>
+<span style="font-size:3.5vh;font-weight:bold;color:#de3444;margin:18px;"> Consola </span>
+ <div id="progress_c"></div> 
 <!--div id='quality-selector'></div-->
- 
-</div>
+ </div>
+
+
+
+
+<div id="embedCode"></div>
+
 
  
  <script type="text/javascript">
- 
+
+embedCode.style=` padding:10px;  `
 
 
 
 
-
-
-
-
-
-
-
-
-
-  
 var m3u8=1;   
 
     <?php
    if($_GET["chn"]){
     
-    
-       
      $chn =  " \n canal = '{$_GET['chn']}' \n ";
    }    else $chn = "\n canal = 'https://tv.vtwitt.com/mitv/live/canal1.m3u8' \n ";
    echo $chn;
-   ?>
+   
+echo<<<ECODE
+embedCode.innerHTML = location.href+`/`+`$chn`;
+ECODE;
+
+?>
        
 var videoSrc = canal;
 
@@ -1255,6 +1250,9 @@ console.log("!PLAY!!")
   
   video.play()
 }
+
+
+
 
 
 

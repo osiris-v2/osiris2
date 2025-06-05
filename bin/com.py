@@ -359,6 +359,12 @@ def CTRL_C(signal, frame):
 #    print("\nEscriba 'exit' para salir")
 #    return
 
+
+
+def main (args):
+    execute_command(sys.argv)
+
+
 # Ejecutar el CLI
 if __name__ == "__main__":
     command_line()

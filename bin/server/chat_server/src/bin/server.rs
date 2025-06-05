@@ -134,7 +134,7 @@ async fn handle_command(command: &str) -> Result<String, String> {
             "/date - Obtiene la fecha y hora actual.\n\
              /hello - Saludo de bienvenida.\n\
              /servers - Lista de servidores disponibles.".to_string()
-        ),
+        ), 
 
         "/servers" => list_servers(), // Lee el archivo de servidores
 
