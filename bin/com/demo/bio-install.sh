@@ -141,6 +141,13 @@ dl $dl12  $dl12a
 sudo chmod +x $dl12a
 
 
+dl13="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/_server.py"
+dl13a="$BIO_DIR/conect.net"
+
+dl $dl13  $dl13a
+sudo chmod +x $dl13a
+
+
 
 # 2. Verificar e instalar dependencias
 echo "--- Verificando dependencias Python: ${REQUIRED_PACKAGES[@]} ---"
