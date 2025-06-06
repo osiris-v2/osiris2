@@ -237,6 +237,7 @@ bin/com/demo/o2doc.py
 bin/com/demo/documentation/info.txt
 bin/com/demo/datas/info.txt
 
+bin/com/_server.py
 
 #html - WWW
 
