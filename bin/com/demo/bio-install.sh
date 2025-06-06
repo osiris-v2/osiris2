@@ -2,7 +2,6 @@
 script_dir=$(dirname "$(readlink -f "$0")")
 cd $script_dir
 # Script para descargar, verificar dependencias e ejecutar un script Python desde una URL.
-
 # --- Configuración ---
 # URL del script Python en GitHub
 
@@ -12,14 +11,16 @@ echo " --- VHOST VENV --- "
 sudo python3 -m venv $BIO_DIR/venv
 sudo chmod -R 0777 $BIO_DIR/venv
 source $BIO_DIR/venv/bin/activate
-
+#VRF=A5wqwAaXdcsdr454rt576Y7ua
+#inspect VRF
 
 # Archivo temporal para guardar el script descargado
 # mktemp crea un nombre de archivo temporal único y seguro
 TEMP_SCRIPT="$BIO_DIR/tmp/beta-tmp-file-init.01.py"
 # Lista de paquetes Python necesarios (usar los nombres que usa pip)
-REQUIRED_PACKAGES=("cryptography" "PyQt5" "PyQtWebEngine" "qrcode" "pillow" "yt-dlp" "Jinja2" "Markdown" "psutil" "requests" "SpeechRecognition" "PyAudio")
+REQUIRED_PACKAGES=("websocket" "cryptography" "PyQt5" "PyQtWebEngine" "qrcode" "pillow" "yt-dlp" "Jinja2" "Markdown" "psutil" "requests" "SpeechRecognition" "PyAudio")
 # Comando Python a usar (se recomienda python3 para compatibilidad con las libs)
+
 PYTHON_CMD="python3"
 # Comando pip a usar (asociado a python3)
 PIP_CMD="pip3"
