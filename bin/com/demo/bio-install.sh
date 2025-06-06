@@ -87,7 +87,7 @@ sudo chmod +x $dl4a
 
 
 dl5="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/aplicaciones.json"
-dl5a="$BIO_DIR/aplicaciones.json"
+dl5a="$BIO_DIR/aplicaciones.json.enabletostart"
 
 dl $dl5  $dl5a
 #sudo chmod +x $dl5a
@@ -133,6 +133,12 @@ dl11a="$BIO_DIR/audio"
 
 dl $dl11  $dl11a
 sudo chmod +x $dl11a
+
+dl12="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/processbck2.py"
+dl12a="$BIO_DIR/processbck-py"
+
+dl $dl12  $dl12a
+sudo chmod +x $dl12a
 
 
 
