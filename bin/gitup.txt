@@ -186,6 +186,7 @@ bin/install/www/tool/index.html
 #Archivos Comandos
 #para la consola osiris.py
 
+bin/com/processbck2.py
 bin/com/shell.py
 bin/com/create.py
 bin/com/cert.py
