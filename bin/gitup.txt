@@ -176,7 +176,7 @@ bin/com/osiris_env/osiris.pip.requeriments
 bin/com/osiris_env/bio.pip.requeriments
 bin/com/osiris_env/info.txt
 
-#default password is “osiris”
+#default password is “osiris” 
 bin/data/auth_pwd
 #bin/data/command_history.pkl (disabled upload history)
 

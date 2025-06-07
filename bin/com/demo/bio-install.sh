@@ -123,7 +123,7 @@ dl $dl6  $dl6a
 sudo chmod +x $dl6a
 
 
-dl7="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/o2doc2.py"
+dl7="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/o2doc2.py"
 dl7a="$BIO_DIR/o3documentation"
 
 dl $dl7  $dl7a
