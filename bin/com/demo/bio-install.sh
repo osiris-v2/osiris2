@@ -1,10 +1,18 @@
 #!/bin/bash
+
+contains_element () {
+    local e match="$1"
+    shift
+    for e; do [[ "$e" == "$match" ]] && return 0; done
+    return 1
+}
+
 script_dir=$(dirname "$(readlink -f "$0")")
 cd $script_dir
 # Script para descargar, verificar dependencias e ejecutar un script Python desde una URL.
 # --- Configuración ---
 # URL del script Python en GitHub
-
+verified_dev_requeriments="/var/osiris2/bin/com/osiris_env/osiris.pip.requeriments" # entorno virtual de desarrollo base por defecto /var/osiris2/...
 BIO_DIR=$script_dir
 cd $BIO_DIR
 echo " --- VHOST VENV --- "
@@ -19,6 +27,20 @@ source $BIO_DIR/venv/bin/activate
 TEMP_SCRIPT="$BIO_DIR/tmp/beta-tmp-file-init.01.py"
 # Lista de paquetes Python necesarios (usar los nombres que usa pip)
 REQUIRED_PACKAGES=("websocket" "cryptography" "PyQt5" "PyQtWebEngine" "qrcode" "pillow" "yt-dlp" "Jinja2" "Markdown" "psutil" "requests" "SpeechRecognition" "PyAudio")
+
+
+while IFS= read -r LINEA;
+ do
+
+if ! printf "%s\n" "${REQUIRED_PACKAGES=[@]}" | grep -q -x -F -- "$LINEA"; then 
+REQUIRED_PACKAGES+=("$LINEA"); echo "Añadido '$LINEA'."; 
+else echo "'$LINEA' ya existe."; 
+fi
+
+ done < $verified_dev_requeriments
+
+
+
 # Comando Python a usar (se recomienda python3 para compatibilidad con las libs)
 
 PYTHON_CMD="python3"
@@ -216,3 +238,8 @@ echo "--- Ejecución del script Python completada ---"
 echo "===================================================="
 echo " Fin: Proceso completado.                          "
 echo "===================================================="
+
+
+
+
+

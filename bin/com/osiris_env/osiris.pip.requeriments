@@ -16,6 +16,8 @@ dnspython
 scapy
 python-nmap
 websockets
+websocket
+websocket-client
 numpy
 matplotlib
 librosa
@@ -30,4 +32,3 @@ torch
 cipher
 Jinja2
 Markdown
-

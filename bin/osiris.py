@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.9
+#!/bin/env python3
 import os
 import signal
 import sys
@@ -26,19 +26,23 @@ def handle_sigchld(signum, frame):
                 # No hay más procesos hijos
                 break
 
-def main():
+def main(args):
     """Función principal de la aplicación."""
     # Registrar el manejador de señales para SIGCHLD
     signal.signal(signal.SIGCHLD, handle_sigchld)
-    
+    print("ENTER ARGS:",args)
     try:
         auth.run()
     except Exception as e:
         print("\n\nError:", e)
         print("Line:", e.__traceback__.tb_lineno)
-        com.command_line()
+        try:
+            com.command_line()
+        except Exception as e2:
+            print("ERROR LEVEL 2:",e2)
     finally:
         print("\nSE HA PRODUCIDO UN ERROR INESPERADO\n")
+        auth.run()
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv)

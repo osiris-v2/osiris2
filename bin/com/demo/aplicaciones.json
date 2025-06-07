@@ -1,4 +1,4 @@
-[ 
+[
     {
         "id": 5,
         "name": "Lanzador de Aplicaciones - Programa dskl (this) link json",
@@ -22,28 +22,28 @@
     },
     {
         "id": 1,
-        "name": "Reproductor de Vídeo ligero",
+        "name": "Reproductor de V\u00eddeo ligero",
         "alias": "dskv",
         "path": "./",
         "enabled": true
     },
     {
         "id": 8,
-        "name": "Une segmentos de vídeo en un archivo",
+        "name": "Une segmentos de v\u00eddeo en un archivo",
         "alias": "dskvu",
         "path": "./",
         "enabled": true
     },
     {
         "id": 9,
-        "name": "Conversor de formatos de vídeo",
+        "name": "Conversor de formatos de v\u00eddeo",
         "alias": "dskvc",
         "path": "./",
         "enabled": true
     },
     {
         "id": 10,
-        "name": "Vídeo Downloader",
+        "name": "V\u00eddeo Downloader",
         "alias": "dskvdl",
         "path": "./",
         "enabled": true
@@ -74,6 +74,20 @@
         "name": "Documentador de Osiris",
         "alias": "o2doc.py",
         "path": "./",
+        "enabled": true
+    },
+    {
+        "id": 12,
+        "name": "BlockChain Gest",
+        "alias": "processbck-py",
+        "path": "/o2iris",
+        "enabled": true
+    },
+    {
+        "id": 13,
+        "name": "Connect.NET",
+        "alias": "conect.net",
+        "path": "/o2iris",
         "enabled": true
     }
 ]
