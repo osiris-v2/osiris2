@@ -1,6 +1,6 @@
 #!/bin/bash
 #OSIRIS o3 INSTALLER 
-
+#verified path /var/def_v
 def_v="osiris2"
 
 # Leer nombre personalizado, por defecto "osiris2"

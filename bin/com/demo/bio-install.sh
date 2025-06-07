@@ -124,7 +124,7 @@ sudo chmod +x $dl6a
 
 
 dl7="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/o2doc.py"
-dl7a="$BIO_DIR/o3documentation.py"
+dl7a="$BIO_DIR/o3documentation"
 
 dl $dl7  $dl7a
 sudo chmod +x $dl7a

@@ -9,8 +9,8 @@ set -e
 REMOTE_RUNNER_PATH="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo"
 FILE_RUN="bio-install.sh"
 DOWNLOAD_RUNNER_SH_URL="${REMOTE_RUNNER_PATH}/${FILE_RUN}"
-BIO_DIR="/usr/local/osiris2/bio"
-
+BIO_DIR="/o2iris"
+#Verified dir BIO_DIR
 # Muestra el directorio por defecto y pide al usuario que seleccione una ruta
 read -p "Selecciona la ruta al directorio bio. Por defecto ( ${BIO_DIR} ): " resp_usuario
 
