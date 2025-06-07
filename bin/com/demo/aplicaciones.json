@@ -2,15 +2,15 @@
     {
         "id": 5,
         "name": "Lanzador de Aplicaciones - Programa dskl (this) link json",
-        "alias": "dskl",
-        "path": "./",
+        "alias": "o2launcher",
+        "path": "/o2iris",
         "enabled": true
     },
     {
         "id": 2,
         "name": "Editor de configuraciones",
-        "alias": "dskonfig",
-        "path": "./",
+        "alias": "o3config",
+        "path": "/o2iris",
         "enabled": true
     },
     {
@@ -88,6 +88,14 @@
         "name": "Seeker Servers",
         "alias": "o3servers",
         "path": "/o2iris",
+        "enabled": true
+    },
+    {
+        "id": 14,
+        "name": "DEMO-L",
+        "alias": "",
+        "path": "",
+        "icon": "",
         "enabled": true
     }
 ]
