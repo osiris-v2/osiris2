@@ -110,7 +110,7 @@ sudo chmod +x $dl4a
 
 
 dl5="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/aplicaciones.json"
-dl5a="$BIO_DIR/aplicaciones.json.enabletostart"
+dl5a="$BIO_DIR/aplicaciones.json"
 
 dl $dl5  $dl5a
 #sudo chmod +x $dl5a
