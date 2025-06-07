@@ -71,7 +71,7 @@
     },
     {
         "id": 7,
-        "name": "Documentador de Osiris",
+        "name": "Documentador Mngr",
         "alias": "o3documentation",
         "path": "/o2iris",
         "enabled": true
