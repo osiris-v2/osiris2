@@ -22,21 +22,21 @@
     },
     {
         "id": 1,
-        "name": "Reproductor de V\u00eddeo ligero",
+        "name": "V\u00eddeo Player",
         "alias": "dskv",
         "path": "/o2iris",
         "enabled": true
     },
     {
         "id": 8,
-        "name": "Une segmentos de v\u00eddeo en un archivo",
+        "name": "V\u00eddeo Unión",
         "alias": "dskvu",
         "path": "/o2iris",
         "enabled": true
     },
     {
         "id": 9,
-        "name": "Conversor de formatos de v\u00eddeo",
+        "name": "V\u00eddeo Conversor",
         "alias": "o3transcoder",
         "path": "/o2iris",
         "enabled": true
