@@ -12,7 +12,8 @@ cd $script_dir
 # Script para descargar, verificar dependencias e ejecutar un script Python desde una URL.
 # --- Configuración ---
 # URL del script Python en GitHub
-verified_dev_requeriments="/var/osiris2/bin/com/osiris_env/osiris.pip.requeriments" # entorno virtual de desarrollo base por defecto /var/osiris2/...
+verified_dev_requeriments="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/osiris_env/osiris.pip.requeriments" 
+#"/var/osiris2/bin/com/osiris_env/osiris.pip.requeriments" # entorno virtual de desarrollo base por defecto /var/osiris2/...
 BIO_DIR=$script_dir
 cd $BIO_DIR
 echo " --- VHOST VENV --- "
@@ -96,7 +97,7 @@ dl2a="$BIO_DIR/dskl"
 dl $dl2  $dl2a
 sudo chmod +x $dl2a
 
-dl3="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/dsk/dskonfig"
+dl3="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/dsk/dskcfg"
 dl3a="$BIO_DIR/dskonfig"
 
 dl $dl3  $dl3a

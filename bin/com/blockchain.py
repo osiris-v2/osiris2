@@ -1,3 +1,4 @@
+#!/bin/env python3
 import datetime
 import hashlib
 import json
