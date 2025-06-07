@@ -1,3 +1,4 @@
+#!/bin/env python3
 import osiris2
 import datetime
 import subprocess
