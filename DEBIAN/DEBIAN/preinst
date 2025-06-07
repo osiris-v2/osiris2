@@ -165,7 +165,7 @@ echo "===================================================================="
 echo "  Finished preinst for Osiris-BIO          "
 echo "===================================================================="
 
-echo " -> Ejecuta .$DEST_RUNNER_SH_SCRIPT "
+echo " -> Ejecuta $DEST_RUNNER_SH_SCRIPT "
 
 #VARIABLES PARA POSTINST
 echo "BIO" > /tmp/osiris2_install_vars
