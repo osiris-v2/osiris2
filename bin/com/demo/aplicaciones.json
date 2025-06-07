@@ -15,9 +15,9 @@
     },
     {
         "id": 6,
-        "name": "Ventana Principal de BIO",
-        "alias": "win",
-        "path": "./",
+        "name": "BIO win Manager",
+        "alias": "o3window",
+        "path": "/o2iris",
         "enabled": true
     },
     {
@@ -44,27 +44,27 @@
     {
         "id": 10,
         "name": "V\u00eddeo Downloader",
-        "alias": "dskvdl",
+        "alias": "o3downloader",
         "path": "./",
         "enabled": true
     },
     {
         "id": 11,
         "name": "Audio Speech",
-        "alias": "audio",
+        "alias": "o3audio",
         "path": "./",
         "enabled": true
     },
     {
         "id": 3,
-        "name": "Demo educativa Cripto-Wallet",
+        "name": "Demo Cripto-Wallet",
         "alias": "walletav.py",
         "path": "./",
         "enabled": true
     },
     {
         "id": 4,
-        "name": "Editor Sublime Text - Desarrollo - Programas de Escritorio",
+        "name": "Editor Sublime Text",
         "alias": "subl",
         "path": "/usr/bin",
         "enabled": true
@@ -72,21 +72,21 @@
     {
         "id": 7,
         "name": "Documentador de Osiris",
-        "alias": "o2doc.py",
-        "path": "./",
+        "alias": "o3documentation",
+        "path": "/o2iris",
         "enabled": true
     },
     {
         "id": 12,
-        "name": "BlockChain Gest",
-        "alias": "processbck-py",
+        "name": "BlockChain Manager",
+        "alias": "o3blockchain",
         "path": "/o2iris",
         "enabled": true
     },
     {
         "id": 13,
-        "name": "Connect.NET",
-        "alias": "conect.net",
+        "name": "Seeker Servers",
+        "alias": "o3servers",
         "path": "/o2iris",
         "enabled": true
     }

@@ -22,12 +22,11 @@ sudo chmod -R 0777 $BIO_DIR/venv
 source $BIO_DIR/venv/bin/activate
 #VRF=A5wqwAaXdcsdr454rt576Y7ua
 #inspect VRF
-
 # Archivo temporal para guardar el script descargado
 # mktemp crea un nombre de archivo temporal único y seguro
 TEMP_SCRIPT="$BIO_DIR/tmp/beta-tmp-file-init.01.py"
 # Lista de paquetes Python necesarios (usar los nombres que usa pip)
-REQUIRED_PACKAGES=("websocket" "cryptography" "PyQt5" "PyQtWebEngine" "qrcode" "pillow" "yt-dlp" "Jinja2" "Markdown" "psutil" "requests" "SpeechRecognition" "PyAudio")
+REQUIRED_PACKAGES=("")
 
 
 while IFS= read -r LINEA;
@@ -46,7 +45,7 @@ fi
 
 PYTHON_CMD="python3"
 # Comando pip a usar (asociado a python3)
-PIP_CMD="pip3"
+PIP_CMD="pip"
 
 # --- Funciones de Utilidad ---
 
@@ -92,19 +91,19 @@ dl $dl1 $dl1a
 sudo chmod +x $dl1a
 
 dl2="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/dsk/dskl"
-dl2a="$BIO_DIR/dskl"
+dl2a="$BIO_DIR/o2launcher"
 
 dl $dl2  $dl2a
 sudo chmod +x $dl2a
 
 dl3="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/dsk/dskcfg"
-dl3a="$BIO_DIR/dskonfig"
+dl3a="$BIO_DIR/o3config"
 
 dl $dl3  $dl3a
 sudo chmod +x $dl3a
 
 dl4="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/dsk/dskv"
-dl4a="$BIO_DIR/dskv"
+dl4a="$BIO_DIR/o3video"
 
 dl $dl4  $dl4a
 sudo chmod +x $dl4a
@@ -118,14 +117,14 @@ dl $dl5  $dl5a
 
 
 dl6="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/OPS/win"
-dl6a="$BIO_DIR/win"
+dl6a="$BIO_DIR/o3window"
 
 dl $dl6  $dl6a
 sudo chmod +x $dl6a
 
 
 dl7="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/o2doc.py"
-dl7a="$BIO_DIR/o2doc.py"
+dl7a="$BIO_DIR/o3documentation.py"
 
 dl $dl7  $dl7a
 sudo chmod +x $dl7a
@@ -139,34 +138,45 @@ sudo chmod +x $dl8a
 
 
 dl9="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/dsk/dskvc"
-dl9a="$BIO_DIR/dskvc"
+dl9a="$BIO_DIR/o3transcoder"
 
 dl $dl9  $dl9a
 sudo chmod +x $dl9a
 
 
 dl10="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/dsk/dskvdl"
-dl10a="$BIO_DIR/dskvdl"
+dl10a="$BIO_DIR/o3downloader"
 
 dl $dl10  $dl10a
 sudo chmod +x $dl10a
 
 
 dl11="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/audio.py"
-dl11a="$BIO_DIR/audio"
+dl11a="$BIO_DIR/o3audio"
 
 dl $dl11  $dl11a
 sudo chmod +x $dl11a
 
+
+
+dl12W="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/o2config.py"
+dl12aW="$BIO_DIR/o3config"
+
+dl $dl12W  $dl12aW
+sudo chmod +x $dl12aW
+
+
+
+
 dl12="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/processbck2.py"
-dl12a="$BIO_DIR/processbck-py"
+dl12a="$BIO_DIR/o3blockchain"
 
 dl $dl12  $dl12a
 sudo chmod +x $dl12a
 
 
-dl13="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/_server.py"
-dl13a="$BIO_DIR/conect.net"
+dl13="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/o2ws2.py"
+dl13a="$BIO_DIR/o3servers"
 
 dl $dl13  $dl13a
 sudo chmod +x $dl13a
