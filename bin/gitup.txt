@@ -172,6 +172,8 @@ bin/dsk/
  
 #modulos pip inicial - requerimientos globales
 bin/com/osiris_env/osiris.pip.requeriments
+#Mínimos para bio O3 (ozone)
+bin/com/osiris_env/bio.pip.requeriments
 bin/com/osiris_env/info.txt
 
 #default password is “osiris”

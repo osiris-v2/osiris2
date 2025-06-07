@@ -13,7 +13,7 @@ cd $script_dir
 # --- Configuración ---
 # URL del script Python en GitHub
 verified_dev_requeriments="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/osiris_env/osiris.pip.requeriments" 
-verified_dev_requeriments="/var/osiris2/bin/com/osiris_env/osiris.pip.requeriments" # entorno virtual de desarrollo base por defecto /var/osiris2/...
+verified_dev_requeriments="/var/osiris2/bin/com/osiris_env/bio.pip.requeriments" # entorno virtual de desarrollo base por defecto /var/osiris2/...
 BIO_DIR=$script_dir
 cd $BIO_DIR
 echo " --- VHOST VENV --- "
