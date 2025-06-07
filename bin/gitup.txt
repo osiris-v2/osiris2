@@ -187,6 +187,7 @@ bin/install/www/tool/index.html
 #para la consola osiris.py
 
 
+bin/com/o2config.py
 bin/com/o2ws2.py
 bin/com/_server.py
 bin/com/_server2.py
