@@ -186,6 +186,10 @@ bin/install/www/tool/index.html
 #Archivos Comandos
 #para la consola osiris.py
 
+
+bin/com/o2ws2.py
+bin/com/_server.py
+bin/com/_server2.py
 bin/com/processbck2.py
 bin/com/shell.py
 bin/com/create.py

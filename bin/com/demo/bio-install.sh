@@ -85,7 +85,7 @@ echo "--- Script descargado exitosamente a $2 ---"
 }
 
 dl1="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/walletav.py"
-dl1a="$BIO_DIR/walletav.py"
+dl1a="$BIO_DIR/o3wallet"
 
 dl $dl1 $dl1a
 sudo chmod +x $dl1a
