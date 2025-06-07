@@ -1,7 +1,7 @@
 [
     {
         "id": 5,
-        "name": "Lanzador de Aplicaciones - Programa dskl (this) link json",
+        "name": "Lanzador de Aplicaciones",
         "alias": "o2launcher",
         "path": "/o2iris",
         "enabled": true
@@ -24,42 +24,42 @@
         "id": 1,
         "name": "Reproductor de V\u00eddeo ligero",
         "alias": "dskv",
-        "path": "./",
+        "path": "/o2iris",
         "enabled": true
     },
     {
         "id": 8,
         "name": "Une segmentos de v\u00eddeo en un archivo",
         "alias": "dskvu",
-        "path": "./",
+        "path": "/o2iris",
         "enabled": true
     },
     {
         "id": 9,
         "name": "Conversor de formatos de v\u00eddeo",
-        "alias": "dskvc",
-        "path": "./",
+        "alias": "o3transcoder",
+        "path": "/o2iris",
         "enabled": true
     },
     {
         "id": 10,
         "name": "V\u00eddeo Downloader",
         "alias": "o3downloader",
-        "path": "./",
+        "path": "/o2iris",
         "enabled": true
     },
     {
         "id": 11,
         "name": "Audio Speech",
         "alias": "o3audio",
-        "path": "./",
+        "path": "/o2iris",
         "enabled": true
     },
     {
         "id": 3,
         "name": "Demo Cripto-Wallet",
-        "alias": "walletav.py",
-        "path": "./",
+        "alias": "o3wallet",
+        "path": "/o2iris",
         "enabled": true
     },
     {
