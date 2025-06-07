@@ -170,7 +170,7 @@ bin/tool/memory
 #herraientas desktop (ventanas) 
 bin/dsk/
 bin/dsk/dskcfg
-
+ 
 #modulos pip inicial - requerimientos globales
 bin/com/osiris_env/osiris.pip.requeriments
 bin/com/osiris_env/info.txt
