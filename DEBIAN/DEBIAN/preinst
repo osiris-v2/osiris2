@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 # preinst script for osiris-BIO
 
 # Exit immediately if a command exits with a non-zero status.
