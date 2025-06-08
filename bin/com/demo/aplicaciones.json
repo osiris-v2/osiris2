@@ -9,6 +9,7 @@
     {
         "id": 2,
         "name": "Editor de configuraciones",
+	"icon":"/o2iris/img/icon/configurador.ico",
         "alias": "o3config",
         "path": "/o2iris",
         "enabled": true
@@ -76,7 +77,7 @@
         "name": "Documentación",
         "alias": "o3documentation",
         "path": "/o2iris",
-	"icon":"",
+	"icon":"/o2iris/img/icon/documentador.ico",
         "enabled": true
     },
     {
@@ -104,8 +105,8 @@
     },
     {
         "id": 15,
-        "name": "Bio-install",
-        "alias": "",
+        "name": "Bio-install data",
+        "alias": "gnome-terminal --title="BIO INSTALL DATA" -- /bin/bash -c 'echo "BIO-INFO"; exec bash' & cd . &",
         "path": "/o2iris",
         "icon": "",
         "enabled": true
