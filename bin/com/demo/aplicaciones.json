@@ -75,6 +75,7 @@
         "name": "Documentador Mngr",
         "alias": "o3documentation",
         "path": "/o2iris",
+	"icon":"/o2iris/img/icon/blockchainmanager.ico",
         "enabled": true
     },
     {
