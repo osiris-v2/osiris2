@@ -9,9 +9,9 @@
     {
         "id": 2,
         "name": "Editor de configuraciones",
-	"icon":"/o2iris/img/icon/configurador.ico",
         "alias": "o3config",
         "path": "/o2iris",
+        "icon": "/o2iris/img/icon/configurador.ico",
         "enabled": true
     },
     {
@@ -41,7 +41,7 @@
         "name": "V\u00eddeo Conversor",
         "alias": "o3transcoder",
         "path": "/o2iris",
-	"icon": "/o2iris/img/icon/videoconvert.ico",
+	    "icon": "/o2iris/img/icon/videoconvert.ico",
         "enabled": true
     },
     {
@@ -85,7 +85,7 @@
         "name": "BlockChain Manager",
         "alias": "o3blockchain",
         "path": "/o2iris",
-	"icon":"/o2iris/img/icon/blockchainmanager.ico",
+	    "icon":"/o2iris/img/icon/blockchainmanager.ico",
         "enabled": true
     },
     {
@@ -106,7 +106,7 @@
     {
         "id": 15,
         "name": "Bio-install data",
-        "alias": "gnome-terminal --title="BIO INSTALL DATA" -- /bin/bash -c 'echo "BIO-INFO"; exec bash' & cd . &",
+        "alias": "gnome-terminal --title=\"BIO INSTALL DATA\" -- /bin/bash -c 'echo \"BIO-INFO\"; exec bash' & cd . &",
         "path": "/o2iris",
         "icon": "",
         "enabled": true
