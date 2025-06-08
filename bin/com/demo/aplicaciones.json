@@ -95,12 +95,12 @@
         "name": "Video Recorder Screen",
         "alias": "vokoscreenNG",
         "path": "/usr/bin",
-        "icon": "/o2iris/capturevideo.png",
+        "icon": "/o2iris/icon/capturevideo.ico",
         "enabled": true
     },
     {
         "id": 15,
-        "name": "Nueva App 15",
+        "name": "Bio-install",
         "alias": "",
         "path": "",
         "icon": "/o2iris",
