@@ -158,6 +158,8 @@ bin/scripts/client.run
 #Importa Archivos de programa osiris a paquete instalador
 bin/scripts/files2deb.sh
 
+#instala  / gestiona Docker
+bin/scripts/docker.sh
 
 #Herramientas del directorio bin/tool
 #genera reporte para diagnostico servers
