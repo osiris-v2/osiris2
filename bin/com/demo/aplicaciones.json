@@ -106,7 +106,7 @@
     {
         "id": 15,
         "name": "Bio-install data",
-        "alias": "gnome-terminal --title=\"BIO INSTALL DATA\" -- /bin/bash -c 'echo \"BIO-INFO\"; exec bash' & cd . &",
+        "alias": "gnome-terminal --title='BIO INSTALL DATA' -- /bin/bash -c ' ; exec bash' &",
         "path": "/o2iris",
         "icon": "",
         "enabled": true
