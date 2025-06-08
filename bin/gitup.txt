@@ -187,7 +187,7 @@ bin/install/www/tool/index.html
 
 #Archivos Comandos
 #para la consola osiris.py
-
+bin/com/o3launcher.py
 bin/com/o2doc2.py
 bin/com/o2doc.py
 bin/com/o2config.py
