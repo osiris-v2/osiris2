@@ -24,7 +24,8 @@
         "id": 1,
         "name": "V\u00eddeo Player",
         "alias": "dskv",
-        "path": "/o2iris/img/icon/videoplayer.ico",
+        "path":"/o2iris",
+        "icon": "/o2iris/img/icon/videoplayer.ico",
         "enabled": true
     },
     {
