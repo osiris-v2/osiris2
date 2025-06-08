@@ -29,7 +29,7 @@
     },
     {
         "id": 8,
-        "name": "V\u00eddeo Unión",
+        "name": "V\u00eddeo Uni\u00f3n",
         "alias": "dskvu",
         "path": "/o2iris",
         "enabled": true
@@ -92,10 +92,18 @@
     },
     {
         "id": 14,
-        "name": "DEMO-L",
+        "name": "Video Recorder Screen",
+        "alias": "vokoscreenNG",
+        "path": "/usr/bin",
+        "icon": "/o2iris/capturevideo.png",
+        "enabled": true
+    },
+    {
+        "id": 15,
+        "name": "Nueva App 15",
         "alias": "",
         "path": "",
-        "icon": "",
+        "icon": "/o2iris",
         "enabled": true
     }
 ]
