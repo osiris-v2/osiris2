@@ -24,7 +24,7 @@
         "id": 1,
         "name": "V\u00eddeo Player",
         "alias": "dskv",
-        "path": "/o2iris",
+        "path": "/o2iris/img/icon/videoplayer.ico",
         "enabled": true
     },
     {
@@ -102,8 +102,8 @@
         "id": 15,
         "name": "Bio-install",
         "alias": "",
-        "path": "",
-        "icon": "/o2iris",
+        "path": "/o2iris",
+        "icon": "",
         "enabled": true
     }
 ]
