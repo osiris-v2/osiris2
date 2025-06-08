@@ -96,7 +96,7 @@
         "name": "Video Recorder Screen",
         "alias": "vokoscreenNG",
         "path": "/usr/bin",
-        "icon": "/o2iris/icon/capturevideo.ico",
+        "icon": "/o2iris/img/icon/capturevideo.ico",
         "enabled": true
     },
     {
