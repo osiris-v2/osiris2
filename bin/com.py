@@ -264,12 +264,12 @@ def edit_command(command,editor="nano",execution=""):
             timestamp = int(time.time())
             __com = str(exec_com_bg)
             _ps = core.multiprocess({
-            		"mode":"bg",
-          		"name":None,
+                    "mode":"bg",
+                "name":None,
                         "com":exec_com_bg,
                         "metadata": {"user": "com.py",
                             "time_start":timestamp,
-			    "command": __com
+                "command": __com
                            }})
             print(_ps)
         elif def_editor in subprocess.check_output(["ps", "-aux"]).decode():
@@ -362,9 +362,13 @@ def CTRL_C(signal, frame):
 
 
 def main (args):
-    execute_command(sys.argv)
+#    print("--->",args)
+    handle_command(args)
+    command_line()
+
 
 
 # Ejecutar el CLI
 if __name__ == "__main__":
+    main(sys.argv[1:])
     command_line()
