@@ -90,7 +90,7 @@ dl1a="$BIO_DIR/o3wallet"
 dl $dl1 $dl1a
 sudo chmod +x $dl1a
 
-dl2="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/dsk/dskl"
+dl2="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/o3launcher.py"
 dl2a="$BIO_DIR/o2launcher"
 
 dl $dl2  $dl2a
