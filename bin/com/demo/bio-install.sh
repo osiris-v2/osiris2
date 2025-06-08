@@ -98,7 +98,7 @@ sudo chmod +x $dl2a
 
 dl3="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/dsk/dskcfg"
 dl3a="$BIO_DIR/o3config"
-
+ 
 dl $dl3  $dl3a
 sudo chmod +x $dl3a
 
