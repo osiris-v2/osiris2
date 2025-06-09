@@ -11,7 +11,7 @@ import os
 import random
 import string
 import lib.core  as core
-
+import lib.aluminium as win2
 
 
 #print("UTILS")
@@ -163,6 +163,13 @@ def dialog_window(text=""):
 
 
 def show_text_window(text):
+
+    #Abrimos en Qt
+    win2.show_ai_response_window(text)
+    #SALIMOS (UPGRADE Tkinter to Qt5/6)
+    return
+
+
     ventana_secundaria = tk.Toplevel()
     ventana_secundaria.title("Contenido de la conversación")
     ventana_secundaria.geometry("800x600")

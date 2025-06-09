@@ -145,33 +145,48 @@ dmenu('EDITORc21','dispApp')
 
 }
 
+function n_menu(obj){
+obj.id.innerHTML = obj.innerHTML
+obj.id.className = obj.className
+obj.id.onclick = function(){
+if(obj.bind.src=="about:blank"){
+	obj.bind.src=obj.location
+}
+dmenu(obj.name,'dispApp')
+}}
 
 
-a9.innerHTML = "Dir TMP"
-a9.className = "lmenu"
-a9.onclick = function(){
-if(DOC.src=="about:blank"){
-	DOC.src="https://"+window.location.hostname+"/app/freedirectory/tmp"
-}
-dmenu('DOC','dispApp')
-}
+n_menu({
+	id:a9,
+	bind:DOC,
+	name:"DOC",
+	location:"https://"+window.location.hostname+"/img/tmp",
+	innerHTML:"Temporales",
+	className:"lmenu"
+	})
 
+n_menu({
+	id:a10,
+	bind:WEBIRC,
+	name:"WEBIRC",
+	location:"https://"+window.location.hostname+"/app/widgets/webirc.html",
+	innerHTML:"WebIRC",
+	className:"lmenu"
+	})
 
-a10.innerHTML = "Web IRC"
-a10.className = "lmenu"
-a10.onclick = function(){
-if(WEBIRC.src=="about:blank"){
-	WEBIRC.src="https://"+window.location.hostname+"/app/widgets/webirc.html"
-}
-dmenu('WEBIRC','dispApp')
-}
+n_menu({
+	id:a11,
+	bind:DOCS,
+	name:"DOCS",
+	location:"https://"+window.location.hostname+"/documentation/index.php",
+	innerHTML:"Documentación",
+	className:"lmenu"
+	})
+
 
 
 
 /* Estilos*/
-
-
-
 
 addStyle(`
 

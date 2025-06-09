@@ -113,14 +113,14 @@ check_sudo() {
 get_distribution() {
     if [ -f /etc/os-release ]; then
         . /etc/os-release # Carga las variables de ese archivo en el entorno actual
-        echo "$ID" | tr '[:upper:]' '[:lower:]' # Convertir a minúsculas
+        echo -e "$ID" | tr '[:upper:]' '[:lower:]' # Convertir a minúsculas
     elif type lsb_release >/dev/null 2>&1; then
         lsb_release -is | tr '[:upper:]' '[:lower:]'
     elif [ -f /etc/redhat-release ]; then
         # Para CentOS/RHEL/AlmaLinux/RockyLinux, /etc/redhat-release contiene la información.
         cat /etc/redhat-release | awk '{print $1}' | tr '[:upper:]' '[:lower:]'
     else
-        echo "unknown" # Si no se detecta la distribución
+        echo -e "unknown" # Si no se detecta la distribución
     fi
 }
 
@@ -140,11 +140,11 @@ is_docker_installed() {
 # Retorna "plugin", "standalone" o "none".
 detect_docker_compose_type() {
     if docker compose version &>/dev/null; then
-        echo "plugin" # docker compose (con espacio) es el plugin
+        echo -e "plugin" # docker compose (con espacio) es el plugin
     elif command -v docker-compose &>/dev/null; then
-        echo "standalone" # docker-compose (con guion) es el binario standalone
+        echo -e "standalone" # docker-compose (con guion) es el binario standalone
     else
-        echo "none" # Docker Compose no está instalado en ninguna forma
+        echo -e "none" # Docker Compose no está instalado en ninguna forma
     fi
 }
 
@@ -154,7 +154,7 @@ detect_docker_compose_type() {
 add_user_to_docker_group() {
     print_section_header "Añadir Usuario al Grupo Docker 👥"
     local current_user=$(whoami) # Obtiene el nombre del usuario actual.
-    echo "Para poder usar Docker sin 'sudo', tu usuario ('${CYAN}$current_user${RESET}') debe ser miembro del grupo 'docker'."
+    echo -e "Para poder usar Docker sin 'sudo', tu usuario ('${CYAN}$current_user${RESET}') debe ser miembro del grupo 'docker'."
     
     # Comprueba si el usuario ya es miembro del grupo 'docker'.
     if groups $current_user | grep -q '\bdocker\b'; then
@@ -178,8 +178,8 @@ add_user_to_docker_group() {
 # Sigue las instrucciones oficiales para añadir el repositorio de Docker.
 install_docker_debian() {
     print_section_header "Instalación de Docker en Debian/Ubuntu 🐧"
-    echo "Este proceso instalará Docker CE (Community Edition), containerd y el plugin Docker Compose CLI"
-    echo "desde los repositorios oficiales de Docker, asegurando las últimas versiones estables."
+    echo -e "Este proceso instalará Docker CE (Community Edition), containerd y el plugin Docker Compose CLI"
+    echo -e "desde los repositorios oficiales de Docker, asegurando las últimas versiones estables."
     echo -e "${AMARILLO}Asegúrate de tener una conexión a internet estable. 📶${RESET}"
     echo
     if confirm_action "¿Proceder con la instalación de Docker en Debian/Ubuntu?"; then
@@ -228,8 +228,8 @@ install_docker_debian() {
 # Sigue las instrucciones oficiales para añadir el repositorio de Docker y usar DNF.
 install_docker_fedora() {
     print_section_header "Instalación de Docker en Fedora/CentOS/RHEL 🔶"
-    echo "Este proceso instalará Docker CE (Community Edition), containerd y el plugin Docker Compose"
-    echo "desde los repositorios oficiales de Docker utilizando el gestor de paquetes DNF/YUM."
+    echo -e "Este proceso instalará Docker CE (Community Edition), containerd y el plugin Docker Compose"
+    echo -e "desde los repositorios oficiales de Docker utilizando el gestor de paquetes DNF/YUM."
     echo -e "${AMARILLO}Asegúrate de tener una conexión a internet estable. 📶${RESET}"
     echo
     if confirm_action "¿Proceder con la instalación de Docker en Fedora/CentOS/RHEL?"; then
@@ -262,10 +262,10 @@ install_docker_fedora() {
 # Este método es rápido pero NO recomendado para entornos de producción por razones de seguridad y control.
 install_docker_generic() {
     print_section_header "Instalación Genérica de Docker (Script de Conveniencia) 🌐"
-    echo "Esta opción utiliza el script de conveniencia de Docker (get.docker.com)."
-    echo "${ROJO}¡ADVERTENCIA! Este método NO es el recomendado para entornos de producción y debe usarse con precaución, ya que salta pasos de verificación de paquetes y puede ser menos predecible.${RESET}"
-    echo "Para la forma más segura y recomendada, visita la documentación oficial de Docker para tu distribución:"
-    echo "  ${CYAN}https://docs.docker.com/engine/install/${RESET}"
+    echo -e "Esta opción utiliza el script de conveniencia de Docker (get.docker.com)."
+    echo -e "${ROJO}¡ADVERTENCIA! Este método NO es el recomendado para entornos de producción y debe usarse con precaución, ya que salta pasos de verificación de paquetes y puede ser menos predecible.${RESET}"
+    echo -e "Para la forma más segura y recomendada, visita la documentación oficial de Docker para tu distribución:"
+    echo -e "  ${CYAN}https://docs.docker.com/engine/install/${RESET}"
     echo -e "${AMARILLO}Asegúrate de tener una conexión a internet estable. 📶${RESET}"
     echo
     if confirm_action "¿Deseas intentar ejecutar el script de instalación de conveniencia de Docker?"; then
@@ -359,7 +359,7 @@ restart_docker() {
 # Habilita el servicio Docker para que se inicie automáticamente al arrancar el sistema.
 enable_docker_on_boot() {
     print_section_header "Habilitar Docker al Inicio del Sistema ⚡"
-    echo "Habilitar el servicio Docker significa que se iniciará automáticamente cada vez que el sistema se arranque."
+    echo -e "Habilitar el servicio Docker significa que se iniciará automáticamente cada vez que el sistema se arranque."
     if systemctl is-enabled --quiet docker; then
         echo -e "${VERDE}El servicio Docker ya está habilitado para iniciar automáticamente en el arranque. ✅${RESET}"
     else
@@ -378,7 +378,7 @@ enable_docker_on_boot() {
 # Deshabilita el servicio Docker para que NO se inicie automáticamente al arrancar el sistema.
 disable_docker_on_boot() {
     print_section_header "Deshabilitar Docker al Inicio del Sistema 🛑"
-    echo "Deshabilitar el servicio Docker significa que NO se iniciará automáticamente con el sistema. Tendrás que iniciarlo manualmente cada vez que lo necesites."
+    echo -e "Deshabilitar el servicio Docker significa que NO se iniciará automáticamente con el sistema. Tendrás que iniciarlo manualmente cada vez que lo necesites."
     if ! systemctl is-enabled --quiet docker; then
         echo -e "${VERDE}El servicio Docker ya está deshabilitado para iniciar automáticamente en el arranque. ✅${RESET}"
     else
@@ -397,7 +397,7 @@ disable_docker_on_boot() {
 # --- FUNCIONES DE GESTIÓN DE IMÁGENES DOCKER ---
 list_images() {
     print_section_header "Listar Imágenes Docker 🖼️"
-    echo "Mostrando todas las imágenes Docker disponibles en tu sistema. Esto incluye las imágenes descargadas y las que has construido."
+    echo -e "Mostrando todas las imágenes Docker disponibles en tu sistema. Esto incluye las imágenes descargadas y las que has construido."
     echo -e "${AZUL}Leyenda:${RESET}"
     echo -e "${CYAN}REPOSITORY:${RESET} Nombre de la imagen."
     echo -e "${CYAN}TAG:${RESET} Etiqueta de la versión de la imagen."
@@ -411,8 +411,8 @@ list_images() {
 
 pull_image() {
     print_section_header "Descargar Imagen Docker ⬇️"
-    echo "Descarga una imagen de Docker Hub (por defecto) o de un registro privado. El formato es 'nombre[:tag]'."
-    echo "Ejemplos: 'ubuntu:latest', 'nginx', 'myregistry.com/myimage:v1.0'"
+    echo -e "Descarga una imagen de Docker Hub (por defecto) o de un registro privado. El formato es 'nombre[:tag]'."
+    echo -e "Ejemplos: 'ubuntu:latest', 'nginx', 'myregistry.com/myimage:v1.0'"
     read -p "$(echo -e "${AMARILLO}Introduce el nombre de la imagen a descargar: ${RESET}")" image_name
     if [ -z "$image_name" ]; then
         echo -e "${ROJO}El nombre de la imagen no puede estar vacío. Por favor, introduce un valor válido. ❌${RESET}"
@@ -432,7 +432,7 @@ pull_image() {
 
 remove_image() {
     print_section_header "Eliminar Imagen Docker 🗑️"
-    echo "Elimina una imagen de Docker de tu sistema. ¡Una vez eliminada, no se puede recuperar fácilmente!"
+    echo -e "Elimina una imagen de Docker de tu sistema. ¡Una vez eliminada, no se puede recuperar fácilmente!"
     echo -e "${AMARILLO}ADVERTENCIA: Si la imagen está siendo utilizada por contenedores en ejecución, Docker te impedirá eliminarla. Debes detener y eliminar los contenedores primero. Si está en uso por contenedores detenidos, se te preguntará si quieres forzar la eliminación.${RESET}"
     list_images
     echo
@@ -457,7 +457,7 @@ remove_image() {
 
 inspect_image() {
     print_section_header "Inspeccionar Imagen Docker 🔍"
-    echo "Muestra información detallada de bajo nivel (formato JSON) sobre una imagen Docker. Esto incluye su historial, capas, configuración de red, volúmenes, etc."
+    echo -e "Muestra información detallada de bajo nivel (formato JSON) sobre una imagen Docker. Esto incluye su historial, capas, configuración de red, volúmenes, etc."
     list_images
     echo
     read -p "$(echo -e "${AMARILLO}Introduce el ID o nombre de la imagen a inspeccionar: ${RESET}")" image_id
@@ -471,10 +471,10 @@ inspect_image() {
 
 build_image() {
     print_section_header "Construir Imagen Docker (Básico) 🏗️"
-    echo "Construye una imagen Docker a partir de un Dockerfile en un directorio (contexto) dado."
+    echo -e "Construye una imagen Docker a partir de un Dockerfile en un directorio (contexto) dado."
     echo -e "${AMARILLO}Asegúrate de que tu Dockerfile se encuentre en el directorio que especifiques como contexto.${RESET}"
-    echo "Ejemplo de contexto: './mi_app_docker/' (el punto indica el directorio actual)"
-    echo "Ejemplo de nombre de imagen: 'mi-app:latest' o 'mi-backend'"
+    echo -e "Ejemplo de contexto: './mi_app_docker/' (el punto indica el directorio actual)"
+    echo -e "Ejemplo de nombre de imagen: 'mi-app:latest' o 'mi-backend'"
     read -p "$(echo -e "${AMARILLO}Introduce la ruta al contexto del build (ej. './mi_app_docker/'): ${RESET}")" build_context
     if [ -z "$build_context" ]; then
         echo -e "${ROJO}La ruta del contexto no puede estar vacía. ❌${RESET}"
@@ -517,7 +517,7 @@ list_containers() {
 
 start_container() {
     print_section_header "Iniciar Contenedor Docker ▶️"
-    echo "Inicia uno o más contenedores previamente detenidos."
+    echo -e "Inicia uno o más contenedores previamente detenidos."
     list_containers # Muestra los contenedores para que el usuario pueda elegir.
     echo
     read -p "$(echo -e "${AMARILLO}Introduce el ID o nombre del contenedor a iniciar: ${RESET}")" container_id
@@ -539,7 +539,7 @@ start_container() {
 
 stop_container() {
     print_section_header "Detener Contenedor Docker ⏹️"
-    echo "Detiene uno o más contenedores en ejecución suavemente. Docker intentará detenerlos en 10 segundos por defecto."
+    echo -e "Detiene uno o más contenedores en ejecución suavemente. Docker intentará detenerlos en 10 segundos por defecto."
     echo -e "${AMARILLO}Si un contenedor no se detiene después de un tiempo, puedes intentar forzar la detención con 'docker kill <ID>' o 'docker stop <ID> --time 1' si el problema persiste.${RESET}"
     list_containers
     echo
@@ -562,7 +562,7 @@ stop_container() {
 
 remove_container() {
     print_section_header "Eliminar Contenedor Docker 🗑️"
-    echo "Elimina un contenedor Docker. Un contenedor debe estar detenido para ser eliminado (a menos que uses '-f')."
+    echo -e "Elimina un contenedor Docker. Un contenedor debe estar detenido para ser eliminado (a menos que uses '-f')."
     echo -e "${ROJO}¡ADVERTENCIA! Eliminar un contenedor no elimina automáticamente los volúmenes de datos asociados a él. Esos datos persistirán hasta que elimines el volumen explícitamente.${RESET}"
     list_containers
     echo
@@ -586,7 +586,7 @@ remove_container() {
 
 restart_container() {
     print_section_header "Reiniciar Contenedor Docker 🔄"
-    echo "Detiene y luego inicia un contenedor Docker. Esto es útil para aplicar cambios de configuración o para refrescar el estado de una aplicación."
+    echo -e "Detiene y luego inicia un contenedor Docker. Esto es útil para aplicar cambios de configuración o para refrescar el estado de una aplicación."
     list_containers
     echo
     read -p "$(echo -e "${AMARILLO}Introduce el ID o nombre del contenedor a reiniciar: ${RESET}")" container_id
@@ -608,7 +608,7 @@ restart_container() {
 
 exec_container() {
     print_section_header "Ejecutar Comando en Contenedor 🚀"
-    echo "Ejecuta un comando directamente dentro de un contenedor en ejecución. Esto es extremadamente útil para depuración, instalación de paquetes temporales o inspección de archivos."
+    echo -e "Ejecuta un comando directamente dentro de un contenedor en ejecución. Esto es extremadamente útil para depuración, instalación de paquetes temporales o inspección de archivos."
     echo -e "${AMARILLO}Para una sesión interactiva (como una shell), usa comandos como 'bash' o 'sh'.${RESET}"
     list_containers
     echo
@@ -630,8 +630,8 @@ exec_container() {
 
 view_container_logs() {
     print_section_header "Ver Logs de Contenedor 📜"
-    echo "Muestra los logs de salida estándar (stdout) y de error (stderr) de un contenedor."
-    echo "Útil para depurar aplicaciones dentro de los contenedores."
+    echo -e "Muestra los logs de salida estándar (stdout) y de error (stderr) de un contenedor."
+    echo -e "Útil para depurar aplicaciones dentro de los contenedores."
     list_containers
     echo
     read -p "$(echo -e "${AMARILLO}Introduce el ID o nombre del contenedor para ver sus logs: ${RESET}")" container_id
@@ -651,8 +651,8 @@ view_container_logs() {
 
 inspect_container() {
     print_section_header "Inspeccionar Contenedor Docker 🔍"
-    echo "Muestra información detallada de bajo nivel (formato JSON) sobre un contenedor Docker específico."
-    echo "Esto incluye su configuración, estado de red, volúmenes montados, procesos, etc."
+    echo -e "Muestra información detallada de bajo nivel (formato JSON) sobre un contenedor Docker específico."
+    echo -e "Esto incluye su configuración, estado de red, volúmenes montados, procesos, etc."
     list_containers
     echo
     read -p "$(echo -e "${AMARILLO}Introduce el ID o nombre del contenedor a inspeccionar: ${RESET}")" container_id
@@ -670,7 +670,7 @@ inspect_container() {
 # --- FUNCIONES DE GESTIÓN DE REDES DOCKER ---
 list_networks() {
     print_section_header "Listar Redes Docker 🌐"
-    echo "Muestra todas las redes Docker en tu sistema. Estas redes permiten la comunicación entre contenedores y con el host."
+    echo -e "Muestra todas las redes Docker en tu sistema. Estas redes permiten la comunicación entre contenedores y con el host."
     echo -e "${AZUL}Columnas:${RESET}"
     echo -e "${CYAN}NETWORK ID:${RESET} Identificador único de la red."
     echo -e "${CYAN}NAME:${RESET} Nombre de la red."
@@ -682,8 +682,8 @@ list_networks() {
 
 create_network() {
     print_section_header "Crear Red Docker ➕"
-    echo "Crea una nueva red personalizada para tus contenedores. Esto mejora el aislamiento y la organización de tus servicios Docker."
-    echo "Drivers comunes: 'bridge' (por defecto, para un solo host), 'overlay' (para Docker Swarm en múltiples hosts), 'macvlan'."
+    echo -e "Crea una nueva red personalizada para tus contenedores. Esto mejora el aislamiento y la organización de tus servicios Docker."
+    echo -e "Drivers comunes: 'bridge' (por defecto, para un solo host), 'overlay' (para Docker Swarm en múltiples hosts), 'macvlan'."
     read -p "$(echo -e "${AMARILLO}Introduce el nombre de la nueva red: ${RESET}")" network_name
     if [ -z "$network_name" ]; then
         echo -e "${ROJO}El nombre de la red no puede estar vacío. ❌${RESET}"
@@ -720,7 +720,7 @@ create_network() {
 
 remove_network() {
     print_section_header "Eliminar Red Docker 🗑️"
-    echo "Elimina una red Docker. Asegúrate de que ningún contenedor esté conectado a ella antes de eliminarla."
+    echo -e "Elimina una red Docker. Asegúrate de que ningún contenedor esté conectado a ella antes de eliminarla."
     echo -e "${ROJO}ADVERTENCIA: Eliminar una red en uso puede causar que los contenedores conectados pierdan conectividad y fallen. 🚨${RESET}"
     list_networks
     echo
@@ -743,8 +743,8 @@ remove_network() {
 
 inspect_network() {
     print_section_header "Inspeccionar Red Docker 🔍"
-    echo "Muestra información detallada de bajo nivel (formato JSON) sobre una red Docker específica."
-    echo "Esto incluye su driver, subred, gateway, contenedores conectados y opciones configuradas."
+    echo -e "Muestra información detallada de bajo nivel (formato JSON) sobre una red Docker específica."
+    echo -e "Esto incluye su driver, subred, gateway, contenedores conectados y opciones configuradas."
     list_networks
     echo
     read -p "$(echo -e "${AMARILLO}Introduce el ID o nombre de la red a inspeccionar: ${RESET}")" network_id
@@ -762,7 +762,7 @@ inspect_network() {
 # --- FUNCIONES DE GESTIÓN DE VOLÚMENES DOCKER ---
 list_volumes() {
     print_section_header "Listar Volúmenes Docker 💾"
-    echo "Muestra todos los volúmenes Docker. Los volúmenes se utilizan para persistir datos generados por los contenedores, desacoplándolos del ciclo de vida del contenedor."
+    echo -e "Muestra todos los volúmenes Docker. Los volúmenes se utilizan para persistir datos generados por los contenedores, desacoplándolos del ciclo de vida del contenedor."
     echo -e "${AZUL}Columnas:${RESET}"
     echo -e "${CYAN}DRIVER:${RESET} Driver del volumen (generalmente 'local')."
     echo -e "${CYAN}VOLUME NAME:${RESET} Nombre del volumen."
@@ -772,7 +772,7 @@ list_volumes() {
 
 create_volume() {
     print_section_header "Crear Volumen Docker ➕"
-    echo "Crea un nuevo volumen de datos. Este volumen puede ser montado en uno o varios contenedores para almacenar datos persistentes."
+    echo -e "Crea un nuevo volumen de datos. Este volumen puede ser montado en uno o varios contenedores para almacenar datos persistentes."
     echo -e "${AMARILLO}Los volúmenes son la forma preferida de gestionar datos persistentes en Docker.${RESET}"
     read -p "$(echo -e "${AMARILLO}Introduce el nombre del nuevo volumen: ${RESET}")" volume_name
     if [ -z "$volume_name" ]; then
@@ -805,7 +805,7 @@ create_volume() {
 
 remove_volume() {
     print_section_header "Eliminar Volumen Docker 🗑️"
-    echo "Elimina un volumen de datos. ¡Esto es una operación destructiva! Los datos almacenados en el volumen se perderán PARA SIEMPRE."
+    echo -e "Elimina un volumen de datos. ¡Esto es una operación destructiva! Los datos almacenados en el volumen se perderán PARA SIEMPRE."
     echo -e "${ROJO}¡ADVERTENCIA CRÍTICA! ASEGÚRATE de que el volumen no contiene datos importantes que necesites. Esta acción es IRREVERSIBLE. 🚨💥${RESET}"
     list_volumes
     echo
@@ -828,8 +828,8 @@ remove_volume() {
 
 inspect_volume() {
     print_section_header "Inspeccionar Volumen Docker 🔍"
-    echo "Muestra información detallada de bajo nivel (formato JSON) sobre un volumen Docker específico."
-    echo "Esto incluye su driver, ruta de montaje en el host, etiquetas y opciones."
+    echo -e "Muestra información detallada de bajo nivel (formato JSON) sobre un volumen Docker específico."
+    echo -e "Esto incluye su driver, ruta de montaje en el host, etiquetas y opciones."
     list_volumes
     echo
     read -p "$(echo -e "${AMARILLO}Introduce el nombre del volumen a inspeccionar: ${RESET}")" volume_name
@@ -847,15 +847,15 @@ inspect_volume() {
 # --- Limpieza de Recursos Docker ---
 prune_docker() {
     print_section_header "Limpieza de Recursos Docker 🧹"
-    echo "Esta sección te ayuda a liberar espacio en disco eliminando recursos Docker no utilizados."
+    echo -e "Esta sección te ayuda a liberar espacio en disco eliminando recursos Docker no utilizados."
     echo -e "${AMARILLO}¡CUIDADO! Algunas operaciones de limpieza son irreversibles y pueden eliminar datos.${RESET}"
     echo
-    echo "1.  Limpiar TODOS los recursos no utilizados (contenedores detenidos, imágenes sin etiqueta o no referenciadas, redes no usadas, volúmenes no usados y caché de build). 🚨 (docker system prune -a --volumes)"
-    echo "2.  Limpiar solo contenedores detenidos. (docker container prune)"
-    echo "3.  Limpiar solo imágenes no utilizadas (pendientes y sin referencia). (docker image prune -a)"
-    echo "4.  Limpiar solo volúmenes no utilizados (¡MUCHO CUIDADO! Esto puede eliminar datos de forma permanente). (docker volume prune)"
-    echo "5.  Limpiar solo redes no utilizadas. (docker network prune)"
-    echo "0.  Volver al menú anterior."
+    echo -e "1.  Limpiar TODOS los recursos no utilizados (contenedores detenidos, imágenes sin etiqueta o no referenciadas, redes no usadas, volúmenes no usados y caché de build). 🚨 (docker system prune -a --volumes)"
+    echo -e "2.  Limpiar solo contenedores detenidos. (docker container prune)"
+    echo -e "3.  Limpiar solo imágenes no utilizadas (pendientes y sin referencia). (docker image prune -a)"
+    echo -e "4.  Limpiar solo volúmenes no utilizados (¡MUCHO CUIDADO! Esto puede eliminar datos de forma permanente). (docker volume prune)"
+    echo -e "5.  Limpiar solo redes no utilizadas. (docker network prune)"
+    echo -e "0.  Volver al menú anterior."
 
     read -p "$(echo -e "${AMARILLO}Selecciona una opción de limpieza: ${RESET}")" prune_choice
     echo
@@ -908,7 +908,7 @@ prune_docker() {
 # --- Información y Diagnóstico del Sistema Docker ---
 docker_version() {
     print_section_header "Versión de Docker 🏷️"
-    echo "Muestra información de la versión del cliente (CLI) y del servidor (Daemon) Docker."
+    echo -e "Muestra información de la versión del cliente (CLI) y del servidor (Daemon) Docker."
     echo -e "${CYAN}Cliente: Versión de la interfaz de línea de comandos de Docker.${RESET}"
     echo -e "${CYAN}Servidor: Versión del motor Docker que gestiona los contenedores.${RESET}"
     safe_execute "docker version"
@@ -916,15 +916,15 @@ docker_version() {
 
 docker_info() {
     print_section_header "Información del Sistema Docker Detallada 🔬"
-    echo "Muestra información detallada sobre la instalación de Docker, almacenamiento, redes, contenedores en ejecución, estadísticas del host, etc."
+    echo -e "Muestra información detallada sobre la instalación de Docker, almacenamiento, redes, contenedores en ejecución, estadísticas del host, etc."
     echo -e "${CYAN}Útil para el diagnóstico de problemas a nivel de sistema Docker y para entender la configuración actual.${RESET}"
     safe_execute "docker info"
 }
 
 view_docker_logs() {
     print_section_header "Ver Logs del Daemon Docker 📜"
-    echo "Muestra los logs del servicio Docker (el daemon que gestiona contenedores, imágenes, etc.)."
-    echo "Estos logs son cruciales para depurar problemas de inicio del servicio, errores de red o fallos inesperados."
+    echo -e "Muestra los logs del servicio Docker (el daemon que gestiona contenedores, imágenes, etc.)."
+    echo -e "Estos logs son cruciales para depurar problemas de inicio del servicio, errores de red o fallos inesperados."
     echo -e "${AZUL}Mostrando las últimas 100 líneas de los logs del daemon Docker (usando systemd journal, si está disponible):${RESET}"
     # '--since' muestra logs desde un período de tiempo. '--no-pager' evita el paginador.
     # 'tail -n 100' asegura que solo se muestren las últimas 100 líneas.
@@ -938,7 +938,7 @@ view_docker_logs() {
 
 view_docker_events() {
     print_section_header "Ver Eventos de Docker en Tiempo Real 📡"
-    echo "Muestra un flujo continuo de eventos del daemon Docker en tiempo real (creación/inicio/detención de contenedores, descarga de imágenes, etc.)."
+    echo -e "Muestra un flujo continuo de eventos del daemon Docker en tiempo real (creación/inicio/detención de contenedores, descarga de imágenes, etc.)."
     echo -e "${AMARILLO}Presiona ${ROJO}Ctrl+C${AMARILLO} para detener la visualización de eventos.${RESET}"
     echo -e "${AZUL}Iniciando el monitoreo de eventos de Docker...${RESET}"
     safe_execute "docker events"
@@ -949,7 +949,7 @@ view_docker_events() {
 
 docker_system_df() {
     print_section_header "Espacio en Disco Usado por Docker 📊"
-    echo "Muestra el uso de espacio en disco de las imágenes, contenedores, volúmenes y caché de buildkit de Docker."
+    echo -e "Muestra el uso de espacio en disco de las imágenes, contenedores, volúmenes y caché de buildkit de Docker."
     echo -e "${CYAN}Esto es útil para identificar dónde se está consumiendo más espacio en tu sistema Docker.${RESET}"
     safe_execute "docker system df"
 }
@@ -957,9 +957,9 @@ docker_system_df() {
 # --- Configuración del Daemon Docker (daemon.json) ---
 manage_daemon_config() {
     print_section_header "Gestionar Configuración del Daemon Docker (daemon.json) ⚙️"
-    echo "Este menú te permite ver y modificar el archivo de configuración clave del daemon Docker, daemon.json."
+    echo -e "Este menú te permite ver y modificar el archivo de configuración clave del daemon Docker, daemon.json."
     echo -e "${ROJO}¡ADVERTENCIA! Cambios incorrectos en daemon.json pueden impedir que Docker se inicie. Siempre haz una copia de seguridad.${RESET}"
-    echo "El archivo se encuentra en: ${CYAN}${DOCKER_DAEMON_JSON_FILE}${RESET}"
+    echo -e "El archivo se encuentra en: ${CYAN}${DOCKER_DAEMON_JSON_FILE}${RESET}"
     echo
 
     if [ ! -d "$DOCKER_DAEMON_CONFIG_DIR" ]; then
@@ -977,12 +977,12 @@ manage_daemon_config() {
     fi
     echo
 
-    echo "1.  Ver contenido actual de daemon.json."
-    echo "2.  Editar daemon.json manualmente (abrirá un editor de texto). 📝"
-    echo "3.  Añadir/Modificar una configuración específica (ej. 'data-root', 'log-driver')."
-    echo "4.  Eliminar una configuración específica."
-    echo "5.  Reiniciar Docker para aplicar cambios."
-    echo "0.  Volver al menú principal."
+    echo -e "1.  Ver contenido actual de daemon.json."
+    echo -e "2.  Editar daemon.json manualmente (abrirá un editor de texto). 📝"
+    echo -e "3.  Añadir/Modificar una configuración específica (ej. 'data-root', 'log-driver')."
+    echo -e "4.  Eliminar una configuración específica."
+    echo -e "5.  Reiniciar Docker para aplicar cambios."
+    echo -e "0.  Volver al menú principal."
 
     read -p "$(echo -e "${AMARILLO}Selecciona una opción de configuración del daemon: ${RESET}")" daemon_choice
     echo
@@ -1022,8 +1022,8 @@ manage_daemon_config() {
             fi
             ;;
         3)
-            echo "Puedes añadir o modificar una clave-valor en el JSON."
-            echo "Ejemplos: 'data-root' '/mnt/docker-data', 'log-driver' 'json-file', 'registry-mirrors' '[\"https://my.mirror.com\"]'"
+            echo -e "Puedes añadir o modificar una clave-valor en el JSON."
+            echo -e "Ejemplos: 'data-root' '/mnt/docker-data', 'log-driver' 'json-file', 'registry-mirrors' '[\"https://my.mirror.com\"]'"
             read -p "$(echo -e "${AMARILLO}Introduce la clave (ej. 'data-root'): ${RESET}")" json_key
             read -p "$(echo -e "${AMARILLO}Introduce el valor (ej. '/var/lib/docker-new' o '[\"https://my.mirror.com\"]'): ${RESET}")" json_value
             if [ -z "$json_key" ] || [ -z "$json_value" ]; then
@@ -1053,7 +1053,7 @@ manage_daemon_config() {
 
                 if [ ! -f "$DOCKER_DAEMON_JSON_FILE" ]; then
                     # Si el archivo no existe, crearlo con un JSON vacío.
-                    echo "{}" | safe_execute "tee $DOCKER_DAEMON_JSON_FILE" >/dev/null
+                    echo -e "{}" | safe_execute "tee $DOCKER_DAEMON_JSON_FILE" >/dev/null
                 fi
 
                 # Intentar añadir/modificar usando jq.
@@ -1080,7 +1080,7 @@ manage_daemon_config() {
             fi
             ;;
         4)
-            echo "Puedes eliminar una clave específica de daemon.json."
+            echo -e "Puedes eliminar una clave específica de daemon.json."
             read -p "$(echo -e "${AMARILLO}Introduce la clave a eliminar (ej. 'data-root'): ${RESET}")" json_key_to_delete
             if [ -z "$json_key_to_delete" ]; then
                 echo -e "${ROJO}La clave no puede estar vacía. ❌${RESET}"
@@ -1130,7 +1130,7 @@ manage_daemon_config() {
 # --- Actualización y Desinstalación de Docker ---
 update_docker() {
     print_section_header "Actualizar Docker ⬆️"
-    echo "Actualizar Docker generalmente implica usar el gestor de paquetes de tu sistema para obtener las últimas versiones de los componentes de Docker CE."
+    echo -e "Actualizar Docker generalmente implica usar el gestor de paquetes de tu sistema para obtener las últimas versiones de los componentes de Docker CE."
     echo -e "${AMARILLO}Se recomienda reiniciar el servicio Docker después de una actualización para asegurar que los nuevos binarios se carguen. 🔄${RESET}"
     local distro=$(get_distribution)
     case "$distro" in
@@ -1174,8 +1174,8 @@ update_docker() {
 uninstall_docker() {
     print_section_header "Desinstalar Docker Completamente 🗑️"
     echo -e "${ROJO}¡ADVERTENCIA CRÍTICA! Esta operación es DESTRUCTIVA e IRREVERSIBLE.${RESET}"
-    echo "Eliminará Docker Engine, CLI, containerd, y ${ROJO}todos tus contenedores, imágenes, volúmenes y redes Docker por defecto${RESET}."
-    echo "Asegúrate de haber hecho copias de seguridad de cualquier dato importante en tus volúmenes antes de proceder."
+    echo -e "Eliminará Docker Engine, CLI, containerd, y ${ROJO}todos tus contenedores, imágenes, volúmenes y redes Docker por defecto${RESET}."
+    echo -e "Asegúrate de haber hecho copias de seguridad de cualquier dato importante en tus volúmenes antes de proceder."
     echo
     if confirm_action "¿Estás ABSOLUTAMENTE SEGURO de que quieres DESINSTALAR Docker y eliminar todos sus datos (incluyendo contenedores, imágenes y volúmenes)? (escribe 's' para confirmar) 🚨💥"; then
         echo -e "${AMARILLO}Paso previo opcional: Limpiando todos los recursos Docker antes de desinstalar para una limpieza más completa.${RESET}"
@@ -1229,9 +1229,9 @@ uninstall_docker() {
 # --- Gestión de Docker Compose (Standalone, no plugin) ---
 install_docker_compose_standalone() {
     print_section_header "Instalar Docker Compose (Standalone) 📦"
-    echo "Docker Compose ahora viene como un plugin CLI con la mayoría de las instalaciones modernas de Docker CE (se usa el comando 'docker compose' con espacio)."
-    echo "Esta opción es para instalar la versión binaria standalone (generalmente escrita en Python) de Docker Compose ('docker-compose' con guion)."
-    echo "Versión de Docker Compose Standalone a instalar: ${CYAN}${DOCKER_COMPOSE_VERSION}${RESET}"
+    echo -e "Docker Compose ahora viene como un plugin CLI con la mayoría de las instalaciones modernas de Docker CE (se usa el comando 'docker compose' con espacio)."
+    echo -e "Esta opción es para instalar la versión binaria standalone (generalmente escrita en Python) de Docker Compose ('docker-compose' con guion)."
+    echo -e "Versión de Docker Compose Standalone a instalar: ${CYAN}${DOCKER_COMPOSE_VERSION}${RESET}"
     echo -e "${AMARILLO}Considera usar el plugin 'docker compose' si ya está disponible en tu instalación de Docker CE.${RESET}"
 
     local compose_type=$(detect_docker_compose_type)
@@ -1280,18 +1280,18 @@ manage_docker_compose_project() {
         return # Sale de la función si Compose no está disponible.
     fi
 
-    echo "Este submenú te permite realizar acciones básicas en tus proyectos de Docker Compose."
+    echo -e "Este submenú te permite realizar acciones básicas en tus proyectos de Docker Compose."
     echo -e "${AMARILLO}¡IMPORTANTE! Debes ejecutar estas acciones ${ROJO}desde el directorio donde se encuentra tu archivo ${CYAN}docker-compose.yml${AMARILLO} (o .yaml).${RESET}"
-    echo "Si no estás en el directorio correcto, los comandos pueden fallar o no encontrar tus servicios."
-    echo "Tu directorio actual es: ${CYAN}$(pwd)${RESET}"
+    echo -e "Si no estás en el directorio correcto, los comandos pueden fallar o no encontrar tus servicios."
+    echo -e "Tu directorio actual es: ${CYAN}$(pwd)${RESET}"
     echo
-    echo "1.  Levantar servicios (construir, crear, iniciar - en segundo plano: ${CYAN}$compose_cmd up -d${RESET})"
-    echo "2.  Detener y eliminar servicios (contenedores, redes - ${CYAN}$compose_cmd down${RESET})"
-    echo "3.  Listar servicios de un proyecto (estado de contenedores: ${CYAN}$compose_cmd ps${RESET})"
-    echo "4.  Ver logs de todos los servicios de un proyecto (${CYAN}$compose_cmd logs${RESET})"
-    echo "5.  Construir/Reconstruir imágenes (sin levantar servicios: ${CYAN}$compose_cmd build${RESET})"
-    echo "6.  Ejecutar un comando en un servicio (ej. ${CYAN}$compose_cmd exec web bash${RESET})"
-    echo "0.  Volver al menú anterior"
+    echo -e "1.  Levantar servicios (construir, crear, iniciar - en segundo plano: ${CYAN}$compose_cmd up -d${RESET})"
+    echo -e "2.  Detener y eliminar servicios (contenedores, redes - ${CYAN}$compose_cmd down${RESET})"
+    echo -e "3.  Listar servicios de un proyecto (estado de contenedores: ${CYAN}$compose_cmd ps${RESET})"
+    echo -e "4.  Ver logs de todos los servicios de un proyecto (${CYAN}$compose_cmd logs${RESET})"
+    echo -e "5.  Construir/Reconstruir imágenes (sin levantar servicios: ${CYAN}$compose_cmd build${RESET})"
+    echo -e "6.  Ejecutar un comando en un servicio (ej. ${CYAN}$compose_cmd exec web bash${RESET})"
+    echo -e "0.  Volver al menú anterior"
 
     read -p "$(echo -e "${AMARILLO}Selecciona una opción de Docker Compose: ${RESET}")" dc_choice
     echo
@@ -1340,7 +1340,7 @@ manage_docker_compose_project() {
             fi
             ;;
         6)
-            echo "Ejecuta un comando dentro de un servicio específico de tu proyecto Docker Compose."
+            echo -e "Ejecuta un comando dentro de un servicio específico de tu proyecto Docker Compose."
             read -p "$(echo -e "${AMARILLO}Introduce el nombre del servicio (ej. 'web', 'db'): ${RESET}")" service_name
             read -p "$(echo -e "${AMARILLO}Introduce el comando a ejecutar (ej. 'bash', 'ls -l /app', 'python3 manage.py shell'): ${RESET}")" command_in_service
             if [ -z "$service_name" ] || [ -z "$command_in_service" ]; then
@@ -1365,13 +1365,13 @@ manage_docker_compose_project() {
 show_docker_install_menu() {
     print_section_header "Menú de Instalación de Docker ⚙️"
     local distro=$(get_distribution)
-    echo "Tu sistema operativo detectado es: ${CYAN}$distro${RESET}"
+    echo -e "Tu sistema operativo detectado es: ${CYAN}$distro${RESET}"
     echo -e "${AMARILLO}Selecciona la opción de instalación que mejor se adapte a tu distribución.${RESET}"
     echo
-    echo "1.  Instalar Docker en ${CYAN}Debian/Ubuntu${RESET} (Recomendado para tu sistema Osiris si es Debian) 🐧"
-    echo "2.  Instalar Docker en ${CYAN}Fedora/CentOS/RHEL/AlmaLinux/RockyLinux${RESET} (Para otros sistemas basados en Red Hat) 🔶"
-    echo "3.  Instalación Genérica de Docker (Script de conveniencia - ${ROJO}usar con precaución${RESET}) 🌐"
-    echo "0.  Volver al menú principal / Salir del asistente"
+    echo -e "1.  Instalar Docker en ${CYAN}Debian/Ubuntu${RESET} (Recomendado para tu sistema Osiris si es Debian) 🐧"
+    echo -e "2.  Instalar Docker en ${CYAN}Fedora/CentOS/RHEL/AlmaLinux/RockyLinux${RESET} (Para otros sistemas basados en Red Hat) 🔶"
+    echo -e "3.  Instalación Genérica de Docker (Script de conveniencia - ${ROJO}usar con precaución${RESET}) 🌐"
+    echo -e "0.  Volver al menú principal / Salir del asistente"
     echo
     read -p "$(echo -e "${AMARILLO}Selecciona una opción de instalación (0-3): ${RESET}")" choice
     echo
@@ -1395,19 +1395,19 @@ show_docker_management_menu() {
     print_section_header "Menú de Gestión de Docker 🐳"
     echo -e "${CYAN}Aquí puedes gestionar todos los aspectos de tu entorno Docker. ¡Explora con confianza!${RESET}"
     echo
-    echo "1.  Gestionar ${MAGENTA}Servicio Docker${RESET} (Iniciar/Detener/Reiniciar/Estado/Configuración de Inicio) 🛠️"
-    echo "2.  Gestionar ${MAGENTA}Imágenes Docker${RESET} (Listar/Descargar/Eliminar/Inspeccionar/Construir) 🖼️"
-    echo "3.  Gestionar ${MAGENTA}Contenedores Docker${RESET} (Listar/Iniciar/Detener/Eliminar/Logs/Comando/Inspeccionar) 📦"
-    echo "4.  Gestionar ${MAGENTA}Redes Docker${RESET} (Listar/Crear/Eliminar/Inspeccionar) 🌐"
-    echo "5.  Gestionar ${MAGENTA}Volúmenes Docker${RESET} (Listar/Crear/Eliminar/Inspeccionar) 💾"
-    echo "6.  ${MAGENTA}Limpiar Recursos Docker${RESET} (Contenedores/Imágenes/Volúmenes/Redes no usados) 🧹"
-    echo "7.  ${MAGENTA}Información y Diagnóstico${RESET} del Sistema Docker (Versión/Info/Logs del Daemon/Eventos/Uso Disco) ℹ️"
-    echo "8.  ${MAGENTA}Configuración Avanzada del Daemon Docker${RESET} (Editar daemon.json) ⚙️"
-    echo "9.  ${MAGENTA}Añadir usuario actual al grupo 'docker'${RESET} 👥"
-    echo "10. ${MAGENTA}Actualizar Docker${RESET} ⬆️"
-    echo "11. ${MAGENTA}Desinstalar Docker${RESET} completamente 🗑️"
-    echo "12. Gestionar ${MAGENTA}Docker Compose${RESET} (Instalar Standalone / Acciones Básicas de Proyecto) 🏗️"
-    echo "0.  ${ROJO}Salir del asistente${RESET}"
+    echo -e "1.  Gestionar ${MAGENTA}Servicio Docker${RESET} (Iniciar/Detener/Reiniciar/Estado/Configuración de Inicio) 🛠️"
+    echo -e "2.  Gestionar ${MAGENTA}Imágenes Docker${RESET} (Listar/Descargar/Eliminar/Inspeccionar/Construir) 🖼️"
+    echo -e "3.  Gestionar ${MAGENTA}Contenedores Docker${RESET} (Listar/Iniciar/Detener/Eliminar/Logs/Comando/Inspeccionar) 📦"
+    echo -e "4.  Gestionar ${MAGENTA}Redes Docker${RESET} (Listar/Crear/Eliminar/Inspeccionar) 🌐"
+    echo -e "5.  Gestionar ${MAGENTA}Volúmenes Docker${RESET} (Listar/Crear/Eliminar/Inspeccionar) 💾"
+    echo -e "6.  ${MAGENTA}Limpiar Recursos Docker${RESET} (Contenedores/Imágenes/Volúmenes/Redes no usados) 🧹"
+    echo -e "7.  ${MAGENTA}Información y Diagnóstico${RESET} del Sistema Docker (Versión/Info/Logs del Daemon/Eventos/Uso Disco) ℹ️"
+    echo -e "8.  ${MAGENTA}Configuración Avanzada del Daemon Docker${RESET} (Editar daemon.json) ⚙️"
+    echo -e "9.  ${MAGENTA}Añadir usuario actual al grupo 'docker'${RESET} 👥"
+    echo -e "10. ${MAGENTA}Actualizar Docker${RESET} ⬆️"
+    echo -e "11. ${MAGENTA}Desinstalar Docker${RESET} completamente 🗑️"
+    echo -e "12. Gestionar ${MAGENTA}Docker Compose${RESET} (Instalar Standalone / Acciones Básicas de Proyecto) 🏗️"
+    echo -e "0.  ${ROJO}Salir del asistente${RESET}"
     echo
     read -p "$(echo -e "${AMARILLO}Selecciona una opción de gestión (0-12): ${RESET}")" choice
     echo
@@ -1415,13 +1415,13 @@ show_docker_management_menu() {
     case $choice in
         1)
             print_section_header "Submenú: Gestión de Servicio Docker 🛠️"
-            echo "1.  Ver estado del servicio"
-            echo "2.  Iniciar servicio"
-            echo "3.  Detener servicio"
-            echo "4.  Reiniciar servicio"
-            echo "5.  Habilitar inicio al arrancar el sistema"
-            echo "6.  Deshabilitar inicio al arrancar el sistema"
-            echo "0.  Volver al menú principal"
+            echo -e "1.  Ver estado del servicio"
+            echo -e "2.  Iniciar servicio"
+            echo -e "3.  Detener servicio"
+            echo -e "4.  Reiniciar servicio"
+            echo -e "5.  Habilitar inicio al arrancar el sistema"
+            echo -e "6.  Deshabilitar inicio al arrancar el sistema"
+            echo -e "0.  Volver al menú principal"
             read -p "$(echo -e "${AMARILLO}Selecciona una opción de servicio (0-6): ${RESET}")" service_choice
             echo
             case $service_choice in
@@ -1437,12 +1437,12 @@ show_docker_management_menu() {
             ;;
         2)
             print_section_header "Submenú: Gestión de Imágenes Docker 🖼️"
-            echo "1.  Listar imágenes disponibles"
-            echo "2.  Descargar una imagen (pull)"
-            echo "3.  Eliminar una imagen"
-            echo "4.  Inspeccionar una imagen (ver detalles)"
-            echo "5.  Construir una imagen desde un Dockerfile"
-            echo "0.  Volver al menú principal"
+            echo -e "1.  Listar imágenes disponibles"
+            echo -e "2.  Descargar una imagen (pull)"
+            echo -e "3.  Eliminar una imagen"
+            echo -e "4.  Inspeccionar una imagen (ver detalles)"
+            echo -e "5.  Construir una imagen desde un Dockerfile"
+            echo -e "0.  Volver al menú principal"
             read -p "$(echo -e "${AMARILLO}Selecciona una opción de imagen (0-5): ${RESET}")" image_choice
             echo
             case $image_choice in
@@ -1457,15 +1457,15 @@ show_docker_management_menu() {
             ;;
         3)
             print_section_header "Submenú: Gestión de Contenedores Docker 📦"
-            echo "1.  Listar contenedores (activos y todos)"
-            echo "2.  Iniciar un contenedor detenido"
-            echo "3.  Detener un contenedor en ejecución"
-            echo "4.  Reiniciar un contenedor"
-            echo "5.  Eliminar un contenedor"
-            echo "6.  Ver logs de un contenedor"
-            echo "7.  Ejecutar un comando dentro de un contenedor"
-            echo "8.  Inspeccionar un contenedor (ver detalles)"
-            echo "0.  Volver al menú principal"
+            echo -e "1.  Listar contenedores (activos y todos)"
+            echo -e "2.  Iniciar un contenedor detenido"
+            echo -e "3.  Detener un contenedor en ejecución"
+            echo -e "4.  Reiniciar un contenedor"
+            echo -e "5.  Eliminar un contenedor"
+            echo -e "6.  Ver logs de un contenedor"
+            echo -e "7.  Ejecutar un comando dentro de un contenedor"
+            echo -e "8.  Inspeccionar un contenedor (ver detalles)"
+            echo -e "0.  Volver al menú principal"
             read -p "$(echo -e "${AMARILLO}Selecciona una opción de contenedor (0-8): ${RESET}")" container_choice
             echo
             case $container_choice in
@@ -1483,11 +1483,11 @@ show_docker_management_menu() {
             ;;
         4)
             print_section_header "Submenú: Gestión de Redes Docker 🌐"
-            echo "1.  Listar redes existentes"
-            echo "2.  Crear una nueva red"
-            echo "3.  Eliminar una red"
-            echo "4.  Inspeccionar una red (ver detalles)"
-            echo "0.  Volver al menú principal"
+            echo -e "1.  Listar redes existentes"
+            echo -e "2.  Crear una nueva red"
+            echo -e "3.  Eliminar una red"
+            echo -e "4.  Inspeccionar una red (ver detalles)"
+            echo -e "0.  Volver al menú principal"
             read -p "$(echo -e "${AMARILLO}Selecciona una opción de red (0-4): ${RESET}")" network_choice
             echo
             case $network_choice in
@@ -1501,11 +1501,11 @@ show_docker_management_menu() {
             ;;
         5)
             print_section_header "Submenú: Gestión de Volúmenes Docker 💾"
-            echo "1.  Listar volúmenes existentes"
-            echo "2.  Crear un nuevo volumen"
-            echo "3.  Eliminar un volumen (¡CUIDADO con la pérdida de datos!)"
-            echo "4.  Inspeccionar un volumen (ver detalles)"
-            echo "0.  Volver al menú principal"
+            echo -e "1.  Listar volúmenes existentes"
+            echo -e "2.  Crear un nuevo volumen"
+            echo -e "3.  Eliminar un volumen (¡CUIDADO con la pérdida de datos!)"
+            echo -e "4.  Inspeccionar un volumen (ver detalles)"
+            echo -e "0.  Volver al menú principal"
             read -p "$(echo -e "${AMARILLO}Selecciona una opción de volumen (0-4): ${RESET}")" volume_choice
             echo
             case $volume_choice in
@@ -1520,12 +1520,12 @@ show_docker_management_menu() {
         6) prune_docker ;;
         7)
             print_section_header "Submenú: Información y Diagnóstico de Docker ℹ️"
-            echo "1.  Ver versión de Docker (cliente y servidor)"
-            echo "2.  Ver información detallada del sistema Docker (docker info)"
-            echo "3.  Ver logs del daemon Docker (para depuración)"
-            echo "4.  Ver eventos de Docker en tiempo real"
-            echo "5.  Ver uso de espacio en disco por Docker (docker system df)"
-            echo "0.  Volver al menú principal"
+            echo -e "1.  Ver versión de Docker (cliente y servidor)"
+            echo -e "2.  Ver información detallada del sistema Docker (docker info)"
+            echo -e "3.  Ver logs del daemon Docker (para depuración)"
+            echo -e "4.  Ver eventos de Docker en tiempo real"
+            echo -e "5.  Ver uso de espacio en disco por Docker (docker system df)"
+            echo -e "0.  Volver al menú principal"
             read -p "$(echo -e "${AMARILLO}Selecciona una opción de información (0-5): ${RESET}")" info_choice
             echo
             case $info_choice in
@@ -1544,9 +1544,9 @@ show_docker_management_menu() {
         11) uninstall_docker ;;
         12)
             print_section_header "Submenú: Gestión de Docker Compose 🏗️"
-            echo "1.  Instalar Docker Compose (versión standalone si no es plugin)"
-            echo "2.  Gestión básica de proyectos Docker Compose (up, down, ps, logs, build, exec)"
-            echo "0.  Volver al menú principal"
+            echo -e "1.  Instalar Docker Compose (versión standalone si no es plugin)"
+            echo -e "2.  Gestión básica de proyectos Docker Compose (up, down, ps, logs, build, exec)"
+            echo -e "0.  Volver al menú principal"
             read -p "$(echo -e "${AMARILLO}Selecciona una opción de Docker Compose (0-2): ${RESET}")" compose_choice
             echo
             case $compose_choice in
