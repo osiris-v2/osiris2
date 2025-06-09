@@ -6,10 +6,7 @@ import re
 import json
 import requests
 import osiris2
-#import hashlib
 import subprocess
-#import google.generativeai as genai
-#import time
 import os
 import random
 import string

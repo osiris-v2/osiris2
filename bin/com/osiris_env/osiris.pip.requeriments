@@ -32,3 +32,4 @@ torch
 cipher
 Jinja2
 Markdown
+pygments
