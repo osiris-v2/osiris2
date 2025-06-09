@@ -7,6 +7,15 @@ contains_element () {
     return 1
 }
 
+dl() {
+if ! curl -fsSL "$1" -o "$2"; then
+    echo "Error: No se pudo descargar el script Python desde la URL especificada." >&2 # Imprime a stderr
+    echo "Por favor, verifica la URL y tu conexión a internet."
+    exit 1 # Sale del script con un código de error
+fi
+echo "--- Script descargado exitosamente a $2 ---"
+}
+
 script_dir=$(dirname "$(readlink -f "$0")")
 cd $script_dir
 # Script para descargar, verificar dependencias a ejecutar Osiris 2O3.
@@ -17,9 +26,9 @@ ozone_base="/${ozone_verified}"
 ozone_venv="${ozone_base}/venv"
 mkdir -p $ozone_venv
 verified_dev_requeriments="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/osiris_env/osiris.pip.requeriments" 
-wget $verified_dev_requeriments -o $ozone_venv/osiris.pip.requeriments
+dl "$verified_dev_requeriments" "$ozone_venv/osiris.pip.requeriments"
 verified_dev_requeriments="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/osiris_env/bio.pip.requeriments" 
-wget $verified_dev_requeriments -o $ozone_venv/bio.pip.requeriments
+dl "$verified_dev_requeriments" "$ozone_venv/bio.pip.requeriments"
 verified_dev_requeriments="${ozone_venv}/bio.pip.requeriments" # entorno virtual de desarrollo base por defecto /var/osiris2/...
 BIO_DIR=$script_dir
 cd $BIO_DIR
@@ -82,14 +91,6 @@ echo "--- Descargando script de: $PYTHON_SCRIPT_URL ---"
 # -L: Follow redirects
 # -o: Output to specified file
 
-dl() {
-if ! curl -fsSL "$1" -o "$2"; then
-    echo "Error: No se pudo descargar el script Python desde la URL especificada." >&2 # Imprime a stderr
-    echo "Por favor, verifica la URL y tu conexión a internet."
-    exit 1 # Sale del script con un código de error
-fi
-echo "--- Script descargado exitosamente a $2 ---"
-}
 
 dl1="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/walletav.py"
 dl1a="$BIO_DIR/o3wallet"
