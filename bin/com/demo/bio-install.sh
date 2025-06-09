@@ -17,9 +17,9 @@ ozone_base="/${ozone_verified}"
 ozone_venv="${ozone_base}/venv"
 mkdir -p $ozone_venv
 verified_dev_requeriments="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/osiris_env/osiris.pip.requeriments" 
-wget verified_dev_requeriments -o $ozone_venv/osiris.pip.requeriments
+wget $verified_dev_requeriments -o $ozone_venv/osiris.pip.requeriments
 verified_dev_requeriments="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/osiris_env/bio.pip.requeriments" 
-wget verified_dev_requeriments -o $ozone_venv/bio.pip.requeriments
+wget $verified_dev_requeriments -o $ozone_venv/bio.pip.requeriments
 verified_dev_requeriments="${ozone_venv}/bio.pip.requeriments" # entorno virtual de desarrollo base por defecto /var/osiris2/...
 BIO_DIR=$script_dir
 cd $BIO_DIR
