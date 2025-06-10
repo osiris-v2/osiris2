@@ -51,5 +51,5 @@ ffmpeg-pack 			. bin/install/ffmpeg_install.sh
 tmux-pack 				. bin/install/tmux_install.sh
 
 node-Opack eval 		. bin/install/node_install.sh
-TOOLS					sudo dnf install wmctrl xdotool
+TOOLS			         sudo install wmctrl xdotool
 #END

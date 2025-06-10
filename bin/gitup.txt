@@ -265,6 +265,9 @@ html/engines/
 html/textos/info.txt
 html/img/info.txt
 
+html/documentation/index.php
+
+
 #Aplicaciones WEB
 #html/app
 

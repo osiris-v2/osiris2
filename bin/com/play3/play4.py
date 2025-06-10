@@ -29,7 +29,7 @@ def kill_last_process():
     if last_process:
         pid = last_process.pid
         print(f"Attempting to kill process quickly with SIGKILL: {pid}")
-        
+
         try:
             os.kill(pid, signal.SIGKILL)
             last_process.wait(timeout=5)  # Espera breve para permitir limpieza
@@ -98,7 +98,8 @@ def start_ffmpeg(url,com):
     '-f', 'lavfi', '-i', 'color=c=black:s=1280x720',
     '-stream_loop', '-1','-i', url,  # Aplicar stream_loop aquí
     '-f', 'lavfi', '-i', 'anullsrc=r=44100:cl=stereo',
-    '-af', 'aresample=async=1,loudnorm=I=-16:TP=-1.5:LRA=11',
+#    '-af', 'aresample=async=1,loudnorm=I=-16:TP=-1.5:LRA=11',
+    '-af','aresample=async=1,loudnorm=I=-17:TP=-1.8:LRA=13,lowpass=f=17000,bass=g=4:f=100',
     '-filter_complex', '[1:v]scale=-2:720[scaled];[0:v][scaled]overlay=(W-w)/2:(H-h)/2',
     '-map', '0:v',
     '-map', '1:a']

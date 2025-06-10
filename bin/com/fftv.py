@@ -81,6 +81,8 @@ def_fdir = yt_default_list_dir = "com/datas/ffmpeg"
 def_crf = "23"
 def_re = True
 def_ar = "44100"
+def_ls_extensions = ["mp4","mkv","webm","avi","mov","gif"]
+
 profiles = {
     "youtube:1": {
         "profileType":"Youtube Live Streaming 480p",
@@ -237,7 +239,7 @@ play = []
 input_protocols = ["http://","https://",'rtmp://'] #protocolos válidos input server
 iprot = tuple(input_protocols)
 
-
+ls_extensions = def_ls_extensions
 intn = 0
 lib_url = False
 
@@ -262,7 +264,7 @@ def main(args):
     global lineInput, def_re, def_intro_file, def_output,def_progress_file,def_seek_start,def_audio_filter,def_preset,def_screen,def_fps,def_crf,def_ar
     global profiles, ffmpeg_exec, ffprobe_exec
     global yt_default_list_dir,def_fdir
-
+    global ls_extensions
 
     profile_name = def_profile
 
@@ -270,6 +272,18 @@ def main(args):
         yt_default_list_dir = os.path.abspath(yt_default_list_dir)
     except Exception as e:
         print("Error (Path) : ",e)
+
+
+    if args[0] == "setls":
+        if len(args) > 1:
+            if args[1] == "*":
+                ls_extensions = None
+            else:
+                ls_extensions = args[1:]
+        else:
+            ls_extensions = def_ls_extensions
+        print("Extensiones establecidas para ls:",ls_extensions)
+        return
 
     if args[0] == "probe":
         if len(args) > 1:
@@ -331,7 +345,7 @@ def main(args):
                             print("ERROR:",e)
         print("\n----------End View\n")
         return
-    elif args[0] == "ls":
+    elif args[0] == "ls" or args[0] == "list_dir":
         if len(args)>1:
             try:
                 intn = int(args[1])
@@ -1054,18 +1068,81 @@ class ConcatenadorFFmpeg:
 
 
 
-def list_files(directory):
+
+
+def list_files_DEPRECTAED(directory):
     files = os.listdir(directory)
-    files.sort()    
+    files.sort()
     numbered_files = []
     for index, file in enumerate(files, start=1):
         numbered_files.append(f"{file}")
     return numbered_files
 
 
+def list_files(directory, extensions=None):
+    extensions = ls_extensions
+    """
+    Lista los directorios y luego los archivos en un directorio dado,
+    opcionalmente filtrando los archivos por extensión.
 
+    Args:
+        directory (str): La ruta del directorio a listar.
+        extensions (list, optional): Una lista de cadenas con las extensiones de archivo
+                                    a incluir (ej. ['txt', 'pdf', '.jpg']).
+                                    Si es None o una lista vacía, se listarán todos los archivos.
 
+    Returns:
+        list: Una lista de cadenas con los nombres de directorios (primero)
+              y luego los nombres de archivos (segundo), ambos ordenados alfabéticamente
+              dentro de sus respectivos bloques.
+    """
+    directories_in_dir = []
+    files_in_dir_raw = [] # Para almacenar todos los archivos antes de aplicar el filtro
 
+    try:
+        # Obtener todos los elementos en el directorio
+        all_entries = os.listdir(directory)
+    except FileNotFoundError:
+        print(f"Error: El directorio '{directory}' no existe. 🚨")
+        return []
+    except PermissionError:
+        print(f"Error: No tienes permisos para acceder a '{directory}'. 🚫")
+        return []
+
+    # Clasificar las entradas en directorios y archivos
+    for entry in all_entries:
+        full_path = os.path.join(directory, entry)
+        if os.path.isdir(full_path):
+            directories_in_dir.append(entry)
+        elif os.path.isfile(full_path):
+            files_in_dir_raw.append(entry)
+
+    # Normalizar las extensiones de filtro si se proporcionan
+    filter_active = False
+    normalized_extensions = set()
+    if extensions is not None and isinstance(extensions, list) and len(extensions) > 0:
+        filter_active = True
+        # Convertir las extensiones de filtro a minúsculas y asegurar que tienen el '.' inicial
+        normalized_extensions = {f'.{ext.lower()}' if not ext.startswith('.') else ext.lower() for ext in extensions}
+
+    # Aplicar el filtro a los archivos
+    filtered_files = []
+    if not filter_active:
+        # Si no hay filtro, añadir todos los archivos
+        filtered_files = files_in_dir_raw
+    else:
+        for entry in files_in_dir_raw:
+            file_ext = os.path.splitext(entry)[1].lower() # Obtener la extensión (ej. '.txt')
+            if file_ext in normalized_extensions:
+                filtered_files.append(entry)
+
+    # Ordenar alfabéticamente cada tipo de entrada
+    directories_in_dir.sort()
+    filtered_files.sort()
+
+    # Combinar la lista: primero directorios, luego archivos
+    final_list = filtered_files + directories_in_dir
+    return final_list
 
 
 def progress_trunk():

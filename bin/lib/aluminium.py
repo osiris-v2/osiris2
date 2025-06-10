@@ -438,116 +438,13 @@ def show_ai_response_window(text: str):
     app = QApplication.instance() # Intenta obtener una instancia existente
     if not app: # Si no hay ninguna, crea una nueva
         app = QApplication(sys.argv)
-    
+    print("IAR-------2---------3-")
     # Crea y muestra la ventana
     viewer_window = ResponseViewerWindow(text)
     viewer_window.exec() # Usar exec() para que sea modal (bloquee hasta que se cierre)
                          # show() lo haría no-modal, pero podría cerrarse si la app principal sale.
+    viewer_window.show()
 
 # --- EJEMPLO DE USO ---
 if __name__ == '__main__':
-    sample_ai_response = """
-¡Claro! Aquí tienes un ejemplo de código en Python y JavaScript, y también un poco de Bash, y algunas cosas más.
-
-```python
-import os
-import json
-
-def factorial(n):
-    if n == 0:
-        return 1
-    else:
-        return n * factorial(n-1)
-
-if __name__ == "__main__":
-    num = 5
-    print(f"El factorial de {num} es: {factorial(num)}")
-
-    config = {"app_name": "MyPyApp", "version": "1.0", "enabled": True}
-    print(json.dumps(config, indent=2))
-```
-
-```javascript
-// Este es un bloque de código JavaScript
-function greet(name) {
-  console.log(`Hello, ${name}!`);
-}
-
-const data = {
-  user: "Alice",
-  age: 30,
-  skills: ["Python", "JavaScript", "React"]
-};
-
-greet(data.user);
-console.log(JSON.stringify(data, null, 2));
-```
-
-```bash
-#!/bin/bash
-
-# Este es un script de Bash
-echo "Iniciando script..."
-VAR_NAME="valor de prueba"
-echo "La variable es: $VAR_NAME"
-
-if [ -f "/etc/os-release" ]; then
-    echo "Linux OS detectado."
-else
-    echo "Sistema operativo desconocido."
-fi
-
-# Un comentario en varias líneas, si es que...
-# un comentario
-# de varias líneas.
-```
-
-Aquí hay un poco de **texto normal** con algunas palabras `clave` y un 123.45 número.
-También hay algo de HTML para que lo veas:
-
-```html
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Ejemplo HTML</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <h1>¡Hola Mundo!</h1>
-    <p>Este es un párrafo de ejemplo con un <a href="#">enlace</a>.</p>
-    <div id="container">
-        <!-- Esto es un comentario HTML -->
-        <span>Contenido</span>
-    </div>
-</body>
-</html>
-```
-
-Y CSS:
-
-```css
-/* Estilos para el ejemplo */
-body {
-    font-family: Arial, sans-serif;
-    line-height: 1.6;
-    color: #333;
-}
-
-#container {
-    background-color: #f0f0f0;
-    padding: 20px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-}
-```
-
-Espero que esta respuesta sea útil para ti. ¡Avísame si necesitas algo más!
-
-```otra_cosa
-Esto es un bloque con un lenguaje "raro" o no especificado.
-Debería extraerse pero sin resaltado de sintaxis específico.
-12345
-```
-"""
     show_ai_response_window(sample_ai_response)

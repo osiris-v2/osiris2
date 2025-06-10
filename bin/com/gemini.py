@@ -10,7 +10,7 @@ from io import BytesIO
 import requests
 import subprocess
 import base64
-from cryptography.fernet import Fernet 
+from cryptography.fernet import Fernet
 import webbrowser
 import pyperclip
 import io
@@ -106,6 +106,9 @@ version_file = os.path.splitext(os.path.basename(current_path))[0]
 
 #Variables globales
 #Contexto inicial
+
+auto_response_window = False
+
 conversation_context = f"""
 #Interfaz de comunicación con Gemini AI de Google
 #Interfaz Name: Osiris
@@ -1379,7 +1382,7 @@ def toggle_autosave(enable=True):
 # Función para manejar los argumentos
 def main(args):
     """Función principal que maneja los argumentos de entrada para generar respuestas del modelo."""
-    global ruta_archivo_key, gemini_model, model, conversation_context, load, last_response, topic, API_KEY
+    global ruta_archivo_key, gemini_model, model, conversation_context, load, last_response, topic, API_KEY, auto_response_window
 
 
     # Si no se envían comandos, se asume que se envía una pregunta de texto.
@@ -1430,6 +1433,14 @@ def main(args):
             API_KEY = obtener_key_gemini('resetkey')
             genai.configure(api_key=API_KEY)
             model = genai.GenerativeModel(gemini_model) 
+            return
+
+        if command == "--arw" or  command == "--auto_response_window":
+            if auto_response_window == False:
+                auto_response_window = True
+            else:
+                auto_response_window = False
+            print("AUTO_RESPONSE_WINDOW:",auto_response_window)
             return
 
         if command == "--sgm" or command == "selectgenaimodel":
