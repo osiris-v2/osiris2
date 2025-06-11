@@ -31,7 +31,7 @@ typedef struct {
 CDNStorage cdn_storage = { .count = 0, .multiline_mode = 0 };
 
 void initialize_shell_environment() {
-    // Inicializar variables de entorno o configuración si es necesario
+ // Inicializar variables de entorno o configuración si es necesario
 }
 
 char *read_command_line() {
@@ -133,12 +133,6 @@ void print_variable_value(const char *name) {
     }
     printf("Variable not found: %s\n", name);
 }
-
-
-
-
-
-
 // Función para dividir una cadena en argumentos respetando las comillas
 int split_args(const char *cmd, char **argv) {
     const char *p = cmd;
@@ -474,9 +468,24 @@ void execute_command(char **args) {
     else if (args[0][0] == '$') {
         print_variable_value(args[0] + 1);
         return;
-    }
- 
-    else if (args[0][0] == '@') {
+    } else if (args[0][0] == '$' && (args[0][1] == '$')) {
+                // Aquí lista las variables desde el array que las almacena
+                // Formato: @campo Tamaño_bytes dirección_de_memoria_(tipo puntero) valor
+                printf("--- Stored Variables ---\n");
+                if (cdn_storage.count == 0) {
+                    printf("No variables currently stored.\n");
+                } else {
+                    for (int i = 0; i < cdn_storage.count; i++) {
+                        char *name = cdn_storage.vars[i].name;
+                        char *value = cdn_storage.vars[i].value;
+                        size_t size = strlen(value) + 1; // +1 for the null terminator
+                        void *address = (void *)value;
+                        printf("@%s %lu bytes %p %s\n", name, size, address, value);
+                    }
+      	        }
+                   return;
+
+    } else if (args[0][0] == '@') {
         exec_variable_value(args[0] + 1);
         return;
     }
