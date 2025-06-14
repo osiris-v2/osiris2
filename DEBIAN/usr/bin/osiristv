@@ -1,11 +1,7 @@
 #!/bin/bash
-
-if [ "$1" = "-pilot" ]; then
-COMANDO="/var/www/osiris000/bin/pilottv"
-else
-COMANDO="/var/www/osiris000/bin/osiristv"
-fi
-
+ORIGINAL_USER=$(env | grep '^SUDO_USER=' | cut -d '=' -f 2)
+su - "$ORIGINAL_USER"
+COMANDO="/var/osiris2/DEBIAN/DEBIAN/usr/local/osiristv"
 
 if command -v xterm &> /dev/null
 then

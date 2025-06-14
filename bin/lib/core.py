@@ -3,7 +3,6 @@ import importlib
 import datetime
 import signal
 
-
 def dynmodule(nombre_modulo, as_=""):
     #print("Core MSG:")
     try:
@@ -60,19 +59,12 @@ def log_errors(model, event, details, error=None):
     log_entry += "\n"
     with open("com/datas/osiris_errors.log", "a") as f:
     	f.write(log_entry)
-    	#print("Registro desde core log")
-
 
 
 try:
-# Manejo de señal Ctrl+C
-    def ctrl_signal(signal, frame):
+    def ctrl_signal(signal, frame):   # Manejo de señal Ctrl+C
         print(f"Signal: {signal} \n Frame: {frame} ")
-#    print("EXCPT")
-#    print("\nEscriba 'exit' para salir")
-#    return
 except Exception as e:
     print("ERROR CORE 77:",e)
-
 
 signal.signal(signal.SIGINT, ctrl_signal)

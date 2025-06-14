@@ -1,13 +1,5 @@
 // Función para procesar la variable
-
-
-
-
-
-
 /* AJAX */
-
-
 function uploadFile(options) {
   const fileInput = document.getElementById(options.fileInput);
   const file = fileInput.files[0];
@@ -397,28 +389,13 @@ debug("INPUT: "+resource.id,'verbose,events,input')
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
 const wfcore = function (param) {
-
 
     const info = {
         version: 1
     };
-
-
     const obj = {
-        parseIni: function (input) {
-                    
+        parseIni: function (input) {        
                     function processVariable(input) {
                       const lines = input.trim().split('\n');
                       const stack = [];
@@ -429,15 +406,11 @@ const wfcore = function (param) {
                         const [element, depth] = parseLine(line);
                               
                         while (stack.length > depth) {
-                          stack.pop();
+                            stack.pop();
                         }
-                        
-
                         var regex = /(.+?)(?:\s(.*))?$/;
-
                         var coincidencia = element.trim().match(regex);
-
-                      
+              
                         if(!coincidencia) continue 
                           def_tag = "div"
                         autoclass=false
@@ -455,13 +428,11 @@ const wfcore = function (param) {
                           }
 
                         coincidencia[2]  ?  coincidencia[2] = new Function('return ' + coincidencia[2])() : coincidencia[2] = {TAG:def_tag} 
-
                         adp[stack.length] =  addPanel(coincidencia[2]);
                         adp[stack.length].id = coincidencia[1]
                         if(autoclass){
                           adp[stack.length].className = autoclass
                             }
-
 
                         if (stack.length > 0) {
                         moveTag(adp[stack.length],adp[stack.length-1])
@@ -491,26 +462,19 @@ const wfcore = function (param) {
               console.log(result)
            }
 
-
       };
 
-
-
-
    const nuevoDocumento = document.implementation.createHTMLDocument();
-
    const body = nuevoDocumento.querySelector("body");
-
     // Asignar un ID al cuerpo del nuevo documento
     param ? body.id = param : body.id = "WFC3";
-
     // Crear un nuevo documento HTML en la página actual
     document.open();
     document.write(nuevoDocumento.documentElement.outerHTML);
     document.close();
     //return nuevoDocumento
-
     return obj;
+
 };
 
 
@@ -908,17 +872,9 @@ moveTag(css_fg1,xbody);
 
 
 
-
-
-
-
-
-
 /* fdr*/
 
-
 function display2(divid,classname){
-
 rt = getId(divid).style.display
     var dcls=document.getElementsByClassName(classname);
     for(i=0;i<dcls.length;i++){
@@ -932,55 +888,268 @@ rt = getId(divid).style.display
     dcls[i].style.display=disp
      }
    }
-
-return rt
- }
-
+ return rt
+}
 
 
 
-const loadIfApp = function(object) {
-  const userAgent = navigator.userAgent.toLowerCase();
-  const defaultConfig = object['default'];
-  let loadedFiles = [];
+// Variable global para asegurar que la función se ejecute una sola vez
+var auto_liapp = 0; 
 
-  const loadFiles = function(files) {
-    for (const [key, value] of Object.entries(files)) {
-      switch (key) {
-        case 'css':
-        case 'style':
-        case 'styles':
-        case 'stylesheet':
-          const cssLink = document.createElement('link');
-          cssLink.rel = 'stylesheet';
-          cssLink.href = value;
-          document.head.append(cssLink);
-          loadedFiles.push({ type: 'css', file: value });
-          break;
-        case 'script':
-        case 'javascript':
-        case 'js':
-          const jsScript = document.createElement('script');
-          jsScript.src = value;
-          jsScript.type = 'text/javascript';
-          document.head.append(jsScript);
-          loadedFiles.push({ type: 'js', file: value });
-          break;
-      }
+const loadIfApp = function(config) {
+    // 1. Evitar ejecuciones duplicadas
+    if (auto_liapp === 1) {
+        console.warn("[Osiris loadIfApp] ⚠️ La función ya se ha ejecutado. Evitando una segunda ejecución.");
+        return []; // Devolver un array vacío o lo que sea apropiado si ya se ejecutó
     }
-  };
 
-  for (const [browserCode, files] of Object.entries(object)) {
-    const reg = new RegExp(browserCode, 'i');
-    if (reg.test(userAgent)) {
-      loadFiles(files);
-      return loadedFiles;
+    const userAgent = navigator.userAgent.toLowerCase();
+    const loadedFiles = []; // Para almacenar los archivos que realmente se cargaron
+    let debugMessages = []; // Para acumular mensajes de depuración
+
+    // Función auxiliar para registrar mensajes de depuración
+    const log = (message) => {
+        debugMessages.push(`[Osiris loadIfApp] ${message}`);
+        console.log(`[Osiris loadIfApp] ${message}`);
+    };
+
+    log(`Iniciando detección de navegador y carga de archivos. User-Agent detectado: ${userAgent}`);
+
+    // Función auxiliar para cargar archivos (CSS o JS) dinámicamente
+    const appendFile = (fileUrl, type, conditionName) => {
+        if (typeof fileUrl === 'string' && fileUrl.trim() !== '') {
+            if (type === 'css') {
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = fileUrl;
+                document.head.append(link);
+                log(`Cargado CSS: '${fileUrl}' para '${conditionName}'`);
+                loadedFiles.push({ type: 'css', file: fileUrl });
+            } else if (type === 'js') {
+                const script = document.createElement('script');
+                script.src = fileUrl;
+                script.type = 'text/javascript';
+                script.defer = true; // Recomendado para que el script se cargue sin bloquear el parseo del HTML
+                document.head.append(script);
+                log(`Cargado JS: '${fileUrl}' para '${conditionName}'`);
+                loadedFiles.push({ type: 'js', file: fileUrl });
+            }
+        } else {
+            log(`Advertencia: URL de archivo inválida o vacía para tipo '${type}': '${fileUrl}'`);
+        }
+    };
+
+    // Función que procesa la configuración de archivos para una condición dada
+    const loadFilesForCondition = function(filesConfig, conditionName = 'Default') {
+        if (!filesConfig) {
+            log(`No hay archivos definidos en la configuración para la condición: '${conditionName}'.`);
+            return;
+        }
+
+        // Manejar archivos CSS (puede ser un string o un array de strings)
+        if (filesConfig.css) {
+            const cssFiles = Array.isArray(filesConfig.css) ? filesConfig.css : [filesConfig.css];
+            cssFiles.forEach(f => appendFile(f, 'css', conditionName));
+        }
+
+        // Manejar archivos JS (puede ser un string o un array de strings)
+        if (filesConfig.js) {
+            const jsFiles = Array.isArray(filesConfig.js) ? filesConfig.js : [filesConfig.js];
+            jsFiles.forEach(f => appendFile(f, 'js', conditionName));
+        }
+    };
+
+    // --- Definición de Patrones de Detección de Navegadores y Prioridad ---
+    // El ORDEN es CRUCIAL. Los patrones más específicos deben ir PRIMERO.
+    // Ej: Edge y Opera contienen "Chrome" en su User-Agent, por eso van antes que Chrome.
+    // Móviles y Tablets se intentan detectar primero, antes de los navegadores de escritorio específicos.
+    const browserDetectors = [
+        // 1. Detección de dispositivos móviles y tablets (la más amplia y prioritaria)
+        {
+            name: 'Dispositivo Móvil/Tablet',
+            regex: /(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|rim)|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino|ipad|playbook|silk/i,
+            configKey: 'mobile'
+        },
+        // 2. Navegadores de escritorio específicos (ordenados por especificidad para evitar falsos positivos)
+        {
+            name: 'Microsoft Edge',
+            regex: /(edge|edg)\//i, // 'Edge' para Edge Legacy, 'Edg' para Chromium Edge
+            configKey: 'edge'
+        },
+        {
+            name: 'Opera',
+            regex: /(opera|opr)\//i, // 'Opera' para Presto, 'Opr' para Chromium Opera
+            configKey: 'opera'
+        },
+        {
+            name: 'Chrome',
+            regex: /chrome\//i,
+            configKey: 'chrome'
+        },
+        {
+            name: 'Firefox',
+            regex: /firefox\//i,
+            configKey: 'firefox'
+        },
+        {
+            name: 'Safari', // Este patrón es general y debe ir después de los basados en Chromium
+            regex: /safari\//i, // Si incluye 'CriOS' o 'FxiOS' es Chrome/Firefox en iOS, no Safari puro.
+                                // Para simplificar, asumimos que si no es de los anteriores y tiene 'Safari', es Safari.
+            configKey: 'safari'
+        },
+        {
+            name: 'Internet Explorer',
+            regex: /(msie|trident)\//i, // 'msie' para IE < 11, 'trident' para IE 11
+            configKey: 'ie' // Puedes usar 'msie' o 'ie' como key en tu config
+        },
+        // Puedes añadir más si necesitas, ej: 'samsungbrowser', 'ucbrowser', 'electron', etc.
+    ];
+
+    let matched = false;
+    for (const detector of browserDetectors) {
+        if (detector.regex.test(userAgent)) {
+            log(`Intento de coincidencia: '${detector.name}' - User-Agent coincide.`);
+            if (config[detector.configKey]) {
+                log(`¡Coincidencia y configuración encontrada! Cargando archivos para: '${detector.name}' (Key: '${detector.configKey}')`);
+                loadFilesForCondition(config[detector.configKey], detector.name);
+                matched = true;
+                break; // Detenerse en la primera coincidencia y carga exitosa
+            } else {
+                log(`Coincidencia para '${detector.name}', pero no hay una configuración definida con la key '${detector.configKey}'.`);
+            }
+        }
     }
-  }
 
-  // Si no se encontró un navegador específico, cargar los archivos por defecto
-  loadFiles(defaultConfig);
-  return loadedFiles;
+    // 3. Si no se encontró ninguna coincidencia específica, cargar la configuración por defecto
+    if (!matched) {
+        log('No se detectó una configuración de navegador/dispositivo específica.');
+        if (config.default) {
+            log('Cargando configuración por defecto.');
+            loadFilesForCondition(config.default, 'Default (No Match)');
+        } else {
+            log('Advertencia: No se encontró una configuración por defecto para cargar. Ningún archivo cargado.');
+        }
+    }
+
+    // Marcar la función como ejecutada
+    auto_liapp = 1; 
+
+    log('--- Proceso de carga de archivos finalizado por loadIfApp ---');
+    log('Archivos cargados con éxito:');
+    if (loadedFiles.length > 0) {
+        loadedFiles.forEach(f => log(`- Tipo: ${f.type.toUpperCase()}, URL: ${f.file}`));
+    } else {
+        log('- Ninguno.');
+    }
+    log('------------------------------------------------------------');
+
+    return loadedFiles; // Devuelve la lista de archivos cargados para posible uso externo
 };
 
+// --- FIN DE LA FUNCIÓN loadIfApp ---
 
+
+
+const AppScreenInfo = {
+    // 1. Orientación de la pantalla (más ancho que alto o más alto que ancho)
+    isLandscape: false, // true si es apaisado (ancho > alto)
+    isPortrait: false,  // true si es vertical (alto > ancho)
+
+    // 2. Rango de pantalla (para tu diseño responsivo, sin inferir dispositivo)
+    // 'small', 'medium', 'large' - Puedes cambiar los nombres si quieres.
+    screenSize: 'large', 
+
+    // Puntos de quiebre (breakpoints) para los rangos de pantalla basados en el ANCHO
+    // Puedes ajustar estos valores de acuerdo a tus necesidades específicas.
+    responsiveBreakpoints: {
+        smallMax: 767,   // Ancho hasta 767px (inclusive) = 'small'
+        mediumMax: 1199  // Ancho hasta 1199px (inclusive) = 'medium'. Más = 'large'
+    },
+
+    // Variables adicionales para información detallada
+    currentWidth: 0,
+    currentHeight: 0,
+    aspectRatio: 0,       // Relación Ancho / Alto
+    hasTouch: false,      // true si el dispositivo tiene capacidad táctil
+
+    // Función principal para actualizar toda la información de la pantalla
+    updateScreenInfo: function() {
+        this.currentWidth = window.innerWidth;
+        this.currentHeight = window.innerHeight;
+        this.aspectRatio = this.currentWidth / this.currentHeight;
+
+        // --- Detección de Orientación (Nivel 1) ---
+        // Usamos la Screen Orientation API si está disponible para mayor precisión
+        if (screen.orientation && screen.orientation.type) {
+            this.isPortrait = screen.orientation.type.startsWith('portrait');
+            this.isLandscape = screen.orientation.type.startsWith('landscape');
+        } else {
+            // Fallback para navegadores antiguos o entornos sin la API
+            this.isLandscape = this.currentWidth > this.currentHeight;
+            this.isPortrait = this.currentHeight > this.currentWidth;
+        }
+
+        // --- Determinación del Rango de Pantalla (Nivel 2: Tres Puntos de Cambio) ---
+        // Clasificamos el tamaño de la pantalla según los breakpoints definidos.
+        if (this.currentWidth <= this.responsiveBreakpoints.smallMax) {
+            this.screenSize = 'small';
+        } else if (this.currentWidth <= this.responsiveBreakpoints.mediumMax) {
+            this.screenSize = 'medium';
+        } else {
+            this.screenSize = 'large';
+        }
+
+        // --- Capacidad Táctil (información adicional, no para clasificación de rango) ---
+        // Útil para adaptar interacciones (ej. "toca" vs "haz clic")
+        this.hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
+        // --- Log en consola para depuración y visualización en tiempo real ---
+        console.log('--- Estado de la Pantalla de Osiris Actualizado ---');
+        console.log(`Ancho (Viewport): ${this.currentWidth}px, Alto (Viewport): ${this.currentHeight}px`);
+        console.log(`Orientación: ${this.isLandscape ? 'Apaisada (Horizontal) ↔️' : 'Vertical (Retrato) ↕️'}`);
+        console.log(`Rango de Pantalla: ${this.screenSize.toUpperCase()} 📏`);
+        console.log(`Relación de Aspecto (Ancho/Alto): ${this.aspectRatio.toFixed(2)}`);
+        console.log(`Capacidad Táctil Detectada: ${this.hasTouch ? 'Sí 👍' : 'No 👎'}`);
+        console.log('-------------------------------------------');
+
+        // Disparamos un evento personalizado para que otras partes de tu aplicación
+        // puedan reaccionar a estos cambios de manera centralizada.
+        document.dispatchEvent(new CustomEvent('AppScreenInfoUpdated', {
+            detail: {
+                isLandscape: this.isLandscape,
+                isPortrait: this.isPortrait,
+                screenSize: this.screenSize, 
+                currentWidth: this.currentWidth,
+                currentHeight: this.currentHeight,
+                aspectRatio: this.aspectRatio,
+                hasTouch: this.hasTouch
+            }
+        }));
+    },
+
+    // Función de inicialización para establecer los listeners
+    init: function() {
+        this.updateScreenInfo(); // Ejecuta la detección inicial al cargar la página
+
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                this.updateScreenInfo();
+            }, 200); // Pequeña demora para optimizar el rendimiento en redimensionado continuo
+        });
+
+        // Escucha cambios de orientación, muy importante para dispositivos móviles
+        if (screen.orientation && screen.orientation.addEventListener) {
+            screen.orientation.addEventListener('change', () => {
+                this.updateScreenInfo();
+            });
+        }
+        // Fallback para navegadores que no soportan la API moderna
+        else if ('onorientationchange' in window) {
+             window.addEventListener('orientationchange', () => {
+                this.updateScreenInfo();
+            });
+        }
+    }
+};

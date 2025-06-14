@@ -1,0 +1,204 @@
+
+Manual de Usuario: Osiris AI Log Viewer & Project Explorer 🚀
+Bienvenido a la guía completa de Osiris, tu asistente inteligente para monitoreo de logs y gestión de proyectos. Aquí encontrarás todo lo que necesitas saber para instalar, ejecutar y sacar el máximo provecho de esta potente herramienta. ¡Prepárate para optimizar tu flujo de trabajo!
+
+Índice
+¿Funciona Ejecutando main.py?
+Requisitos del Sistema
+Estructura del Proyecto
+Primeros Pasos: Instalación y Ejecución
+4.1. Configuración Inicial
+4.2. Ejecución
+Componentes de la Interfaz de Usuario (UI)
+5.1. Ventana Principal
+5.2. Explorador de Proyectos
+5.3. Área de Contenido Principal (Pestañas)
+5.3.1. Pestaña "Logs de Osiris" (Log Viewer)
+5.3.2. Pestañas de Edición/Visualización de Archivos
+El Lenguaje de Pseudocódigo (realtimes.json)
+6.1. Claves Comunes
+6.2. La Clave enabled
+6.3. La Clave icon
+Interacción con la Inteligencia Artificial (IA)
+Consejos, Trucos y Resolución de Problemas
+Conclusión
+
+1. ¿Funciona Ejecutando main.py?
+¡Sí, absolutamente! 🎉 El archivo main.py es el punto de entrada principal de la aplicación Osiris. Al ejecutarlo, se inicializará la interfaz gráfica (PyQt), se cargarán las configuraciones, y el sistema estará listo para operar.
+
+2. Requisitos del Sistema
+Para que Osiris funcione correctamente en tu máquina, necesitarás lo siguiente:
+Python: Python 3.6 o superior. Se recomienda usar la versión más reciente disponible (ej. Python 3.9+).
+Librerías Python:
+PyQt5: La biblioteca de binding de Python para el framework Qt, utilizada para la interfaz gráfica.
+Pillow: Una biblioteca de procesamiento de imágenes necesaria para la generación de iconos por defecto y el manejo de imágenes.
+Puedes instalar ambas con pip ejecutando el siguiente comando en tu terminal:
+pip install PyQt5 Pillow
+Sistema Operativo: Compatible con Windows, macOS y Linux. Las funcionalidades de "abrir externamente" (os.startfile, subprocess.Popen) están adaptadas para estos entornos.
+
+3. Estructura del Proyecto
+Osiris está organizado en una estructura modular para facilitar la gestión y expansión. Aquí se muestra la estructura de carpetas y archivos clave:
+subcom/system_status/
+├── main.py                     # ➡️ Punto de entrada de la aplicación
+├── app.py                      # ➡️ La ventana principal de Osiris (UI, lógica global)
+├── log_entry_widget.py         # ➡️ Widget para cada entrada de log individual
+├── file_editor_widget.py       # ➡️ NUEVO: Widget para el editor/visualizador de archivos
+├── core/
+│   ├── json_config_reader.py   # ➡️ Lee y valida realtimes.json
+│   ├── pseudocode_interpreter.py # ➡️ Parsea las cadenas 'enabled' e 'icon'
+│   ├── ai_simulator.py         # ➡️ Simula las respuestas de la IA
+│   └── file_tailer.py          # ➡️ Lee contenido de archivos y ejecuta comandos
+├── utils/
+│   ├── icon_loader.py          # ➡️ Carga y genera iconos
+│   └── constants.py            # ➡️ Constantes del proyecto (rutas, defaults, AI responses)
+├── icons/                      # ➡️ Directorio para iconos (auto-generados si no existen)
+└── realtimes.json              # ➡️ Archivo de configuración principal para los logs
+├── test_logs/                  # ➡️ Directorio para logs de prueba (creado por main.py)
+    └── server.log
+    └── process_output.txt
+    └── db_health.log
+    └── old_logs.txt
+
+4. Primeros Pasos: Instalación y Ejecución
+Sigue estos pasos para poner en marcha Osiris:
+4.1. Configuración Inicial
+Copia la estructura: Descarga o clona la estructura de carpetas subcom/system_status/ en tu máquina.
+Crea el directorio icons/: Asegúrate de que la carpeta subcom/system_status/icons/ exista. El programa generará automáticamente los iconos predeterminados (como osiris_logo.png, default.png, ai_robot.png, etc.) si no los encuentra la primera vez que se ejecuta.
+Crea realtimes.json: Guarda el archivo realtimes.json (con el contenido de ejemplo que te proporcioné anteriormente) en la raíz de subcom/system_status/. Este archivo es crucial para que Osiris sepa qué logs monitorear.
+Genera logs de prueba: El script main.py creará automáticamente el directorio test_logs/ dentro de subcom/system_status/ y algunos archivos de log de ejemplo si no existen. Puedes modificar estos logs o crear los tuyos propios en cualquier lugar accesible por el programa.
+4.2. Ejecución
+Abre tu terminal o línea de comandos, navega hasta el directorio subcom/system_status/ y ejecuta:
+python main.py
+Deberías ver la ventana principal de Osiris aparecer, junto con un mensaje de bienvenida de la IA. ¡Felicidades, Osiris está operativo! 🎉
+
+5. Componentes de la Interfaz de Usuario (UI)
+Osiris presenta una interfaz de usuario intuitiva diseñada para facilitar tanto el monitoreo de logs como la gestión de archivos de proyecto.
+5.1. Ventana Principal
+Cabecera: Muestra el título de la aplicación y el logo de Osiris. Incluye un botón para "Recargar Config", que permite recargar realtimes.json en caliente sin reiniciar la aplicación.
+Splitter Principal: Un divisor redimensionable que divide la ventana en dos paneles: el "Explorador de Proyectos" a la izquierda y el "Área de Contenido Principal" (con pestañas) a la derecha.
+Barra de Estado: En la parte inferior, muestra mensajes del sistema (ej. carga de logs, errores) y la hora actual del sistema (⌚).
+5.2. Explorador de Proyectos
+Ubicado en el panel izquierdo.
+Vista de Árbol (Tree View): Muestra la estructura de archivos y directorios a partir de la raíz de tu proyecto (subcom/system_status/).
+Interacción:
+Doble Clic: Al hacer doble clic en un archivo, se abrirá en una nueva pestaña en el Área de Contenido Principal. Al hacer doble clic en un directorio, se expandirá o colapsará en la vista de árbol.
+Menú Contextual (Clic Derecho):
+Abrir Archivo/Carpeta: Equivalente al doble clic.
+Abrir con aplicación externa...: Abre el archivo o directorio seleccionado con la aplicación predeterminada de tu sistema operativo (ej. VS Code para .py, Bloc de notas para .txt, visor de imágenes para .png, etc.). ¡Muy útil para trabajar fuera de Osiris!
+Nuevo Archivo Aquí...: Permite crear un nuevo archivo de texto en blanco en el directorio actualmente seleccionado.
+Botones Rápidos:
+"📄 Nuevo Archivo": Abre una pestaña de editor de texto en blanco para un archivo nuevo.
+"📂 Abrir Archivo...": Abre un diálogo para seleccionar cualquier archivo del sistema y abrirlo en una nueva pestaña.
+5.3. Área de Contenido Principal (Pestañas)
+Ubicada en el panel derecho, esta área utiliza pestañas (QTabWidget) para organizar el contenido. La primera pestaña siempre será el visor de logs.
+5.3.1. Pestaña "Logs de Osiris" (Log Viewer)
+Aquí se muestran todas las entradas de log definidas en realtimes.json. Cada entrada de log es un LogEntryWidget independiente.
+Elementos del LogEntryWidget:
+Icono: Un icono representativo del log, definido por el pseudocódigo icon.
+Nombre: El nombre amigable del log (ej. "Servidor de Aplicaciones").
+Últ. act.: Muestra la última vez que el log fue actualizado.
+Botones de Control:
+🔄 (Actualizar): Fuerza una actualización manual del log.
+⏯️ (Pausar/Reanudar): Alterna el estado de actualización automática del log.
+Área de Texto del Log: Muestra el contenido del archivo de log, con soporte para filtrado y resaltado de líneas.
+Área de Respuesta de IA: Un pequeño label debajo del log que muestra la última respuesta de la IA si el log tiene trigger_ai activado.
+Menú Contextual (Clic Derecho en el Log):
+Actualizar ahora: Lo mismo que el botón de actualizar.
+Pausar/Reanudar: Lo mismo que el botón de pausa/reanudación.
+Consultar IA sobre 'tópico': Permite forzar una consulta a la IA sobre este log, incluso si no está configurado para hacerlo automáticamente.
+Abrir archivo log...: Abre el archivo de log asociado con la aplicación externa predeterminada.
+Ver configuración de la entrada: Muestra un cuadro de diálogo con todos los detalles de configuración (raw e interpretados) de esa entrada de log. ¡Excelente para depuración!
+5.3.2. Pestañas de Edición/Visualización de Archivos
+Cuando abres un archivo desde el Explorador de Proyectos o con el diálogo "Abrir Archivo...", se abre una nueva pestaña con un FileEditorWidget.
+Tipos de Contenido:
+Archivos de Texto (.py, .json, .txt, .log, .sh, .php, etc.): Se muestran en un QTextEdit completamente editable.
+Un asterisco * aparecerá en el título de la pestaña si el archivo tiene cambios sin guardar.
+El botón "💾 Guardar" y la acción de menú "Archivo -> Guardar" se habilitarán automáticamente cuando haya cambios y la pestaña actual sea un archivo de texto.
+Para un "Nuevo Archivo", al guardar por primera vez se te pedirá una ruta para guardarlo.
+Archivos de Imagen (.png, .jpg, .svg, etc.): La imagen se previsualizará directamente en la pestaña, escalada para encajar.
+Archivos Multimedia (.mp4, .mp3, etc.): Se mostrará información y metadatos simulados del archivo (ruta, tipo, duración, etc.), ya que la reproducción directa o el parseo completo de metadatos requieren librerías adicionales y quedan fuera del alcance de este prototipo.
+Otros / No Soportados: Se mostrará un mensaje indicando que el tipo de archivo no es editable o no soporta previsualización directa.
+Cierre de Pestañas: Al intentar cerrar una pestaña con un archivo de texto modificado, Osiris te preguntará si deseas "Guardar", "Descartar" o "Cancelar" la acción de cierre.
+
+6. El Lenguaje de Pseudocódigo (realtimes.json)
+El archivo realtimes.json es el corazón de la configuración de Osiris. Define cada entrada de log y cómo debe comportarse. Es un array de objetos JSON, donde cada objeto representa una entrada de log.
+[
+    {
+        "id": "app_server",
+        "name": "Servidor de Aplicaciones",
+        "alias": "server.log",
+        "path": "/tmp/osiris_logs",
+        "icon": "path:icons/server.png",
+        "enabled": "true {lines:15, reload:5, filter_regex:'(ERROR|WARN)', highlight_regex:'ERROR:.*', notify_change:true}"
+    },
+    // ... más entradas ...
+]
+6.1. Claves Comunes
+id (cadena): Identificador único para la entrada.
+name (cadena): Nombre amigable que se mostrará en la UI.
+alias (cadena): El nombre del archivo de log (ej. server.log).
+path (cadena): La ruta absoluta del directorio donde se encuentra el archivo de log (ej. /tmp/osiris_logs). Osiris construirá la ruta completa como path/alias.
+icon (cadena): Define el icono de la entrada. Ver detalles en la sección 6.3.
+enabled (cadena): Controla el comportamiento y las opciones de actualización del log. Ver detalles en la sección 6.2.
+6.2. La Clave enabled
+Esta clave es una cadena que puede ser un estado simple o un pseudocódigo con parámetros JSON-like.
+"true": La entrada se muestra y se actualiza automáticamente con valores por defecto (ej. cada 5 segundos, últimas 10 líneas).
+"pause": La entrada se muestra, pero solo una vez al cargar. No se actualiza automáticamente. Puedes actualizarla manualmente.
+"false": La entrada está oculta y no se actualiza.
+Parámetros Avanzados para 'true':
+Cuando el estado es "true", puedes añadir un objeto JSON-like para configurar el comportamiento detallado:
+"enabled": "true {param1:value1, param2:value2, ...}"
+Parámetros disponibles:
+reload (entero, segundos): Frecuencia de actualización del log. Mínimo 1 segundo. Por defecto: 5.
+lines (entero o cadena "all"): Número de líneas a leer desde el final del archivo. Si es "all", lee el archivo completo. Por defecto: 10.
+filter_regex (cadena): Expresión regular para filtrar las líneas. Solo las líneas que coincidan con esta regex se mostrarán. (Ej. '(ERROR|WARN)')
+highlight_regex (cadena): Expresión regular para resaltar líneas específicas dentro del log con un color distintivo (ej. fondo amarillo, texto rojo). (Ej. 'CRITICAL:.*')
+encoding (cadena): Codificación del archivo de log (ej. "utf-8", "latin-1"). Por defecto: "utf-8".
+trigger_ai (booleano true o cadena):
+Si es true, la IA se activará con el id de la entrada como tópico.
+Si es una cadena (ej. "system_status"), se usará esa cadena como tópico para la IA.
+La respuesta de la IA se mostrará debajo del log.
+update_on_change (booleano): Si es true, el log se actualizará solo cuando el archivo cambie en el sistema de archivos (usa QFileSystemWatcher). El parámetro reload se ignora. ¡Muy eficiente!
+notify_change (booleano): Si es true, el widget de log cambiará visualmente (borde verde, fondo claro) por un breve momento cuando el contenido del log se actualice.
+pre_process_cmd (cadena): ¡NUEVO y POTENTE! Un comando de shell que se ejecuta antes de leer el log. La salida estándar (stdout) de este comando se utilizará como el contenido del log para esa entrada.
+⚠️ Precaución: Ten cuidado al usar comandos de shell en pre_process_cmd, ya que comandos maliciosos pueden comprometer tu sistema. Úsalo con comandos de confianza.
+Ejemplos:
+"df -h | head -n 2" (mostrar uso de disco)
+"cat /proc/cpuinfo | grep 'model name' | head -n 1" (mostrar modelo de CPU)
+"tail -n 5 /var/log/syslog | grep 'fail'" (combinado con tail para logs específicos)
+6.3. La Clave icon
+La clave icon es una cadena que define cómo se carga el icono de la entrada.
+Tipos de Iconos y Pseudocódigo:
+"path:/ruta/a/icono.png": Carga un icono desde una ruta de archivo relativa a subcom/system_status/. (ej. "path:icons/server.png")
+"img:base64:format:data": Carga una imagen codificada en Base64.
+format: El formato de la imagen (ej. png, jpeg, svg).
+data: La cadena Base64 de la imagen.
+Ej: "img:base64:png:iVBORw0KGgoAAAA..."
+"ai_generate:prompt:format": (Simulado) La aplicación "solicitaría" a una IA que genere una imagen/icono. Para este prototipo, cargará un icono de 'robot IA' por defecto.
+prompt: La descripción para la IA (ej. "robot de datos").
+format: El formato deseado (ej. svg, png).
+"video:url:type": (Simulado) Para futuros usos multimedia. Para este prototipo, cargará un icono de 'video play' por defecto y mostrará la URL/tipo en la información.
+url: La URL del video (local o remoto).
+type: El tipo de video (ej. mp4, hls).
+
+7. Interacción con la Inteligencia Artificial (IA)
+Osiris incorpora un AISimulator que imita el comportamiento de una IA.
+Activación:
+Automática: Cuando una entrada de log tiene trigger_ai en su configuración enabled. La IA procesará el contenido actual del log o el tópico definido.
+Manual: Puedes forzar una consulta a la IA haciendo clic derecho en un LogEntryWidget y seleccionando "Consultar IA sobre 'tópico'".
+"Redundancia" de la IA: El simulador de IA está diseñado para dar respuestas diferentes o más "profundas" cada vez que se le consulta sobre el mismo tópico. Esto simula una IA que "aprende" o proporciona análisis más detallados con interacciones repetidas. Observa cómo el mensaje cambia en el label de IA.
+Ej: Primera consulta system_status -> "Sistema OK." Segunda -> "CPU al 30%, Memoria al 65%." Tercera -> "Análisis predictivo: posible pico de uso..."
+
+8. Consejos, Trucos y Resolución de Problemas
+Recarga en Caliente de realtimes.json: Osiris monitorea automáticamente los cambios en realtimes.json. Si editas y guardas este archivo (añadiendo, modificando o eliminando entradas), la aplicación detectará el cambio y actualizará las entradas de log en la UI sin necesidad de reiniciar. ¡Pruébalo!
+Permisos de Archivos: Asegúrate de que Osiris tenga permisos de lectura para los archivos de log y los directorios especificados en realtimes.json. Si un log no aparece o muestra un error, verifica los permisos.
+Errores de Pillow: Si ves errores relacionados con imágenes o iconos, asegúrate de que Pillow esté correctamente instalado (pip install Pillow).
+Codificación de Archivos: Si un log muestra caracteres extraños, intenta especificar la codificación correcta ("encoding":"latin-1", "encoding":"cp1252", etc.) en la configuración enabled de esa entrada.
+Depuración: Utiliza la opción "Ver configuración de la entrada" en el menú contextual de cada log para inspeccionar cómo Osiris ha interpretado el pseudocódigo de enabled e icon. Los mensajes de advertencia en la consola también son útiles.
+Comandos pre_process_cmd: Si un comando de shell no funciona, prueba a ejecutarlo directamente en tu terminal para verificar su sintaxis y salida. Recuerda que la salida de error (stderr) del comando también se mostrará en el log.
+Navegación del Explorador: Si el explorador de proyectos no muestra la estructura completa, haz clic derecho y usa "Abrir Archivo/Carpeta" en los directorios para expandirlos o contraerlos.
+Guardar Cambios en Archivos: ¡No olvides que las pestañas de edición de texto muestran un * si el archivo ha sido modificado y necesita ser guardado! La aplicación te preguntará al cerrar si hay cambios pendientes.
+
+9. Conclusión
+¡Felicidades! Has explorado a fondo el sistema Osiris. Esta versión "Beta Tested Advanced" te proporciona una plataforma robusta y dinámica para monitorear logs en tiempo real y gestionar tus archivos de proyecto. La flexibilidad de su pseudocódigo y la interacción simulada con la IA abren un sinfín de posibilidades para la automatización y el análisis.
+¡Esperamos que Osiris te sea de gran utilidad en tus proyectos! Si tienes más ideas o descubres nuevas formas de mejorarlo, ¡no dudes en compartirlas! ¡El espíritu de Osiris te guiará! ✨🤖

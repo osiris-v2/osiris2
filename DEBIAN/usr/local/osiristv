@@ -1,0 +1,293 @@
+#!/bin/bash
+
+# Interfaz Name: Osiris
+# Version: gemini
+# Idioma: Español
+
+
+# --- Configuración Inicial ---
+COMMAND="otvs.sh" # ¡Asegúrate que esta ruta sea correcta!
+LOG_FILE="com/datas/ffmpeg/osiris_launcher.log" # Archivo para logs de lanzamiento de Osiris
+
+#USE VERIFIED
+source "/o2iris/venv/bin/activate"
+LOG_FILE="/o2iris/datas"
+mkdir -p $LOG_FILE
+LOG_FILE="/o2iris/datas/osiris_launcher-otvs.log"
+>$LOG_FILE
+COMMAND="/o2iris/soft/otvs.sh"
+
+declare -A LAUNCHED_PIDS_INFO # otvs_pid => [status_file_path, log_file_path]
+
+
+# --- Funciones de Utilidad ---
+
+# Función para limpiar PIDs muertos del array y actualizar información
+check_active_pids() {
+    local updated_pids_info=()
+    for pid in "${!LAUNCHED_PIDS_INFO[@]}"; do
+        # Extraer el path del archivo de estado y log
+        IFS=',' read -r status_file log_file <<< "${LAUNCHED_PIDS_INFO["$pid"]}"
+
+        if ps -p "$pid" &>/dev/null; then
+            # Si el PID de otvs.sh sigue activo, lo mantenemos en la lista
+            updated_pids_info["$pid"]="${LAUNCHED_PIDS_INFO["$pid"]}"
+        else
+            # Si el PID de otvs.sh ya no está activo, reportamos su estado final
+            echo "🧹 El proceso otvs.sh con PID $pid ha terminado. "
+            if [ -f "$status_file" ]; then
+                local final_status=$(cat "$status_file")
+                echo "   Último estado de FFMPEG reportado: $final_status"
+                # Opcional: Podrías mantener esta entrada por un tiempo si quieres
+                # ver los resultados de PIDs terminados, y borrarlos con un comando de limpieza.
+                # Por ahora, simplemente se eliminará del listado principal.
+            fi
+            # Los archivos temporales deberían ser limpiados por el trap en otvs.sh.
+            # No es necesario limpiar aquí, a menos que otvs.sh no lo haga por alguna razón.
+        fi
+    done
+    LAUNCHED_PIDS_INFO=("${updated_pids_info[@]}")
+}
+
+# Función para mostrar la "barra de actualización" de PIDs
+display_pid_status() {
+    echo ""
+    echo "--- Estado de Procesos Osiris (PIDs Activos: ${#LAUNCHED_PIDS_INFO[@]}) ---"
+    if [ ${#LAUNCHED_PIDS_INFO[@]} -eq 0 ]; then
+        echo "⚡️ No hay procesos de otvs.sh lanzados por esta interfaz."
+    else
+        for pid in "${!LAUNCHED_PIDS_INFO[@]}"; do
+            # Extraer el path del archivo de estado y log
+            IFS=',' read -r status_file log_file <<< "${LAUNCHED_PIDS_INFO["$pid"]}"
+
+            local cmd_info=$(ps -p "$pid" -o cmd= --no-headers 2>/dev/null | head -n 1)
+            local ffmpeg_status="❔ Desconocido (otvs.sh no activo)"
+
+            if ps -p "$pid" &>/dev/null; then
+                # Si otvs.sh está activo, leemos su archivo de estado de ffmpeg
+                if [ -f "$status_file" ]; then
+                    ffmpeg_status=$(cat "$status_file")
+                    # Limita la longitud del mensaje para no desbordar
+                    if [[ ${#ffmpeg_status} -gt 100 ]]; then
+                        ffmpeg_status="${ffmpeg_status:0:97}..."
+                    fi
+                else
+                    ffmpeg_status="⏳ otvs.sh (PID: $pid) está iniciándose o el archivo de estado no existe."
+                fi
+            else
+                # Si otvs.sh no está activo, intentamos leer el último estado si el archivo aún existe.
+                if [ -f "$status_file" ]; then
+                    ffmpeg_status="🏁 Terminado. Último estado: $(cat "$status_file" | head -n 1)"
+                else
+                    ffmpeg_status="💀 Terminado. Estado final desconocido."
+                fi
+            fi
+
+            if [ -n "$cmd_info" ]; then
+                echo "🟢 PID OTVS: $pid | Comando: ${cmd_info:0:30}... | FFMPEG Estado: $ffmpeg_status"
+            else
+                echo "⚠️ PID OTVS: $pid | Proceso no encontrado (posiblemente terminando). | FFMPEG Estado: $ffmpeg_status"
+            fi
+        done
+    fi
+    echo "---------------------------------------------------"
+    echo ""
+}
+
+# --- Funciones de Ejecución ---
+
+# Ejecuta el comando en una nueva ventana de xterm
+run_in_xterm() {
+    if command -v xterm &>/dev/null; then
+        echo "🚀 Iniciando '$COMMAND' en una nueva ventana de xterm..."
+        # Nohup para desvincular el proceso de la terminal actual
+        # xterm -title para poner un título distintivo
+        # bash -c '...' para ejecutar el comando
+        # exec bash al final de xterm para mantener la ventana de xterm abierta después de que el comando termine
+        # Paso de argumentos: "$@" para pasar cualquier argumento extra de Osiris a otvs.sh
+        nohup xterm -title "Osiris: $COMMAND (PID:$$)" -e "bash -c '$COMMAND \"\$@\"; exec bash'" "$@" > "$LOG_FILE" 2>&1 &
+        local new_pid=$!
+        # Almacenar el PID de otvs.sh y las rutas a sus archivos de estado/log
+        LAUNCHED_PIDS_INFO["$new_pid"]="/tmp/otvs_ffmpeg_status_${new_pid}.txt,/tmp/otvs_ffmpeg_log_${new_pid}.log"
+        echo "✨ PID otvs.sh $new_pid lanzado en xterm. Monitoreando FFMPEG..."
+    else
+        echo "❌ xterm no está instalado. Por favor, instálalo para usar esta opción (ej: sudo apt install xterm)."
+    fi
+    sleep 1 # Pequeña pausa para que el usuario vea el mensaje
+}
+
+# Ejecuta el comando en el terminal actual (en segundo plano)
+run_in_current_terminal() {
+    echo "🚀 Iniciando '$COMMAND' en este terminal (en segundo plano para mantener el menú)..."
+    # Redirigimos la salida de otvs.sh a nuestro log principal para no llenar el terminal del menú
+    "$COMMAND" "$@" > "$LOG_FILE" 2>&1 &
+    local new_pid=$!
+    # Almacenar el PID de otvs.sh y las rutas a sus archivos de estado/log
+    LAUNCHED_PIDS_INFO["$new_pid"]="/tmp/otvs_ffmpeg_status_${new_pid}.txt,/tmp/otvs_ffmpeg_log_${new_pid}.log"
+    echo "✨ PID otvs.sh $new_pid lanzado en este terminal. Monitoreando FFMPEG..."
+    echo "📝 La salida principal de otvs.sh se redirige a '$LOG_FILE'."
+    sleep 1 # Pequeña pausa para que el usuario vea el mensaje
+}
+
+# --- Funciones de Gestión de PIDs ---
+
+# Realiza una acción (kill o info) sobre los PIDs especificados
+handle_pid_action() {
+    local action="$1" # "kill" o "info"
+    local pids_input="$2"
+
+    if [[ -z "$pids_input" ]]; then
+        echo "🤔 Por favor, ingresa los PIDs de otvs.sh (separados por comas, ej: '1234,5678'):"
+        read -r pids_input
+    fi
+
+    # Dividir la cadena de PIDs por comas
+    IFS=',' read -ra pids_to_process <<< "$pids_input"
+
+    for pid in "${pids_to_process[@]}"; do
+        pid=$(echo "$pid" | xargs) # Limpiar espacios en blanco
+        if [[ "$pid" =~ ^[0-9]+$ ]]; then # Validar que es un número
+            # Extraer el path del archivo de estado y log
+            IFS=',' read -r status_file log_file <<< "${LAUNCHED_PIDS_INFO["$pid"]}"
+
+            if ps -p "$pid" &>/dev/null; then
+                if [[ "$action" == "kill" ]]; then
+                    echo "💀 Intentando terminar otvs.sh PID: $pid..."
+                    kill "$pid" # Envía SIGTERM, otvs.sh tiene su propio trap para ffmpeg
+                    if [ $? -eq 0 ]; then
+                        echo "✅ otvs.sh PID $pid ha sido enviado a la muerte. ¡Adiós! 👋"
+                        # Eliminamos de la lista de Osiris inmediatamente
+                        unset LAUNCHED_PIDS_INFO["$pid"]
+                    else
+                        echo "❌ No se pudo terminar otvs.sh PID $pid. ¿Permisos insuficientes o proceso zombie? 🤔"
+                    fi
+                elif [[ "$action" == "info" ]]; then
+                    echo "ℹ️ Información detallada para otvs.sh PID $pid:"
+                    ps -fp "$pid"
+                    # Mostrar también el contenido del archivo de estado de ffmpeg si existe
+                    if [ -f "$status_file" ]; then
+                        echo "--- Último Estado de FFMPEG (reportado por otvs.sh PID $pid) ---"
+                        cat "$status_file"
+                    else
+                        echo "--- No hay archivo de estado de FFMPEG para PID $pid (¿no lanzado aún o ya terminado y limpiado?). ---"
+                    fi
+                    if [ -f "$log_file" ]; then
+                        echo "--- Últimas 20 líneas del Log de FFMPEG (de otvs.sh PID $pid) ---"
+                        tail -n 20 "$log_file"
+                    else
+                        echo "--- No hay archivo de log de FFMPEG para PID $pid. ---"
+                    fi
+                fi
+            else
+                echo "⚠️ otvs.sh PID $pid no existe o ya no es un proceso activo. No se puede $action."
+                unset LAUNCHED_PIDS_INFO["$pid"] # Si no existe, lo quitamos de nuestra lista
+            fi
+        else
+            echo "🚫 '$pid' no es un PID válido. Debe ser un número."
+        fi
+    done
+    sleep 4 # Dar tiempo para leer el output
+}
+
+# --- Menú Principal ---
+
+# Muestra las opciones del menú
+display_menu() {
+    clear # Limpia la pantalla para un menú más limpio
+    echo "=========================================="
+    echo "              🔮 OSIRIS AI 🔮             "
+    echo "=========================================="
+    echo "¡Bienvenido! Soy tu interfaz con Gemini AI."
+    echo "Usa emojis para dinamizar la conversación."
+    echo "------------------------------------------"
+    display_pid_status # Mostrar PIDs antes del menú principal
+    echo "--- Opciones Disponibles ---"
+    echo "1️⃣  Ejecutar '$COMMAND' en xterm aparte"
+    echo "2️⃣  Ejecutar '$COMMAND' en este terminal (fondo)"
+    if [ ${#LAUNCHED_PIDS_INFO[@]} -gt 0 ]; then
+        echo "3️⃣  Gestionar PIDs activos (Matar o Info) 💀ℹ️"
+    else
+        echo "3️⃣  Gestionar PIDs (No hay activos para gestionar) 😴"
+    fi
+    echo "0️⃣  Salir de Osiris"
+    echo "------------------------------------------"
+    echo "💡 Consejo: Escribe '--help' para ver los comandos disponibles en cualquier momento."
+    echo ""
+}
+
+# Muestra la ayuda
+display_help() {
+    clear
+    echo "=========================================="
+    echo "              Ayuda de OSIRIS             "
+    echo "=========================================="
+    echo "Estos son los comandos que puedes usar:"
+    echo ""
+    echo "➡️  1: Lanza el comando configurado ('$COMMAND') en una nueva ventana de xterm."
+    echo "    La ventana de xterm mostrará la salida del script otvs.sh."
+    echo "➡️  2: Lanza el comando configurado ('$COMMAND') en segundo plano en este mismo terminal."
+    echo "    La salida de otvs.sh y ffmpeg se redirige a $LOG_FILE."
+    echo "➡️  3: Abre el submenú de gestión de PIDs. Dentro de este submenú:"
+    echo "    ➡️  K <PID> | K <PID1,PID2,...>: Intenta terminar uno o varios PIDs de 'otvs.sh'."
+    echo "    ➡️  I <PID> | I <PID1,PID2,...>: Muestra información detallada del PID de 'otvs.sh',"
+    echo "        incluyendo el último estado reportado por FFMPEG y las últimas líneas de su log."
+    echo "    ➡️  B: Vuelve al menú principal."
+    echo "➡️  0: Sale de la interfaz de Osiris."
+    echo "➡️  --help: Muestra esta pantalla de ayuda."
+    echo ""
+    echo "Presiona Enter para volver al menú..."
+    read -r
+}
+
+# Maneja la elección del usuario
+handle_choice() {
+    local choice="$1"
+    case "$choice" in
+        1) run_in_xterm ;;
+        2) run_in_current_terminal ;;
+        3)
+            if [ ${#LAUNCHED_PIDS_INFO[@]} -gt 0 ]; then
+                clear
+                echo "=== Submenú de Gestión de PIDs ==="
+                display_pid_status # Muestra los PIDs activos también aquí
+                echo "  K <PID> | K <PIDs,PIDs,...> 💀 (Matar otvs.sh PID)"
+                echo "  I <PID> | I <PIDs,PIDs,...> ℹ️ (Info de otvs.sh PID y su FFMPEG)"
+                echo "  B 🔙 (Volver al menú principal)"
+                echo "-----------------------------------"
+                read -p ">>> Ingresa tu acción: " sub_choice
+                local action=$(echo "$sub_choice" | cut -d' ' -f1 | tr '[:lower:]' '[:upper:]')
+                local pids=$(echo "$sub_choice" | cut -d' ' -f2-)
+                case "$action" in
+                    K) handle_pid_action "kill" "$pids" ;;
+                    I) handle_pid_action "info" "$pids" ;;
+                    B) echo "🔙 Volviendo al menú principal." ; sleep 1 ;;
+                    *) echo "🤔 Opción no válida en gestión de PIDs." ; sleep 1 ;;
+                esac
+            else
+                echo "🤷‍♀️ No hay PIDs activos lanzados por Osiris para gestionar en este momento."
+                sleep 1.5
+            fi
+            ;;
+        0) echo "👋 ¡Hasta pronto! Saliendo de Osiris. Que tengas un día genial. 🌙" ; exit 0 ;;
+        "--help") display_help ;;
+        *) echo "🧐 Opción no válida. Por favor, intenta de nuevo o escribe --help." ; sleep 1 ;;
+    esac
+}
+
+# --- Inicio del Sistema Osiris ---
+
+clear
+echo "H E L O S T A R T - Se Ha inciado el SISTEMA OSIRIS a las: $(date '+%Y-%m-%d %H:%M:%S')"
+echo ""
+echo "👋 ¡Hola! Soy Osiris, tu interfaz de comunicación con Gemini AI. ✨ ¡Qué gusto verte por aquí!"
+echo ""
+echo "Recuerda que si necesitas ayuda o quieres ver los comandos disponibles, puedes escribir '--help'. ¡Estoy listo para lo que necesites! 🚀"
+sleep 3 # Pequeña pausa inicial
+
+# --- Bucle Principal del Menú ---
+while true; do
+    check_active_pids # Siempre verifica PIDs antes de mostrar el menú
+    display_menu
+    read -p "Seleccione una opción: >>> " choice
+    handle_choice "$choice"
+done
