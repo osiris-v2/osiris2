@@ -22,12 +22,23 @@ import hashlib
 #import datetime
 from pathlib import Path
 
+
 script_dir = Path(__file__).resolve().parent
 print(script_dir)
 
-core.dynmodule("lib.gemini.utils","win")
-win = core.win
 
+
+
+try: #importaciones dinámicas
+    core.dynmodule("lib.gemini.utils","win")
+    win = core.win
+    core.dynmodule("lib.gemini.cro_parser","CROPARSER")
+    croparser = core.CROPARSER
+except Exception as E :
+    print("ERDyM:",E)
+
+
+print(" -> -> ->  ",croparser.INFO)
 
 core.log_event("gemini.py", "Inicio", "No hay mas detalles" , error="None")
 
@@ -108,6 +119,7 @@ version_file = os.path.splitext(os.path.basename(current_path))[0]
 #Contexto inicial
 
 auto_response_window = False
+auto_cromode = False
 
 conversation_context = f"""
 #Interfaz de comunicación con Gemini AI de Google
@@ -1379,23 +1391,43 @@ def toggle_autosave(enable=True):
     autosave_enabled = enable
     print("Autosave", "activado." if enable else "desactivado.")
 
+
+def arw():
+    global auto_response_window, conversation_context
+    TF = auto_response_window
+    if TF == True:
+        main(["--sla"])
+    else:
+        print()  #modo normal
+
+
 # Función para manejar los argumentos
 def main(args):
     """Función principal que maneja los argumentos de entrada para generar respuestas del modelo."""
-    global ruta_archivo_key, gemini_model, model, conversation_context, load, last_response, topic, API_KEY, auto_response_window
+    global ruta_archivo_key, gemini_model, model, conversation_context, load, last_response, topic, API_KEY
+    global auto_cromode, auto_response_window
 
 
     # Si no se envían comandos, se asume que se envía una pregunta de texto.
     if not args[0].startswith("--"):
         user_input = " ".join(args)
         response_text = generate_response(user_input)
+        if auto_cromode == False:
+            conversation_context += "[INTERNAL MSG: AUTOCROMODE FUE PUESTO A OFF]"
+            print(" \n→", response_text)
+        elif auto_cromode == True:
+            conversation_context += "[INTERNAL MSG: AUTOCROMODE FUE PUESTO A ON]"
+            print("----------")
+            croparser.main(response_text)
+        arw()
         log_interaction(user_input, response_text)  # Nuevo: Registrar interacción
-        print(" \n→", response_text)
         return
 
     try:
         # Mapeo de comandos cortos
         commands_map = {
+        "--auto_response_window":"--arw", #abre respuestas en ventana (on/off)
+"--cromode":"--cm",  # Activa modo CRO (on/off)
             "--load": "--l",
             "--addload": "--al",
             "--showload": "--sl",
@@ -1434,16 +1466,31 @@ def main(args):
             genai.configure(api_key=API_KEY)
             model = genai.GenerativeModel(gemini_model) 
             return
-
+        if command == "--cm" or  command == "--cromode":
+            if auto_cromode == False:
+                auto_cromode = True
+                main(["--l","develop.info"])
+                main(["--al","""Se Acaba de cargar y activar --cromode , directrices desde bin/develop.info
+                    (RECORDATORIO REFRESCO ACTUALIZACION DE) 
+                    COMENZAMOS NUEVA CONVERSACIÓN DENTRO DEL CONTEXTO CRO.
+                    CROMODE está activo a partir de tu próxima respuesta.
+                    Avisa que activaste CRO en una sola línea. Sin entrar en más detalle."""])
+#                arw()
+                return
+            else:
+                auto_cromode = False
+            print("AUTO_cromode:",auto_cromode)
+            return
         if command == "--arw" or  command == "--auto_response_window":
             if auto_response_window == False:
                 auto_response_window = True
+                conversation_context += "[INTERNAL MSG: AUTO_RESPONSE_WINDOW --arw FUE PUESTO A ON]"
             else:
                 auto_response_window = False
+                conversation_context += "[INTERNAL MSG: AUTO_RESPONSE_WINDOW --arw FUE PUESTO A OFF]"
             print("AUTO_RESPONSE_WINDOW:",auto_response_window)
             return
-
-        if command == "--sgm" or command == "selectgenaimodel":
+        if command == "--sgm" or command == "select_genai_model":
             sm = "\nSelección de modelos de API\n"
             nmx = select_genai_model(sm)
             conversation_context += str(nmx)
@@ -1464,7 +1511,6 @@ def main(args):
         # Usar el comando corto si está disponible
         if command in commands_map:
             command = commands_map[command]
-
         if command == "--lc" or command == "--loadconfig":
             if len(args) > 1 and is_file(args[1]):
                 config = load_config(args[1])
@@ -1474,21 +1520,18 @@ def main(args):
             else:
                 messagebox.showerror("Error", "Archivo de configuración no encontrado o no especificado.")
             return
-
         elif command == "--log":
             if len(args) > 1:
                 log_interaction(" ".join(args[1:]), last_response)
             else:
                 messagebox.showerror("Error", "No se especificó la interacción a registrar.")
             return
-
         elif command == "--sp" or command == "--setparams":
             if len(args) > 1:
                 set_model_params(args[1:])
             else:
                 messagebox.showerror("Error", "No se especificaron parámetros.")
             return
-
         elif command == "--lm" or command == "--listmodels":
             print("\nModelos Genai disponibles:\n")
             dm = 0
@@ -1496,12 +1539,10 @@ def main(args):
                 dm = dm + 1
                 print(f"{dm} → {m.name}")
             return
-
         elif command == "--ta" or command == "--toggleautosave":
             enable = args[1].lower() == 'on' if len(args) > 1 else True
             toggle_autosave(enable)
             return
-
         elif command == "--l" or command == "--load":
             if len(args) > 1 and is_file(args[1]):
                 load = read_file(args[1])
@@ -1509,7 +1550,6 @@ def main(args):
             else:
                 messagebox.showerror("Error", "Archivo no encontrado o no especificado.")
             return
-
         elif command == "--al" or command == "--addload":
             args.pop(0)  # Remover '--addload' de los argumentos
             user_input = " ".join(args)
@@ -1517,16 +1557,14 @@ def main(args):
                 user_input = load + " " + user_input  # Añadir el contenido de 'load' al input del usuario
             response_text = generate_response(user_input)
             print(" \n→", response_text)
+            arw()
             return
-
         elif command == "--sl" or command == "--showload":
             if load:
                 print(f"Contenido de load:\n{load}")
             else:
                 messagebox.showinfo("Información", "No hay contenido en 'load'.")
             return
-
-
         elif command == "--li" or command == "--loadimage":
             textWithImage = "Interpretar imagen"
             if len(args) > 2:
@@ -1562,28 +1600,21 @@ def main(args):
                     messagebox.showerror("Error", "Imagen no encontrada o no especificada.")
             else:
                 messagebox.showerror("Error", "No se especificó una ruta de imagen.")
-
-
-
         elif command == "--sw" or command == "--showwin":
             if conversation_context:
                 show_text_window(conversation_context)
             else:
                 messagebox.showinfo("Información", "No hay texto para mostrar.")
             return
-            
         elif command == "--ss" or command == "--screenshot":
             screen_shot()
             return            
-            
-            
         elif command == "--sla" or command == "--showlastanswer":
             if conversation_context:
                 show_text_window(last_response)
             else:
                 messagebox.showinfo("Información", "No hay texto para mostrar.")
             return
-            
         elif command == "--la" or command == "--loadanswer":
             if conversation_context:
                 load = last_response
@@ -1591,14 +1622,12 @@ def main(args):
             else:
                 messagebox.showinfo("Información", "No hay información (L 486) para mostrar.")
             return            
-
         elif command == "--sav" or command == "--saveload":
             filename = "com/datas/saveload.gemini"  # Nombre por defecto
             if len(args) > 1:
                 filename = f"com/datas/{args[1]}.gemini"  # Nombre personalizado
             save_file(filename, conversation_context)
             return
-
         elif command == "--sr" or command == "--saverequest":
             if len(args) > 1:
                 user_input = " ".join(args[1:])
@@ -1606,7 +1635,6 @@ def main(args):
             else:
                 messagebox.showerror("Error", "No se especificó solicitud a guardar.")
             return
-
         elif command == "--sa" or command == "--saveanswer":
             if len(args) > 1:
                 filename = f"{args[1]}"  # Nombre personalizado
@@ -1614,15 +1642,12 @@ def main(args):
                 filename=""
             save_answer(filename)
             return
-
         elif command == "--sc" or command == "--savecontext":
             save_context()
             return
-
         elif command == "--as" or command == "--autosave":
             autosave()
             return
-
         elif command == "--nq" or command == "--newquestions":
             if len(args) > 1:
                 questions = generate_new_questions(" ".join(args[1:]))
@@ -1632,7 +1657,6 @@ def main(args):
             else:
                 messagebox.showerror("Error", "No se especificó una pregunta base.")
             return
-
         elif command == "--sd" or command == "--send":
             if len(args) > 1:
                 user_input = " ".join(args[1:])
@@ -1641,21 +1665,17 @@ def main(args):
             else:
                 messagebox.showerror("Error", "No se especificó pregunta a enviar.")
             return
-
         elif command == "--ls" or command == "--listfiles":
             if len(args) < 2:
                 args.append(".")
             print("Listando archivos en com/datas/"+str(args[1]))
-            
             for filename in os.listdir("com/datas/"+str(args[1])):
                 print(" -", filename)
             return
-
         elif command == "--cc" or command == "--clearcontext":
             conversation_context = ""
             print("Contexto de conversación limpiado.")
             return
-
         elif command == "--lsel" or command == "--loadselect":
             if len(args) > 1 and is_file(args[1]):
                 selected_context = read_file(args[1])
@@ -1664,7 +1684,6 @@ def main(args):
             else:
                 messagebox.showerror("Error", "Archivo no encontrado o no especificado.")
             return
-
         elif command == "--lm" or command == "--loadmultiple":
             for filename in args[1:]:
                 if is_file(filename):
@@ -1674,27 +1693,23 @@ def main(args):
                 else:
                     messagebox.showerror("Error", f"Archivo {filename} no encontrado.")
             return
-
         elif command == "--i" or command == "--info":
             print("Información del modelo:")
             print(" - Modelo:", model)
             print(" - Contexto actual:", conversation_context)
             return
-
         elif command == "--exp" or command == "--export":
             if len(args) > 1:
                 win.export_context(args[1],conversation_context)
             else:
                 messagebox.showerror("Error", "No se especificó nombre para exportar.")
             return
-
         elif command == "--imp" or command == "--import":
             if len(args) > 1:
                conversation_context = win.import_context(args[1])
             else:
                 messagebox.showerror("Error", "No se especificó nombre para importar.")
             return
-
         elif command == "--s" or command == "--search":
             load_context = False
             term = ""
@@ -1711,8 +1726,6 @@ def main(args):
             else:
                 messagebox.showerror("Error", "No se especificó término de búsqueda.")
             return
-
-
         elif command == "--st" or command == "--settopic":
             if len(args) > 1:
                 topic = " ".join(args[1:])
@@ -1720,7 +1733,6 @@ def main(args):
             else:
                 messagebox.showerror("Error", "No se especificó tema a establecer.")
             return
-
         elif command == "--dialog" or command == "--ask"  :
             #Abre una ventana de dialogo para enviar una pregunta al modelo de IA seleccionado
             dtext = win.dialog_window()
@@ -1730,9 +1742,9 @@ def main(args):
                 response_text = generate_response(dtext)
                 print(" → ",response_text)
             else:
-                print("VOID D")
+                print("No se recibió respuesta. Acción inesperada.")
+            arw()
             return
-
         elif command == "--di" or command == "--decodeimage":
             if len(args) > 0:
                 dim = args[1]
@@ -1740,10 +1752,7 @@ def main(args):
                 print("DECODE")
             return
         elif command == "--tvl" or command == "--tvideol":
-
 #                return
-
-
             if len(args) == 2:
                 Context = []
                 if args[1] == "--dialog":
@@ -1758,7 +1767,6 @@ def main(args):
                             if zx.startswith("@") : 
                                 argsx.append(zx)
                     video_translate(Context[0]," Automatic @def  ",argsx)
-                    
 #                    main(["--tvl",Context[0],argsx])
                     return
             if len(args) > 2:
@@ -1768,28 +1776,19 @@ def main(args):
                     print("DIALOG")
                     dialog_h = win.dialog_window()
                     Context = [dialog_h]
-
-                    
-                prompt = " ".join(args[2:])
- 
- 
+                prompt = " ".join(args[2:]) 
             argsx = []
             if len(args) > 1:
                 print("Procesando....")
                 for  zx in  args: 
                     if zx.startswith("@") : 
                         argsx.append(zx)
-
                 video_translate(args[1],prompt,argsx)
-
-
             else:
                 print("Es necesario parametro de video")
 #            send_video()
             print("---FIN VIDEO ----")
             return  
-
-
         elif command == "--r" or command == "--reset":
             conversation_context = ""
             load = ""
@@ -1797,7 +1796,6 @@ def main(args):
             topic = ""
             print("Todos los valores han sido reseteados.")
             return  
-
         elif command == "--diagnostic" or command == "--d":
             if len(args) > 1 :
                 if args[1] == "server":

@@ -1,5 +1,6 @@
 #!/bin/bash
-FILE="../com/datas/progress_tv.txt"
+FILE="/o2iris/datas/progress_process.txt"
+#FILE="/o2iris/datas/otvs_ffmpeg_log_95957.log"
 echo $PWD
 >$FILE
 chmod 0777 $FILE

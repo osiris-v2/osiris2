@@ -1,5 +1,5 @@
 #!/bin/bash
-FILE="../com/datas/progress_hls.txt"
+FILE="../com/datas/progress_tv.txt"
 >$FILE
 chmod 0777 $FILE
 echo "PROGRESS HLS WaitFile" > $FILE 

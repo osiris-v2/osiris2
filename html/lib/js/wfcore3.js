@@ -295,7 +295,7 @@ return dsplay
 }
 
 
-const temp = function(javascript='alert("funcion temp inframe.js")',type='out',time='2000'){
+const temp = function(javascript='alert("funcion temp inframe.js")',type='timeout',time='2000'){
 
 this.temp = temp
 this.temp.clear = function(javascript){
