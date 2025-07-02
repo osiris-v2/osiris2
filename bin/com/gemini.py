@@ -1417,8 +1417,16 @@ def main(args):
             print(" \n→", response_text)
         elif auto_cromode == True:
             conversation_context += "[INTERNAL MSG: AUTOCROMODE FUE PUESTO A ON]"
-            print("----------")
-            croparser.main(response_text)
+#            print("----------")
+            CROreturn = croparser.main(response_text)
+            print("CRO:auto")
+            if not CROreturn :
+                print("NOT CRO RESULTS")
+            else:
+                response = "True CRO"
+                conversation_context += str(CROreturn)
+                response = generate_response("CRO añadido al contexto resume los resultados")
+                print(response)
         arw()
         log_interaction(user_input, response_text)  # Nuevo: Registrar interacción
         return

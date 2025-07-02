@@ -1,8 +1,9 @@
 import re
 import json
-import urllib.parse # Necesario para codificar URLs
-import time 
+import urllib.parse
+import time
 import shlex
+import subprocess
 
 # osiris_definitions.py - Definiciones completas y corregidas para Python
 INFO = """
@@ -11,7 +12,7 @@ Osiris internal python library
 """
 
 osiris_definitions = {
-    "GLOBAL_MODE": {  
+    "GLOBAL_MODE": {
         "TYPE":["CLI","WEB","DESKTOP"]
     },
     "COMMAND_GROUPS": {
@@ -204,8 +205,8 @@ osiris_definitions = {
                 "PARAMETERS": {
                     "PATH": { "TYPE": "string", "REQUIRED": True, "DYNAMIC": True },
                     "CONTENT": { "TYPE": "string", "REQUIRED": True, "DYNAMIC": True },
-                    "OVERWRITE": { "TYPE": "boolean", "DEFAULT": False, "REQUIRED": False },
-                    "ENCODING": { "TYPE": "enum", "VALUES": ["utf-8", "latin-1"], "DEFAULT": "utf-8", "REQUIRED": False }
+                    "OVERWRITE": { "TYPE": "boolean", "DEFAULT": False, "REQUIRED": False, "DYNAMIC": True }, # <--- ¡CAMBIO CRÍTICO AQUÍ!
+                    "ENCODING": { "TYPE": "enum", "VALUES": ["utf-8", "latin-1"], "DEFAULT": "utf-8", "REQUIRED": False, "DYNAMIC": True } # <--- ¡CAMBIO CRÍTICO AQUÍ!
                 }
             }
         }
@@ -293,6 +294,19 @@ class CROParser:
                                 valid_val = default_value
                             else:
                                 continue
+                    # Type conversion for booleans
+                    if param_type == "boolean":
+                        if isinstance(valid_val, str):
+                            if valid_val.lower() == "true":
+                                valid_val = True
+                            elif valid_val.lower() == "false":
+                                valid_val = False
+                            else:
+                                self._log_warning(f"Invalid boolean string '{val}' for parameter '{param_name}' in {group_name}->{target_member}. Defaulting to False.")
+                                valid_val = False 
+                        elif not isinstance(valid_val, bool):
+                            valid_val = bool(valid_val) # Coerce other types
+                    
                     validated_values.append(valid_val)
             
             if not validated_values and is_required:
@@ -320,8 +334,6 @@ class CROParser:
             concrete_template = base_template
             if concrete_template:
                 try:
-                    # RE-INCORPORADO: Codificar los valores de los parámetros para URL antes de formatear
-                    # Esto es CRUCIAL para manejar espacios y caracteres especiales en URLs y queries de DB
                     processed_params_for_template = {}
                     for k, v in final_params_set.items():
                         if isinstance(v, str) and action_type in ["URL_SEARCH", "DB_SEARCH"]:
@@ -338,9 +350,9 @@ class CROParser:
                 "group_name": group_name,
                 "member": target_member,
                 "action_type": action_type,
-                "template": concrete_template, # La plantilla final ya formateada
-                "parameters": final_params_set, # Los parámetros originales usados para esta instancia de acción
-                "raw_cro_lines": [] # Se llenará en el parser principal
+                "template": concrete_template,
+                "parameters": final_params_set,
+                "raw_cro_lines": []
             })
         
         return actions
@@ -356,15 +368,27 @@ class CROParser:
             return []
 
         for block_content in cro_blocks:
-            lines = block_content.strip().split('\n')
-            
+            lines = block_content.split('\n')
+
             current_group_name = None
             current_targets = []
             current_params = {}
-            current_raw_cro_lines = []
+            current_raw_cro_lines = [] # Colecta todas las líneas para el comando actual
 
-            def _process_pending_actions():
-                """Helper para procesar acciones de la última línea iniciadora antes de que empiece una nueva o termine el bloque."""
+            # Heredoc state variables (for <<<DELIMITER)
+            in_heredoc_mode = False
+            heredoc_var_name = None
+            heredoc_delimiter = None
+            heredoc_content_buffer = []
+
+            # Triple-quote state variables (for """...""")
+            in_triple_quote_mode = False
+            triple_quote_var_name = None
+            triple_quote_content_buffer = []
+
+            # Nueva función auxiliar para procesar el comando actual y resetear el estado
+            def _process_current_command_group():
+                """Helper para procesar el grupo de comando actual y sus parámetros."""
                 nonlocal current_group_name, current_targets, current_params, current_raw_cro_lines
                 if current_group_name and current_targets:
                     for target_member in current_targets:
@@ -374,33 +398,60 @@ class CROParser:
                             current_params
                         )
                         for action in new_actions:
-                            action["raw_cro_lines"] = list(current_raw_cro_lines) 
+                            action["raw_cro_lines"] = list(current_raw_cro_lines) # Captura las líneas raw del comando
                             self.parsed_actions.append(action)
                 
-                # Reset para el siguiente bloque/iniciador
+                # Reiniciar para el siguiente comando
                 current_group_name = None
                 current_targets = []
                 current_params = {}
                 current_raw_cro_lines = []
 
+            for line_idx, line in enumerate(lines):
+                clean_line = line.rstrip('\r\n') # Elimina solo saltos de línea al final
 
-            for line in lines:
-                line = line.strip()
-                if not line:
+                # --- Prioridad 1: Manejar estados de contenido multilínea (Triple-Quote """ o Heredoc <<<) ---
+                # Si ya estamos en modo triple comilla
+                if in_triple_quote_mode:
+                    current_raw_cro_lines.append(clean_line) # Añadir línea al buffer de líneas raw
+                    if clean_line.strip() == '"""': # Si encontramos la comilla de cierre
+                        current_params[triple_quote_var_name] = "\n".join(triple_quote_content_buffer)
+                        in_triple_quote_mode = False
+                        triple_quote_var_name = None
+                        triple_quote_content_buffer = []
+                    else:
+                        triple_quote_content_buffer.append(clean_line) # Si es contenido, añadir al buffer de contenido
+                    continue # Siempre continuar si estamos en modo multilínea, hasta encontrar el delimitador
+
+                # Si ya estamos en modo heredoc
+                if in_heredoc_mode:
+                    current_raw_cro_lines.append(clean_line) # Añadir línea al buffer de líneas raw
+                    if clean_line.strip() == heredoc_delimiter:
+                        current_params[heredoc_var_name] = "\n".join(heredoc_content_buffer)
+                        in_heredoc_mode = False
+                        heredoc_var_name = None
+                        heredoc_delimiter = None
+                        heredoc_content_buffer = []
+                    else:
+                        heredoc_content_buffer.append(clean_line)
+                    continue
+
+                # --- Prioridad 2: No estamos en modo multilínea, buscar nuevos iniciadores/parámetros ---
+                stripped_line = clean_line.strip()
+                if not stripped_line: # Saltar líneas vacías fuera de bloques multilínea
                     continue
                 
-                # Intentar coincidir con una Línea Iniciadora
-                initiator_match = re.match(r"^([A-Z_]+)\_\* (.+)$", line)
+                # 1. Intentar hacer coincidir un Iniciador de Comando (ej. LOCAL_FS_* WRITE_FILE)
+                initiator_match = re.match(r"^([A-Z_]+)\_\* (.+)$", stripped_line)
                 if initiator_match:
-                    _process_pending_actions() 
-                    current_raw_cro_lines.append(line)
-
+                    _process_current_command_group() # <--- ¡AHORA SOLO AQUÍ! Procesa el comando anterior
+                    
                     group_name = initiator_match.group(1)
                     members_str = initiator_match.group(2)
                     
                     if group_name not in self.osiris_definitions["COMMAND_GROUPS"]:
-                        self._log_error(f"Grupo de comando desconocido '{group_name}' en línea: '{line}'")
-                        current_raw_cro_lines = [] # Limpiar líneas si el grupo es inválido
+                        self._log_error(f"Unknown command group '{group_name}' in line: '{stripped_line}'")
+                        # No se establecen current_group_name, etc., si el grupo es inválido.
                         continue
                     
                     valid_members = []
@@ -408,39 +459,99 @@ class CROParser:
                         if member in self.osiris_definitions["COMMAND_GROUPS"][group_name]:
                             valid_members.append(member)
                         else:
-                            self._log_warning(f"Miembro inválido '{member}' para el grupo '{group_name}' en línea: '{line}'")
-                    
+                            self._log_warning(f"Invalid member '{member}' for group '{group_name}' in line: '{stripped_line}'")
+                
                     if not valid_members:
-                        self._log_warning(f"No se encontraron miembros válidos para el grupo '{group_name}' en línea: '{line}'. Saltando iniciador.")
-                        current_raw_cro_lines = [] # Limpiar líneas si no hay miembros válidos
+                        self._log_warning(f"No valid members found for group '{group_name}' in line: '{stripped_line}'. Skipping initiator.")
                         continue
                     
                     current_group_name = group_name
                     current_targets = valid_members
-                    current_params = {} # Reset parámetros para nuevos objetivos
+                    current_params = {} # Resetear parámetros para el nuevo comando
+                    current_raw_cro_lines.append(clean_line) # Añadir esta línea iniciadora a las líneas raw
 
-                else:
-                    # Intentar coincidir con una Línea de Parámetro
-                    param_match = re.match(r"^([A-Z_]+)=\"(.*?)\"$", line)
-                    if param_match:
-                        if not current_group_name or not current_targets:
-                            self._log_error(f"Línea de parámetro '{line}' encontrada sin una línea iniciadora precedente. Ignorando.")
-                            continue
-                        current_raw_cro_lines.append(line)
+                # 2. Intentar hacer coincidir el inicio de un parámetro con triple comilla (ej. CONTENT=""", o CONTENT="""some code)
+                # CAMBIO CLAVE AQUÍ: Aceptar cualquier cosa después de """ en la misma línea
+                elif (triple_quote_start_match := re.match(r"^([A-Z_]+)=\"\"\"(.*)$", stripped_line)):
+                    if not current_group_name or not current_targets:
+                        self._log_error(f"Triple-quoted parameter line '{stripped_line}' found without a preceding initiator line (command). Ignoring.")
+                        continue
 
-                        param_name = param_match.group(1)
-                        param_value = param_match.group(2)
-                        current_params[param_name] = param_value
+                    param_name_for_triple_quote = triple_quote_start_match.group(1)
+                    # Contenido inmediatamente después de """ en la misma línea
+                    initial_content_on_same_line = triple_quote_start_match.group(2)
+
+                    in_triple_quote_mode = True # Asumimos que el bloque empieza
+                    triple_quote_var_name = param_name_for_triple_quote
+                    triple_quote_content_buffer = []
+
+                    # Manejar el caso donde el contenido Y el """ de cierre están en la misma línea
+                    # Ejemplo: CONTENT="""Hello world"""
+                    if initial_content_on_same_line.strip().endswith('"""'):
+                        # Extraer el contenido real eliminando el """ de cierre
+                        content_found = initial_content_on_same_line.strip()[:-3].rstrip()
+                        current_params[triple_quote_var_name] = content_found
+                        
+                        in_triple_quote_mode = False # El bloque se ha cerrado en la misma línea
+                        triple_quote_var_name = None
+                        # No es necesario limpiar el buffer, ya que se usó y se reiniciará para el siguiente comando
                     else:
-                        self._log_warning(f"Sintaxis CRO no reconocida en línea: '{line}'. Saltando.")
+                        # Si el contenido empezó en la misma línea pero no hay """ de cierre
+                        if initial_content_on_same_line:
+                            triple_quote_content_buffer.append(initial_content_on_same_line)
+
+                    current_raw_cro_lines.append(clean_line) # Añadir esta línea a las líneas raw
+                    continue # IMPORTANT: Después de procesar el inicio, pasar a la siguiente línea para buscar más contenido o el delimitador de cierre
+                    
+                # 3. Intentar hacer coincidir un Iniciador de Heredoc (ej. CONTENT=<<<DELIMITER)
+                elif re.match(r"^([A-Z_]+)=<<<([A-Z_]+)$", stripped_line):
+                    # <--- ¡NO LLAMAR A _process_current_command_group() AQUÍ! Esto es un PARÁMETRO.
+                    heredoc_start_match = re.match(r"^([A-Z_]+)=<<<([A-Z_]+)$", stripped_line)
+                    if not current_group_name or not current_targets:
+                        self._log_error(f"Heredoc parameter line '{stripped_line}' found without a preceding initiator line (command). Ignoring.")
+                        continue
+                    
+                    var_name = heredoc_start_match.group(1)
+                    delimiter = heredoc_start_match.group(2)
+                    
+                    if not delimiter:
+                        self._log_error(f"Heredoc delimiter cannot be empty in line: '{stripped_line}'")
+                        continue 
+                    
+                    in_heredoc_mode = True
+                    heredoc_var_name = var_name
+                    heredoc_delimiter = delimiter
+                    heredoc_content_buffer = [] # Limpiar buffer para nuevo heredoc
+                    current_raw_cro_lines.append(clean_line) # Añadir esta línea a las líneas raw
+                    continue
+                    
+                # 4. Intentar hacer coincidir una Línea de Parámetro normal (ej. PARAMETER="value")
+                elif re.match(r"^([A-Z_]+)=\"(.*?)\"$", stripped_line):
+                    # <--- ¡NO LLAMAR A _process_current_command_group() AQUÍ! Esto es un PARÁMETRO.
+                    param_match = re.match(r"^([A-Z_]+)=\"(.*?)\"$", stripped_line)
+                    if not current_group_name or not current_targets:
+                        self._log_error(f"Parameter line '{stripped_line}' found without a preceding initiator line (command). Ignoring.")
+                        continue
+                    
+                    param_name = param_match.group(1)
+                    param_value = param_match.group(2)
+                    current_params[param_name] = param_value
+                    current_raw_cro_lines.append(clean_line) # Añadir línea de parámetro a las líneas raw
+                
+                else:
+                    # Línea no reconocida como iniciador, inicio/fin de multilínea, o parámetro
+                    self._log_warning(f"Unrecognized CRO syntax or misplaced line: '{stripped_line}'. Skipping.")
             
-            _process_pending_actions() # Procesar cualquier acción restante después de la última línea del bloque
+            # Después de iterar por todas las líneas del bloque, procesar cualquier acción pendiente final
+            _process_current_command_group()
+            
+            # Comprobar si hay bloques multilínea sin cerrar al final de un bloque CRO
+            if in_heredoc_mode:
+                self._log_error(f"Heredoc for variable '{heredoc_var_name}' started with delimiter '{heredoc_delimiter}' was not closed correctly within the CRO block.")
+            if in_triple_quote_mode:
+                 self._log_error(f"Triple-quoted block for variable '{triple_quote_var_name}' was not closed correctly within the CRO block.")
 
         return self.parsed_actions
-
-
-
-
 
 
 class CROTranslator:
@@ -551,6 +662,8 @@ class CROTranslator:
                     if command_to_run:
                         # 🔒 SEGURIDAD CRÍTICA: Escapar el comando para evitar inyección de shell.
                         # `shlex.quote` es fundamental aquí.
+                        # Utilizamos `bash -c` para asegurar que el comando se ejecute a través de Bash,
+                        # permitiendo redirecciones, pipes, etc., y que el comando en sí mismo esté entre comillas.
                         translated_output["executable_command"] = f"bash -c {shlex.quote(command_to_run)}"
                         translated_output["needs_confirmation"] = self.require_confirmation
                         translated_output["message"] = f"Se propone ejecutar el comando: '{command_to_run}'. Requiere confirmación."
@@ -601,9 +714,11 @@ class CROTranslator:
                         if member == "LIST_DIRECTORY":
                             translated_output["executable_command"] = f"ls -la {quoted_path}"
                             translated_output["message"] = f"Se listará el contenido de: '{path}'."
+                            translated_output["needs_confirmation"] = self.require_confirmation # Aunque es lectura, por precaución y coherencia con la propuesta
                         elif member == "READ_FILE":
                             translated_output["executable_command"] = f"cat {quoted_path}" # 'cat' es un comando directo de lectura
                             translated_output["message"] = f"Se leerá el archivo: '{path}'."
+                            translated_output["needs_confirmation"] = self.require_confirmation # Aunque es lectura, por precaución y coherencia con la propuesta
                     else:
                         translated_output["error"] = f"Acción '{member}' requiere el parámetro 'PATH'."
                 else:
@@ -614,18 +729,20 @@ class CROTranslator:
                 if self.global_mode in ["CLI", "DESKTOP"]:
                     path = params.get("PATH")
                     content = params.get("CONTENT")
-                    overwrite = params.get("OVERWRITE", False)
+                    # Esta línea sigue siendo necesaria si la IA interna (Gemini)
+                    # escapa los """ internos a la cadena de texto con \"\"\"
+                    content = content.replace('\\"\\"\\"', '"""') # Corregido para reemplazar \"\"\" por el literal """
+                    overwrite = params.get("OVERWRITE", False) # Defaults to False if not present
                     
                     if path and content is not None:
                         quoted_path = shlex.quote(path)
-                        # Para escribir contenido multilínea o con caracteres especiales de forma segura
-                        # en Bash, lo mejor es usar un "heredoc" con `cat`.
-                        heredoc_delimiter = "EOF_OSIRIS_CONTENT"
-                        # Si `overwrite` es True, usa `>` (sobrescribe), si no, `>>` (añade).
+                        heredoc_delimiter = "EOF_OSIRIS_CONTENT" # Delimitador para el heredoc de Bash
                         redirect_operator = ">" if overwrite else ">>"
                         
-                        # Genera el comando completo con heredoc
-                        command_string = f"cat {redirect_operator} {quoted_path} <<{heredoc_delimiter}\n{content}\n{heredoc_delimiter}"
+                        # Genera el comando completo con heredoc de Bash
+                        # Se usan comillas simples alrededor del delimitador de Bash (ej. <<'DELIMITADOR')
+                        # para evitar la expansión de variables dentro del contenido del heredoc por el shell.
+                        command_string = f"cat {redirect_operator} {quoted_path} <<'{heredoc_delimiter}'\n{content}\n{heredoc_delimiter}"
                         
                         translated_output["executable_command"] = command_string
                         translated_output["needs_confirmation"] = self.require_confirmation
@@ -658,28 +775,24 @@ class CROTranslator:
         return self.translation_errors
 
 
-
-# --- NUEVA FUNCIÓN MAIN ---
+# --- FUNCIÓN MAIN MODIFICADA PARA EJECUCIÓN SUPERVISADA ---
 def main(ai_response_text: str, global_mode: str = "CLI"):
     """
     Función principal para procesar respuestas de la IA que contienen bloques CRO.
-    Eleva el parser a una versión pre-funcional:
-    - Lee CRO.
-    - Detecta válidos e inválidos y los notifica.
-    - Procesa válidos y muestra su traducción a la acción real.
+    Implementa la ejecución supervisada para comandos de sistema dinámicos y otras acciones
+    que requieren confirmación.
 
     :param ai_response_text: La cadena de texto completa de la respuesta de la IA.
     :param global_mode: El modo de operación actual del sistema (CLI, WEB, DESKTOP).
                         Usado por el traductor para determinar el tipo de comando.
     """
-    print(f"\n--- Iniciando Proceso CRO para el modo: {global_mode.upper()} ---")
-    # Mostrar una pequeña parte del contenido recibido para referencia
-    print(f"Contenido recibido (inicio):\n'{ai_response_text[:200]}{'...' if len(ai_response_text) > 200 else ''}'\n")
+#    print(f"\n--- Iniciando Proceso CRO para el modo: {global_mode.upper()} ---")
+#    print(f"Contenido recibido (inicio):\n'{ai_response_text[:200]}{'...' if len(ai_response_text) > 200 else ''}'\n")
 
     parser = CROParser(osiris_definitions)
     parsed_actions = parser.parse(ai_response_text)
 
-    print("\n--- Resultados del Parseo CRO ---")
+#    print("\n--- Resultados del Parseo CRO ---")
     if parser.errors:
         print("❌ ERRORES DE PARSEO DETECTADOS:")
         for err in parser.errors:
@@ -691,15 +804,15 @@ def main(ai_response_text: str, global_mode: str = "CLI"):
     
     if not parsed_actions:
         print("➡️ No se encontraron acciones CRO válidas para procesar.")
-        return "No CRO actions processed."
+        return {}  #Devuelve un diccionario vacío
 
-    print("\n--- Acciones CRO Válidas Encontradas ---")
-    # Opcional: print(json.dumps(parsed_actions, indent=4)) # Para depuración detallada del parseo
+#    print("\n--- Acciones CRO Válidas Encontradas ---")
+    # print(json.dumps(parsed_actions, indent=4)) # Para depuración detallada del parseo
 
     translator = CROTranslator(global_mode=global_mode)
     translated_actions = translator.translate_all_actions(parsed_actions)
 
-    print("\n--- Traducción de Acciones CRO a Comandos Ejecutables ---")
+#    print("\n--- Traducción de Acciones CRO a Comandos Ejecutables ---")
     if translator.get_errors():
         print("❌ ERRORES DE TRADUCCIÓN DETECTADOS:")
         for err in translator.get_errors():
@@ -709,8 +822,10 @@ def main(ai_response_text: str, global_mode: str = "CLI"):
     if not translated_actions and not translator.get_errors():
         print("➡️ Ninguna acción CRO pudo ser traducida (posiblemente debido a errores de parseo previos o incompatibilidad de modo).")
     
+    system_execution_context = {} 
+
     for i, action in enumerate(translated_actions):
-        print(f"\n--- Acción CRO Traducida #{i+1} ---")
+        print(f"\n--- Procesando Acción Traducida #{i+1} ---")
         print(f"  Grupo: {action['group']}")
         print(f"  Miembro: {action['member']}")
         print(f"  Tipo de Acción: {action['action_type']}")
@@ -723,31 +838,119 @@ def main(ai_response_text: str, global_mode: str = "CLI"):
 
         print(f"  Mensaje para el Usuario: {action['message']}")
         
-        if action['needs_confirmation']:
-            print("  ⚠️ ¡Esta acción requiere confirmación del usuario antes de ejecutarse!")
+        command_to_execute = action['executable_command']
         
-        # Mostrar el comando ejecutable o la directriz interna
-        print(f"  Comando/Directriz a Ejecutar:")
-        if isinstance(action['executable_command'], dict):
-            # Para acciones internas que se representan como diccionarios
-            print(f"    {json.dumps(action['executable_command'], indent=2)}")
-        else:
-            # Para comandos de shell o JS que son cadenas de texto
-            print(f"    `{action['executable_command']}`")
-        
-        if action['post_processing_hint']:
-            print(f"  Pista Post-Procesamiento: {action['post_processing_hint']}")
-        
-        final_output_messages.append(f"✔️ Acción '{action['group']}->{action['member']}' traducida exitosamente.")
+        if action['needs_confirmation'] and isinstance(command_to_execute, str):
+            print(f"\n💬 Comando propuesto para ejecución:")
+            print(f"   >>> {command_to_execute}")
+            
+            user_confirm = input("¿Deseas ejecutar este comando? (si/no): ").lower().strip()
+            if user_confirm == "si":
+                print("✅ Confirmación recibida. Ejecutando comando...")
+                try:
+                    result = subprocess.run(
+                        command_to_execute, 
+                        shell=True, 
+                        capture_output=True, 
+                        text=True, 
+                        check=False 
+                    )
+                    
+                    command_output = result.stdout.strip()
+                    command_error = result.stderr.strip()
 
-    print("\n--- Resumen del Proceso CRO ---")
+                    if result.returncode == 0:
+                        print(f"👍 Comando ejecutado exitosamente.")
+                        if command_output:
+                            print("\n--- Salida del comando ---")
+                            print(command_output)
+                            print("""
+
+_______________________________________________
+
+                                """)
+                            add_context_confirm = input("¿Deseas añadir la salida al contexto? (si/no): ").lower().strip()
+                            if add_context_confirm == "si":
+                                system_execution_context[f"output_{action['group']}_{action['member']}_{int(time.time())}"] = command_output
+                                print("\n(Salida añadida al contexto de Osiris para futuras referencias.)")
+                            else:
+                                print("\n(La salida no se añadió al contexto.)")
+                    else:
+                        print(f"👎 El comando falló con código de salida {result.returncode}.")
+                        if command_output:
+                            print("\n--- Salida del comando (stdout) ---")
+                            print(command_output)
+                        if command_error:
+                            print("\n--- Salida de error del comando (stderr) ---")
+                            print(command_error)
+                        system_execution_context[f"error_output_{action['group']}_{action['member']}_{int(time.time())}"] = {"stdout": command_output, "stderr": command_error, "returncode": result.returncode}
+                        print("\n(Salida/Error añadidos al contexto de Osiris.)")
+
+                except FileNotFoundError:
+                    print(f"❌ Error: El interprete de shell (ej. bash) no se encontró. Asegúrate de que Bash esté disponible en tu PATH.")
+                    final_output_messages.append(f"ERROR de ejecución: Intérprete de shell no encontrado para {action['group']}->{action['member']}.")
+                except Exception as exec_e:
+                    print(f"❌ Error inesperado al ejecutar el comando: {exec_e}")
+                    final_output_messages.append(f"ERROR de ejecución: {exec_e} para {action['group']}->{action['member']}.")
+            else:
+                print("🚫 Ejecución cancelada por el usuario.")
+                final_output_messages.append(f"Acción '{action['group']}->{action['member']}' cancelada por el usuario.")
+        else:
+            print(f"  Comando/Directriz a Ejecutar:")
+            if isinstance(command_to_execute, dict):
+                print(f"    {json.dumps(command_to_execute, indent=2)}")
+            else:
+                print(f"    `{command_to_execute}`")
+            
+            if action['action_type'] == "URL_SEARCH":
+                print(f"  (Simulando apertura de URL en el navegador o curl silencioso...)")
+            elif action['action_type'] == "DB_SEARCH":
+                print(f"  (Simulando búsqueda en la base de datos interna...)")
+            elif action['action_type'] == "SYSTEM_LOG":
+                print(f"  (Registrando mensaje en los logs de Osiris...)")
+            elif action['action_type'] == "CONTEXT_SET":
+                print(f"  (Actualizando el contexto interno de Osiris...)")
+                system_execution_context[action['executable_command']['var_name']] = action['executable_command']['value']
+            elif action['action_type'] == "JAVASCRIPT_EXECUTION" and self.global_mode == "WEB":
+                 print(f"  (Simulando ejecución de JavaScript en el navegador...)")
+            elif action['action_type'] == "FILE_SYSTEM_READ":
+                 print(f"  (Simulando lectura de archivo/directorio...)")
+                 if isinstance(command_to_execute, str):
+                     try:
+                        result = subprocess.run(
+                            command_to_execute, 
+                            shell=True, 
+                            capture_output=True, 
+                            text=True, 
+                            check=False
+                        )
+                        if result.returncode == 0:
+                            print("\n--- Salida de lectura ---")
+                            print(result.stdout.strip())
+                            system_execution_context[f"fs_read_output_{action['member']}_{int(time.time())}"] = result.stdout.strip()
+                            print("\n(Salida añadida al contexto de Osiris.)")
+                        else:
+                            print(f"👎 La lectura falló con código de salida {result.returncode}.")
+                            print(f"Stderr: {result.stderr.strip()}")
+                            system_execution_context[f"fs_read_error_{action['member']}_{int(time.time())}"] = {"stdout": result.stdout.strip(), "stderr": result.stderr.strip(), "returncode": result.returncode}
+                     except Exception as e:
+                         print(f"❌ Error en lectura de archivo/directorio: {e}")
+                 else:
+                     print(" (No se pudo ejecutar la lectura: comando no es string.)")
+
+            if action['post_processing_hint']:
+                print(f"  Pista Post-Procesamiento: {action['post_processing_hint']}")
+            
+            final_output_messages.append(f"✔️ Acción '{action['group']}->{action['member']}' procesada (simulada/directa) exitosamente.")
+
+#    print("\n--- Resumen del Proceso CRO ---")
     if final_output_messages:
         for msg in final_output_messages:
             print(msg)
     else:
         print("No se generaron mensajes de resumen.")
     
+#    print("\n--- Contenido de Contexto Acumulado (simulado) ---")
+    #print(json.dumps(system_execution_context, indent=2))
     print("\n--- Proceso CRO Finalizado ---")
-    # En un entorno real, esta función retornaría las acciones traducidas
-    # o un estado de éxito/fracaso para el sistema principal de Osiris.
-    # Para esta versión pre-funcional, los 'prints' son la salida esperada.
+    return system_execution_context
