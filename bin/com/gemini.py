@@ -1366,7 +1366,7 @@ def log_interaction(user_input, response_text):
     try:
         with open(log_file, 'a', encoding='utf-8') as log:
             log.write(f"{datetime.now()} - User: {user_input}\nAI: {response_text}\n\n")
-        print("Interacción registrada en el log.")
+#        print("Interacción registrada en el log.")
     except Exception as e:
         messagebox.showerror("Error", f"Error guardando el log de la conversación: {e}")
 
