@@ -180,7 +180,13 @@ osiris_definitions = {
                 "DESCRIPTION": "Lista el contenido de un directorio especificado.",
                 "ACTION_TYPE": "FILE_SYSTEM_READ",
                 "PARAMETERS": {
-                    "PATH": { "TYPE": "string", "REQUIRED": True, "DYNAMIC": True }
+                    "PATH": { "TYPE": "string", "REQUIRED": True, "DYNAMIC": True },
+                    "DETAIL": { 
+                        "TYPE": "boolean",
+                        "DEFAULT": False,
+                        "REQUIRED": False,
+                        "DESCRIPTION": "Si es True, retorna información detallada (incluyendo permisos)."
+                    }     
                 }
             },
             "READ_FILE": {

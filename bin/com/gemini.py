@@ -1158,7 +1158,9 @@ def video_translate(video_file_name="",prompt="",args=None):
 
 
     else:
-        print("No se generó el archivo de subtitulos correctamente")
+        print("No se generó el archivo de subtitulos")
+        print("Se añade respuesta si la hay al contexto")
+        conversation_context += response.text
         return
 
 
@@ -1424,8 +1426,26 @@ def main(args):
                 print("NOT CRO RESULTS")
             else:
                 response = "True CRO"
-                conversation_context += str(CROreturn)
-                response = generate_response("CRO añadido al contexto resume los resultados")
+                CROreturn_text = "Resultados parseado CRO"
+                for key, value in CROreturn.items():
+                    if key.startswith("output_"): # Si es una salida exitosa
+                        print(f"\n--- Salida del Sistema ({key.split('_')[1]} {key.split('_')[2]}) ---")
+                        print(value) # 'value' ya es la cadena limpia (si el subprocess.run la capturó como texto=True)
+                        CROreturn_text += f"\n--- Salida del Sistema ({key.split('_')[1]} {key.split('_')[2]}) ---"
+                        CROreturn_text += value # 'value' ya es la cadena limpia (si el subprocess.run la capturó como texto=True)
+                    elif key.startswith("error_output_"): # Si es una salida de error
+                        print(f"\n--- Error del Sistema ({key.split('_')[1]} {key.split('_')[2]}) ---")
+                        print(f"Stdout: {value['stdout']}")
+                        print(f"Stderr: {value['stderr']}")
+                        print(f"Return Code: {value['returncode']}")
+                        CROreturn_text += f"\n--- Error del Sistema ({key.split('_')[1]} {key.split('_')[2]}) ---"
+                        CROreturn_text += f"Stdout: {value['stdout']}"
+                        CROreturn_text += f"Stderr: {value['stderr']}"
+                        CROreturn_text += f"Return Code: {value['returncode']}"
+# Y luego, si necesitas loggear el diccionario completo:
+# log_interaction(user_input, json.dumps(response_text, indent=2))
+                conversation_context += str(CROreturn_text)
+                response = generate_response("Resultados añadido al contexto. Analiza.")
                 print(response)
         arw()
         log_interaction(user_input, response_text)  # Nuevo: Registrar interacción
