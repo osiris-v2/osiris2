@@ -1,0 +1,33 @@
+dynamic.context.hlp - Documentacion de Uso para 'update_structured_context'
+
+Funcion: update_structured_context
+
+Descripcion:
+Esta funcion Python es parte del modulo lib/gemini/dyncontext.py y esta disenada
+para gestionar y actualizar el contexto de conversacion de la IA de Osiris de una
+manera estructurada y modular. Permite anadir nuevos fragmentos de informacion al
+contexto, enriqueciendolos con metadatos como el tipo de fuente, ideas clave,
+banderas de relevancia y una puntuacion de relevancia. Esto es crucial para
+optimizar el uso de tokens en los modelos de lenguaje y mejorar la precision y
+relevancia de las respuestas de la IA.
+
+Uso Principal:
+Se espera que gemini.py (o modulos de gestion de contexto similares) invoque esta
+funcion para mantener el 'conversation_context' de Osiris como una lista de
+objetos JSON.
+
+Parametros:
+
+    context_data (lista, obligatorio):
+        Tipo: list
+        Descripcion: La lista actual de fragmentos de contexto de la conversacion.
+        Esta lista sera modificada por la funcion.
+
+    source_type (cadena, obligatorio):
+        Tipo: str
+        Descripcion: Categoria de la informacion que se anade. Ejemplos: "user_turn",
+        "ai_response", "system_output", "system_error", "essential_doc", "summary".
+
+    content_text (cadena, obligatorio):
+        Tipo: str
+        Descripcion: El contenido textual principal del fragmento de contexto a anadir.
