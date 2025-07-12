@@ -23,7 +23,6 @@ class CROParser:
     def _log_error(self, message):
         self.errors.append(f"ERROR: {message}")
         print(f"ERROR: {message}") # Para depuración
-        
     def _log_warning(self, message):
         self.warnings.append(f"WARNING: {message}")
         print(f"WARNING: {message}") # Para depuración
@@ -34,9 +33,7 @@ class CROParser:
         Puede generar múltiples acciones si un parámetro es ALLOW_MULTIPLE y ACTION_PER_VALUE.
         """
         actions = []
-        
-        if group_name not in self.osiris_definitions["PROTO_DEFINITIONS"] or \\
-           target_member not in self.osiris_definitions["PROTO_DEFINITIONS"][group_name]:
+        if group_name not in self.osiris_definitions["PROTO_DEFINITIONS"] or target_member not in self.osiris_definitions["PROTO_DEFINITIONS"][group_name]:
             self._log_error(f"Definición de protocolo no encontrada para {group_name} -> {target_member}")
             return []
 
@@ -255,17 +252,16 @@ class CROParser:
                             valid_members.append(member)
                         else:
                             self._log_warning(f"Invalid member '{member}' for group '{group_name}' in line: '{stripped_line}'")
-                
                     if not valid_members:
                         self._log_warning(f"No valid members found for group '{group_name}' in line: '{stripped_line}'. Skipping initiator.")
                         continue
-                    
+
                     current_group_name = group_name
                     current_targets = valid_members
                     current_params = {}
                     current_raw_cro_lines.append(clean_line)
 
-                elif (triple_quote_start_match := re.match(r"^([A-Z_]+)="""(.*)$", stripped_line)):
+                elif (triple_quote_start_match := re.match(r"^([A-Z_]+)=\"\"\"(.*)$", stripped_line)):
                     if not current_group_name or not current_targets:
                         self._log_error(f"Triple-quoted parameter line '{stripped_line}' found without a preceding initiator line (command). Ignoring.")
                         continue
