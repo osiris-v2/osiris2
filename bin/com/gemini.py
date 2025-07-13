@@ -40,9 +40,17 @@ except Exception as E :
     print("ERDyM:",E)
 
 
+def_audio_flag = "com/datas/readmp3.flag"
+
 
 def apf():  #alib
-    audioparser.flags(["com/datas/readmp3.flag"])
+    global def_audio_flag
+    audioparser.flags([def_audio_flag])
+
+def apr():  #alib
+    global def_audio_flag
+    audioparser.flags_r([def_audio_flag])
+
 
 def pt_audio(text): #alib
     ntext = text.replace("*"," ")
@@ -1524,7 +1532,7 @@ def main(args):
         
         
         if command == "--apr" or command == "--audio-parser-repeat":        
-            apf() 
+            apr() 
             return
         if command == "--ap" or command == "--audio-parser":
             xLR = pt_audio(last_response)
