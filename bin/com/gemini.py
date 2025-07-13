@@ -34,8 +34,28 @@ try: #importaciones dinámicas
     win = core.win
     core.dynmodule("lib.gemini.cro_parser","CROPARSER")
     croparser = core.CROPARSER
+    core.dynmodule("lib.gemini.audio_parser","AP")
+    audioparser = core.AP
 except Exception as E :
     print("ERDyM:",E)
+
+
+
+def apf():  #alib
+    audioparser.flags(["com/datas/readmp3.flag"])
+
+def pt_audio(text): #alib
+    ntext = text.replace("*"," ")
+    ntext0 = ntext.replace("`","'")
+    return ntext0
+
+
+
+
+apf()
+audioparser.text_to_speech("hola has entrado en osiris","es","com/tmp/last_request.mp3")
+apf()
+
 
 
 print(" -> -> ->  ",croparser.INFO)
@@ -227,6 +247,7 @@ load = ""
 last_response = ""
 topic = ""  # Tema de conversación
 autosave_enabled = True  # Estado del autosave
+auto_ap = False
 
 def_image_editor = "mtpaint"
 
@@ -1403,11 +1424,21 @@ def arw():
         print()  #modo normal
 
 
+def aap():
+    global auto_ap, conversation_context
+    TF = auto_ap
+    if TF == True:
+        main(["--ap"])
+    else:
+        print()  #modo normal
+
+
+
 # Función para manejar los argumentos
 def main(args):
     """Función principal que maneja los argumentos de entrada para generar respuestas del modelo."""
     global ruta_archivo_key, gemini_model, model, conversation_context, load, last_response, topic, API_KEY
-    global auto_cromode, auto_response_window
+    global auto_cromode, auto_response_window, auto_ap
 
 
     # Si no se envían comandos, se asume que se envía una pregunta de texto.
@@ -1415,10 +1446,8 @@ def main(args):
         user_input = " ".join(args)
         response_text = generate_response(user_input)
         if auto_cromode == False:
-            conversation_context += "[INTERNAL MSG: AUTOCROMODE FUE PUESTO A OFF]"
             print(" \n→", response_text)
         elif auto_cromode == True:
-            conversation_context += "[INTERNAL MSG: AUTOCROMODE FUE PUESTO A ON]"
 #            print("----------")
             CROreturn = croparser.main(response_text)
             print("CRO:auto")
@@ -1447,6 +1476,7 @@ def main(args):
                 conversation_context += str(CROreturn_text)
                 response = generate_response("Resultados añadido al contexto. Analiza.")
                 print(response)
+        aap()
         arw()
         log_interaction(user_input, response_text)  # Nuevo: Registrar interacción
         return
@@ -1486,8 +1516,22 @@ def main(args):
             "--selectgenailmodel":"--sgm" # Seleccionar un Modelo Genai
         }
 
+        
+
+
         # Verificar el primer argumento
         command = args[0]
+        
+        
+        if command == "--apr" or command == "--audio-parser-repeat":        
+            apf() 
+            return
+        if command == "--ap" or command == "--audio-parser":
+            xLR = pt_audio(last_response)
+            audioparser.text_to_speech(xLR,"es","com/tmp/last_request.mp3")
+            apf()
+            print("End Audio Parser")
+            return
         if command == "--resetkey":
             print("keycom")
             API_KEY = obtener_key_gemini('resetkey')
@@ -1498,6 +1542,7 @@ def main(args):
             if auto_cromode == False:
                 auto_cromode = True
                 main(["--l","develop.info"])
+                conversation_context += "[INTERNAL MSG: AUTOCROMODE FUE PUESTO A ON]"
                 main(["--al","""Se Acaba de cargar y activar --cromode , directrices desde bin/develop.info
                     (RECORDATORIO REFRESCO ACTUALIZACION DE) 
                     COMENZAMOS NUEVA CONVERSACIÓN DENTRO DEL CONTEXTO CRO.
@@ -1507,8 +1552,26 @@ def main(args):
                 return
             else:
                 auto_cromode = False
+                conversation_context += "[INTERNAL MSG: AUTOCROMODE FUE PUESTO A OFF]"
             print("AUTO_cromode:",auto_cromode)
             return
+        if command == "--aap" or  command == "--auto-audio-parser":
+            if auto_ap == False:
+                auto_ap = True
+                conversation_context += """
+                AUTO_AUDIO_PARSER --aap FUE PUESTO A ON A partir de ahora SIEMPRE hasta que se desactive:
+                A partir de ahora usa texto plano 100%. No uses asteriscos ni caracteres no alfabeticos o numericos si no son imprescindibles para mejor audición.
+                Si CroMode está activado puedes crear estructuras CRO si se requiere.
+                Puedes y debes usar tildes, diériris, eñes, etc.. del idioma usado usando ortografía correcta.
+                """
+            else:
+                auto_ap = False
+                conversation_context += """
+                INTERNAL MSG: AUTO_AUDIO_PARSER --aap FUE PUESTO A OFF
+                Usa salida standard
+                """
+            print("AUTO_AUDIO:",auto_ap)
+            return            
         if command == "--arw" or  command == "--auto_response_window":
             if auto_response_window == False:
                 auto_response_window = True
@@ -1886,6 +1949,7 @@ fecha_hora = fecha_hora_g()
 
 init = 0
 HELO = "HELO START - Se Ha inciado el SISTEMA OSIRIS a las: " + fecha_hora
+main(["--aap"])
 main(HELO)
 conversation_context += HELO+"\n"
 if __name__ == "__main__":
