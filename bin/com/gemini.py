@@ -54,8 +54,9 @@ def apr():  #alib
 
 def pt_audio(text): #alib
     ntext = text.replace("*"," ")
-    ntext0 = ntext.replace("`","'")
-    return ntext0
+    ntext0 = ntext.replace("`"," ")
+    ntext1 = ntext0.replace("`"," ")
+    return ntext1
 
 
 
@@ -1536,6 +1537,7 @@ def main(args):
             return
         if command == "--ap" or command == "--audio-parser":
             xLR = pt_audio(last_response)
+            print(xLR)
             audioparser.text_to_speech(xLR,"es","com/tmp/last_request.mp3")
             apf()
             print("End Audio Parser")
@@ -1958,6 +1960,9 @@ fecha_hora = fecha_hora_g()
 init = 0
 HELO = "HELO START - Se Ha inciado el SISTEMA OSIRIS a las: " + fecha_hora
 main(["--aap"])
+main(["--cm"])
+main(["--sgm"])
+main(["--arw"])
 main(HELO)
 conversation_context += HELO+"\n"
 if __name__ == "__main__":

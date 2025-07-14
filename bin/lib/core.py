@@ -2,6 +2,7 @@ import sys
 import importlib
 import datetime
 import signal
+INFO="CORE PY LIB under Osiris Bin Release"
 
 def dynmodule(nombre_modulo, as_=""):
     #print("Core MSG:")

@@ -11,6 +11,92 @@ Module Cro Parser Info
 Osiris internal python library
 """
 
+import urllib.parse
+# Asumiendo que 'requests' y un módulo de base de datos interna de Osiris están disponibles
+# import requests
+# import osiris_internal_db
+
+def execute_search_action(payload):
+    print("-----------=========?¿")
+    print(str(payload))
+    mode = payload.get("mode")
+    command_type = payload.get("command_type")
+    action_details = payload.get("action_details", {}) # Diccionario con los detalles específicos de la acción
+
+    print(f"DEBUG: Ejecutando acción de búsqueda para el modo: {mode}, tipo: {command_type}")
+
+    if command_type == "URL_SEARCH":
+        # Manejo de búsquedas en Google o Bing
+        url_template = action_details.get("URL_TEMPLATE")
+        query = action_details.get("QUERY")
+        search_type = action_details.get("TYPE") # Puede ser una lista si ALLOW_MULTIPLE es True
+
+        if not url_template or not query:
+            print("ERROR: Parámetros URL_TEMPLATE o QUERY faltantes para URL_SEARCH.")
+            return "Error en la ejecución de búsqueda URL."
+
+        # Asegurarse de que search_type sea una lista para iterar
+        if isinstance(search_type, str):
+            search_type = [search_type]
+
+        results = []
+        for s_type in search_type:
+            # Codificar la consulta para URL
+            encoded_query = urllib.parse.quote_plus(query)
+            # Reemplazar marcadores de posición en la plantilla URL
+            final_url = url_template.replace("{QUERY}", encoded_query).replace("{TYPE}", s_type)
+
+            print(f"Simulando búsqueda en URL: {final_url}")
+
+            # Aquí iría el código real para hacer la petición HTTP
+            # try:
+            #     response = requests.get(final_url)
+            #     response.raise_for_status() # Lanza un error para códigos de estado HTTP erróneos
+            #     results.append(f"Resultado de {s_type} de {final_url}: (contenido simulado o resumido)")
+            #     # Procesar el contenido de la respuesta aquí
+            # except requests.exceptions.RequestException as e:
+            #     results.append(f"Error al conectar con {final_url}: {e}")
+            results.append(f"Simulación exitosa para tipo '{s_type}' en {final_url}. Se procesaría la respuesta web.")
+
+        return "\n".join(results)
+
+    elif command_type == "DB_SEARCH":
+        # Manejo de búsquedas en la base de conocimiento interna de Osiris
+        db_query_template = action_details.get("DB_QUERY_TEMPLATE")
+        query = action_details.get("QUERY")
+        tags = action_details.get("TAGS", "")
+
+        if not db_query_template or not query:
+            print("ERROR: Parámetros DB_QUERY_TEMPLATE o QUERY faltantes para DB_SEARCH.")
+            return "Error en la ejecución de búsqueda DB interna."
+
+        # Construir la consulta SQL
+        final_db_query = db_query_template.replace("{QUERY}", query).replace("{TAGS}", tags)
+
+        print(f"Simulando búsqueda en base de datos interna con consulta: '{final_db_query}'")
+        # Aquí iría el código real para interactuar con la base de datos interna de Osiris
+        # try:
+        #     db_connection = osiris_internal_db.connect()
+        #     cursor = db_connection.cursor()
+        #     cursor.execute(final_db_query)
+        #     db_results = cursor.fetchall()
+        #     db_connection.close()
+        #     if db_results:
+        #         return f"Resultados de la base de datos interna: {db_results}"
+        #     else:
+        #         return "No se encontraron resultados en la base de datos interna."
+        # except Exception as e:
+        #     return f"Error al consultar la base de datos interna: {e}"
+        return f"Simulación exitosa para búsqueda en base de datos interna. Se ejecutaría: '{final_db_query}' y se devolverían los resultados."
+
+    else:
+        return f"Tipo de comando de búsqueda desconocido: {command_type}"
+
+
+
+
+
+
 class CROParser:
     # Constructor modificado: ya no necesita recibir osiris_definitions como argumento
     def __init__(self):
@@ -381,7 +467,6 @@ class CROTranslator:
                     translated_output["post_processing_hint"] = "El motor web procesará la respuesta obtenida."
                 else:
                     translated_output["error"] = f"Acción '{action_type}' no soportada en modo '{self.global_mode}'."
-
             elif action_type == "DB_SEARCH":
                 translated_output["executable_command"] = {
                     "type": "CALL_INTERNAL_DB_FUNCTION",
@@ -613,11 +698,7 @@ def main(ai_response_text: str, global_mode: str = "CLI"):
                         if command_output:
                             print("\\n--- Salida del comando ---")
                             print(command_output)
-                            print("""
-
-_______________________________________________
-
-                                """)
+                            print("""              """)
                             add_context_confirm = input("¿Deseas añadir la salida al contexto? (si/no): ").lower().strip()
                             if add_context_confirm == "si":
                                 system_execution_context[f"output_{action['group']}_{action['member']}_{int(time.time())}"] = command_output

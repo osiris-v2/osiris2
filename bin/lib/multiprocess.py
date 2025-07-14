@@ -13,6 +13,7 @@ Módulo Osiris osiris2 - rst-
 Multiprocess
 Este módulo permite la ejecución de procesos en segundo plano y en bucle.
 """
+INFO = info
 
 # Documentación del uso
 man = """
