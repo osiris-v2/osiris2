@@ -1961,7 +1961,7 @@ init = 0
 HELO = "HELO START - Se Ha inciado el SISTEMA OSIRIS a las: " + fecha_hora
 main(["--aap"])
 main(["--cm"])
-main(["--sgm"])
+#main(["--sgm"])
 main(["--arw"])
 main(HELO)
 conversation_context += HELO+"\n"
