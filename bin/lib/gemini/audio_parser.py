@@ -140,6 +140,6 @@ def text_to_speech(text: str, lang: str = 'es', save_path: str = None) -> str | 
     finally:
         if not save_path and os.path.exists(audio_path):
             print(f"Osiris-TTS: Eliminando archivo temporal: {audio_path}")
-            os.remove(audio_path)
+#            os.remove(audio_path)
     print("Osiris-TTS: Proceso finalizado *correctamente.")
     return audio_path
