@@ -120,5 +120,13 @@
         "path": "/o2iris",
         "icon": "",
         "enabled": true
+    },
+    {
+        "id": 17,
+        "name": "Nueva App 17",
+        "alias": "",
+        "path": "",
+        "icon": "",
+        "enabled": true
     }
 ]
