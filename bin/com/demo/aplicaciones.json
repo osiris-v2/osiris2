@@ -2,15 +2,15 @@
     {
         "id": 5,
         "name": "Lanzador de Aplicaciones",
-        "alias": "o3launcher",
+        "alias": "o3launcher &",
         "path": "/o2iris",
-        "icon":"/o2iris/img/icon/launcher.ico",
+        "icon": "/o2iris/img/icon/launcher.ico",
         "enabled": true
     },
     {
         "id": 2,
         "name": "Editor de configuraciones",
-        "alias": "o3config",
+        "alias": "o3config &",
         "path": "/o2iris",
         "icon": "/o2iris/img/icon/configurador.ico",
         "enabled": true
@@ -18,22 +18,22 @@
     {
         "id": 6,
         "name": "BIO win Manager",
-        "alias": "o3window",
+        "alias": "o3window &",
         "path": "/o2iris",
         "enabled": true
     },
     {
         "id": 1,
         "name": "V\u00eddeo Player",
-        "alias": "dskv",
-        "path":"/o2iris",
+        "alias": "dskv &",
+        "path": "/o2iris",
         "icon": "/o2iris/img/icon/videoplayer.ico",
         "enabled": true
     },
     {
         "id": 8,
         "name": "V\u00eddeo Uni\u00f3n",
-        "alias": "dskvu",
+        "alias": "dskvu &",
         "path": "/o2iris",
         "icon": "/o2iris/img/icon/videounion.ico",
         "enabled": true
@@ -41,59 +41,59 @@
     {
         "id": 9,
         "name": "V\u00eddeo Conversor",
-        "alias": "o3transcoder",
+        "alias": "o3transcoder &",
         "path": "/o2iris",
-	    "icon": "/o2iris/img/icon/videoconvert.ico",
+        "icon": "/o2iris/img/icon/videoconvert.ico",
         "enabled": true
     },
     {
         "id": 10,
         "name": "V\u00eddeo Downloader",
-        "alias": "o3downloader",
+        "alias": "o3downloader &",
         "path": "/o2iris",
         "enabled": true
     },
     {
         "id": 11,
         "name": "Audio Speech",
-        "alias": "o3audio",
+        "alias": "o3audio &",
         "path": "/o2iris",
         "enabled": true
     },
     {
         "id": 3,
         "name": "Demo Cripto-Wallet",
-        "alias": "o3wallet",
+        "alias": "o3wallet &",
         "path": "/o2iris",
         "enabled": true
     },
     {
         "id": 4,
         "name": "Editor Sublime Text",
-        "alias": "subl",
+        "alias": "subl &",
         "path": "/usr/bin",
         "enabled": true
     },
     {
         "id": 7,
-        "name": "Documentación",
-        "alias": "o3documentation",
+        "name": "Documentaci\u00f3n",
+        "alias": "o3documentation &",
         "path": "/o2iris",
-	"icon":"/o2iris/img/icon/documentador.ico",
+        "icon": "/o2iris/img/icon/documentador.ico",
         "enabled": true
     },
     {
         "id": 12,
         "name": "BlockChain Manager",
-        "alias": "o3blockchain",
+        "alias": "o3blockchain &",
         "path": "/o2iris",
-	    "icon":"/o2iris/img/icon/blockchainmanager.ico",
+        "icon": "/o2iris/img/icon/blockchainmanager.ico",
         "enabled": true
     },
     {
         "id": 13,
         "name": "Seeker Servers",
-        "alias": "o3servers",
+        "alias": "o3servers &",
         "path": "/o2iris",
         "enabled": true
     },
@@ -109,6 +109,14 @@
         "id": 15,
         "name": "Bio-install data",
         "alias": "gnome-terminal --title='BIO INSTALL DATA' -- /bin/bash -c ' ; exec bash' &",
+        "path": "/o2iris",
+        "icon": "",
+        "enabled": true
+    },
+    {
+        "id": 16,
+        "name": "Admin Keys - VerifiedBIO3",
+        "alias": "adminkeys &",
         "path": "/o2iris",
         "icon": "",
         "enabled": true
