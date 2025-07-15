@@ -123,8 +123,8 @@
     },
     {
         "id": 17,
-        "name": "Nueva App 17",
-        "alias": "gnome-control-center sound",
+        "name": "GNOME-LNK-DSK",
+        "alias": "gnome-control-center",
         "path": "/usr/bin",
         "icon": "",
         "enabled": true
@@ -135,6 +135,14 @@
         "alias": "",
         "path": "",
         "icon": "",
-        "enabled": true
+        "enabled": false
+    },
+    {
+        "id": 19,
+        "name": "Nueva App 19",
+        "alias": "",
+        "path": "",
+        "icon": "",
+        "enabled": false
     }
 ]
