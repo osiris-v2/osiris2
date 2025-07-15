@@ -39,6 +39,8 @@ xcblib    			apt install libxcb-xinerama0 libxcb1 libx11-xcb1 libxcb-glx0 libxcb
 cdevlibs 			apt install libreadline-dev  libncurses-dev libxcb-cursor0
 
 
+ExtApp     			apt install nemo
+
 apache2.enmod 			a2enmod ssl rewrite
 
 pip.requeriments.install 	. bin/install/installpip.sh 

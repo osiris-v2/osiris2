@@ -1315,7 +1315,7 @@ def generate_response(user_input):
     try:
         response = model.generate_content(conversation_context)
         response_text = response.text
-        conversation_context += "AI: "+ response_text+"\n"
+        conversation_context += ""+ response_text+"\n"
         last_response = response_text  # Guarda la última respuesta
         return response_text
     except Exception as e:
@@ -1397,7 +1397,7 @@ def log_interaction(user_input, response_text):
     log_file = "com/datas/conversation_log.txt"
     try:
         with open(log_file, 'a', encoding='utf-8') as log:
-            log.write(f"{datetime.now()} - User: {user_input}\nAI: {response_text}\n\n")
+            log.write(f"{datetime.now()} - User: {user_input}\n {response_text}\n\n")
 #        print("Interacción registrada en el log.")
     except Exception as e:
         messagebox.showerror("Error", f"Error guardando el log de la conversación: {e}")

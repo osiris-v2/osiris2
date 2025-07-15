@@ -14,7 +14,7 @@ INTERVALO_SEGUNDOS=300          # Intervalo de tiempo entre cada ejecución (en 
 PORCENTAJE_MEMORIA_UMBRAL=5    # Porcentaje de memoria libre mínima requerida
 MEMORIA_MINIMA_FIJA_MB=256    # Memoria libre mínima fija (en MB)
 CPU_UMBRAL_PORCENTAJE=80       # Umbral de uso de CPU (%) para alertas
-MAX_TAMANO_LOG_BYTES=$((1024 * 8))    # Tamaño máximo del archivo de log (5 MB)
+MAX_TAMANO_LOG_BYTES=$((1024 * 30))    # Tamaño máximo del archivo de log (5 MB)
 LOGFILE="${OSIRIS000_BIN}/com/datas/freemem.log" # Ubicación del archivo de log
 SWAPFILE="/swapfile"          # Ubicación del archivo de intercambio
 
