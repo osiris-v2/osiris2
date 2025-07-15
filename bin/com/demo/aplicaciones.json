@@ -124,6 +124,14 @@
     {
         "id": 17,
         "name": "Nueva App 17",
+        "alias": "gnome-control-center sound",
+        "path": "/usr/bin",
+        "icon": "",
+        "enabled": true
+    },
+    {
+        "id": 18,
+        "name": "Nueva App 18",
         "alias": "",
         "path": "",
         "icon": "",
