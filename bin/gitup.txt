@@ -44,8 +44,11 @@ bin/gitup.txt
 # y comando para subirlos ./gitup
 bin/gitup
 
+
 #Lista de archivos release para instaladores (Versión estable)
 bin/gitup-release.txt
+
+bin/develop.info
 
 #Directorio Completos en bin
 #Mientras no se definan y expliciten archivos
