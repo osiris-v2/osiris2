@@ -1,0 +1,15 @@
+[PROJECT_NAME]
+mi_proyecto_osiris
+
+[DESCRIPTION]
+Este es un proyecto en desarrollo gestionado por Osiris AI.
+Contiene un archivo README.txt, main.py mejorado con lectura de README.txt y ia_control, un README.md y un directorio 'data'.
+
+[STATUS]
+En Desarrollo - Estructura de datos iniciada
+
+[LAST_MODIFIED_BY]
+Osiris AI
+
+[VERSION]
+1.5

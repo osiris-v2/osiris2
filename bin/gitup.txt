@@ -333,6 +333,18 @@ html/app/mitv/tv/player2.php
 html/app/mitv/channels/main/.htaccess
 html/app/mitv/channels/main/live-ts/info.txt
 
+
+
+#Proyectos
+bin/projects/mi_proyecto_osiris/ia_control
+bin/projects/mi_proyecto_osiris/info.human.ia
+bin/projects/mi_proyecto_osiris/readme.txt
+bin/projects/mi_proyecto_osiris/README.md
+bin/projects/mi_proyecto_osiris/main.py
+bin/projects/mi_proyecto_osiris/session_module.py
+bin/projects/mi_proyecto_osiris/datas/info.txt
+
+
 ##RELEASE GENERADO EN 16-01-2025 04.39.00
 
 osiris2release.deb
@@ -344,5 +356,4 @@ bin/com/tmp/zj91enedg3.png
 #Generado con la consola C  > ods>>
 #Comandos para la consola vars
 bin/com.vars
-
 #EOF
