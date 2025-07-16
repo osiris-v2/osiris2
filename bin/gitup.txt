@@ -335,7 +335,7 @@ html/app/mitv/channels/main/live-ts/info.txt
 
 
 
-#Proyectos
+#Proyectos AiCreate
 bin/projects/mi_proyecto_osiris/ia_control
 bin/projects/mi_proyecto_osiris/info.human.ia
 bin/projects/mi_proyecto_osiris/readme.txt
