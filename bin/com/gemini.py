@@ -160,6 +160,17 @@ Instrucciones: ¡Bienvenido a Osiris!  Usa emojis para dinamizar la conversació
 
 """
 
+
+
+def while_args(argS):
+    try:
+        for i in range(len(argS)):
+            main([argS[i]," @...  "])
+            time.sleep(1)
+    except Exception as e:
+        print("while_args ERR:",e) 
+
+
 ############
 ## MODELOS #
 ###########
@@ -1443,14 +1454,32 @@ def aap():
 
 
 
+LIMIT_WHILE_ARGS = 10
+
 # Función para manejar los argumentos
 def main(args):
     """Función principal que maneja los argumentos de entrada para generar respuestas del modelo."""
     global ruta_archivo_key, gemini_model, model, conversation_context, load, last_response, topic, API_KEY
     global auto_cromode, auto_response_window, auto_ap
+    global LIMIT_WHILE_ARGS
 
+    
+    rmain = False
+    #Si es un bucle de argumentos
+    if len(args) < LIMIT_WHILE_ARGS + 1:
+        arg_n = 0
+        sem = args
+        for i in range(len(sem)):
+            if sem[i].startswith("--"):
+                arg_n = arg_n + 1
+                if arg_n == len(sem):
+                    rmain = True
+        if rmain == True :
+            while_args(sem)
+            return
+            #FIN BLOKE "WHILE"
 
-    # Si no se envían comandos, se asume que se envía una pregunta de texto.
+                # Si no se envían comandos, se asume que se envía una pregunta de texto.
     if not args[0].startswith("--"):
         user_input = " ".join(args)
         response_text = generate_response(user_input)
@@ -1493,8 +1522,8 @@ def main(args):
     try:
         # Mapeo de comandos cortos
         commands_map = {
-        "--auto_response_window":"--arw", #abre respuestas en ventana (on/off)
-"--cromode":"--cm",  # Activa modo CRO (on/off)
+            "--auto_response_window":"--arw", #abre respuestas en ventana (on/off)
+            "--cromode":"--cm",  # Activa modo CRO (on/off)
             "--load": "--l",
             "--addload": "--al",
             "--showload": "--sl",
@@ -1552,17 +1581,16 @@ def main(args):
             if auto_cromode == False:
                 auto_cromode = True
                 main(["--l","develop.info"])
-                conversation_context += "[INTERNAL MSG: AUTOCROMODE FUE PUESTO A ON]"
-                main(["--al","""Se Acaba de cargar y activar --cromode , directrices desde bin/develop.info
+                conversation_context += "\n ~~~INTERNAL MSG: AUTOCROMODE FUE ACTIVADO~~~ \n"
+                main(["--al","""Se cargó y activó --cromode , directrices desde bin/develop.info de osiris release bio verified release /var/osiris2
                     (RECORDATORIO REFRESCO ACTUALIZACION DE) 
-                    COMENZAMOS NUEVA CONVERSACIÓN DENTRO DEL CONTEXTO CRO.
-                    CROMODE está activo a partir de tu próxima respuesta.
-                    Avisa que activaste CRO en una sola línea. Sin entrar en más detalle."""])
-#                arw()
+                    COMENZAMOS NUEVA CONVERSACIÓN DENTRO DEL CONTEXTO CRO;
+                    CROMODE está activo a partir de tu próxima respuesta:
+                    Avisa que activaste CRO y tu Resumen-Estado en unas pocas línea. Sin entrar en más detalles."""])
                 return
             else:
                 auto_cromode = False
-                conversation_context += "[INTERNAL MSG: AUTOCROMODE FUE PUESTO A OFF]"
+                conversation_context += "\n ~~~INTERNAL MSG: AUTOCROMODE FUE PUESTO A OFF~~~ \n"
             print("AUTO_cromode:",auto_cromode)
             return
         if command == "--aap" or  command == "--auto-audio-parser":
@@ -1958,17 +1986,16 @@ def fecha_hora_g():
 fecha_hora = fecha_hora_g()
 
 init = 0
-HELO = "HELO START - Se Ha inciado el SISTEMA OSIRIS a las: " + fecha_hora
-main(["--aap"])
-main(["--cm"])
-#main(["--sgm"])
-main(["--arw"])
+HELO = "\nHELO START - Se Ha inciado el SISTEMA OSIRIS a las: " + fecha_hora
+
+main(["--cm","--aap"])
 main(HELO)
+main(["--sgm","--arw","--l","develop.info"])
+
 conversation_context += HELO+"\n"
+
 if __name__ == "__main__":
     init = init + 1
     if init > 1:
         HELO = ""
-
     main(sys.argv[1:] + HELO )
-
