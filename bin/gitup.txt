@@ -277,6 +277,8 @@ html/img/info.txt
 
 html/documentation/index.php
 
+# @webUser Templates
+html/@/ui/info.txt
 
 #Aplicaciones WEB
 #html/app
