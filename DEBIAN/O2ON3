@@ -1,10 +1,14 @@
 #!/bin/env bash
-# Osiris Original
+
+
 # Verified base paths
-# Directorios base de la distribución original OSIRIS-OZONE (o2on3) Verified
+# Directorios base  de la distribución original OSIRIS-OZONE (o2on3)
 
 V_def_release_base="/var/osiris2"
 V_def_BIO_base="/o2iris"
+
+
+
 
 echo "Get Verified Code"
 echo "Make Pub Key"
