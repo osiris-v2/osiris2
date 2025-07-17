@@ -261,6 +261,13 @@ bin/com/demo/datas/info.txt
 
 bin/com/_server.py
 
+
+#o3 sources
+
+bin/com/o3audio.py
+bin/com/o3downloader.py
+bin/com/o3launcher.py
+
 #html - WWW
 
 html/index.html
