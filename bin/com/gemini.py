@@ -56,14 +56,28 @@ def pt_audio(text): #alib
     ntext = text.replace("*"," ")
     ntext0 = ntext.replace("`"," ")
     ntext1 = ntext0.replace("`"," ")
-    return ntext1
+    ntext1 = ntext0.replace("#"," ")
+    pattern = r".*?```CRO\n(.*?)\n```"
+    matches = re.findall(pattern, ntext1, re.DOTALL)
+    Rext ="Audio Parsed: "
+    clear=""
+    if len(matches)>0:
+        Rtext += " Matches: " + str(len(matches))
+        for i in range(len(matches)):
+            clear += ntext1.replace(matches[i]," CONTINUAMOS AUDIO ")
+    else:
+        Rtext = "No matches." + ntext1
+    Rext += clear 
+
+    return Rtext
 
 
 def_audio_lrequest="com/tmp/last_request.mp3"
 
-apf()
-audioparser.text_to_speech("hola has entrado en osiris","es",def_audio_lrequest)
-apf()
+def HeloEnterVoide():
+    apf()
+    audioparser.text_to_speech("hola has entrado en osiris","es",def_audio_lrequest)
+    apf()
 
 
 
@@ -1635,7 +1649,7 @@ def main(args):
             return
         if command == "--as" or command == "--audio-save":
             if len(args) > 1:
-                output = subproccess.run(["cp",def_audio_lrequest,args[1]])
+                output = subprocess.run(["cp","com/datas/"+def_audio_lrequest,args[1]])
                 print("--as",output)
                 return
             else :
@@ -2006,7 +2020,7 @@ HELO = "\nHELO START - Se Ha inciado el SISTEMA OSIRIS a las: " + fecha_hora
 
 main(["--cm","--aap"])
 main(HELO)
-main(["--sgm","--arw","--l","projects/mi_proyecto_osiris/info.human.ai"])
+main(["--sgm","--arw","--ap","--l","projects/mi_proyecto_osiris/info.human.ai"])
 
 conversation_context += HELO+"\n  Usa El Comando --arw para activar respuesta GUI           "
 

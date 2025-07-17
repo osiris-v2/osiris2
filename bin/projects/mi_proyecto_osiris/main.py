@@ -2,19 +2,27 @@
 # Este es el archivo principal para mi_proyecto_osiris.
 # Desarrollado por Osiris AI.
 import os
-from session_module import iniciar_sesion_modulo # Importar el nuevo modulo
+from session_module import iniciar_sesion_modulo, set_session_context, get_session_context
 
 def iniciar_proyecto():
     print("¡El proyecto mi_proyecto_osiris ha iniciado con exito!")
     print("----------------------------------------------------")
-    # La funcion listar_archivos_proyecto() solo muestra la intencion del comando 'ls'.
-    # Para la salida real de 'ls', usamos un CRO.
-    # print("Archivos en el proyecto mi_proyecto_osiris:")
-    # comando_ls = "ls ./projects/mi_proyecto_osiris"
-    # print(f"Ejecutando: {comando_ls}")
     leer_readme_proyecto()
     leer_ia_control()
-    iniciar_sesion_modulo() # Nueva llamada a la funcion del modulo de sesion
+    
+    # NUEVA INTEGRACION: Inicializar y usar el micronucleo de contexto
+    iniciar_sesion_modulo() # Ya inicializa el micronucleo y establece "estado_micronucleo"
+
+    print("\\n--- Demostrando el Micronucleo de Contexto Dinamico ---")
+    set_session_context("ultima_accion_ai", "ejecucion_main_py_verificada")
+    set_session_context("timestamp_ultima_accion", "2025-07-17_DEMO")
+    
+    accion = get_session_context("ultima_accion_ai")
+    timestamp = get_session_context("timestamp_ultima_accion")
+    
+    print(f"Valor del contexto 'ultima_accion_ai': {accion}")
+    print(f"Valor del contexto 'timestamp_ultima_accion': {timestamp}")
+    print("----------------------------------------------------")
 
 def leer_readme_proyecto():
     print("\\n--- Contenido de readme.txt ---")

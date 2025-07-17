@@ -91,60 +91,65 @@ echo "--- Descargando script de: $PYTHON_SCRIPT_URL ---"
 # -L: Follow redirects
 # -o: Output to specified file
 
-
+#wallet
 dl1="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/walletav.py"
 dl1a="$BIO_DIR/o3wallet"
 
 dl $dl1 $dl1a
 sudo chmod +x $dl1a
 
+
+#launcher
 dl2="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/o3launcher.py"
 dl2a="$BIO_DIR/o3launcher"
 
 dl $dl2  $dl2a
 sudo chmod +x $dl2a
 
+
+#config
 dl3="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/dsk/dskcfg"
 dl3a="$BIO_DIR/o3config"
  
 dl $dl3  $dl3a
 sudo chmod +x $dl3a
 
+#o3video
 dl4="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/dsk/dskv"
 dl4a="$BIO_DIR/o3video"
 
 dl $dl4  $dl4a
 sudo chmod +x $dl4a
 
-
+#aplicaciones json def
 dl5="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/aplicaciones.json"
 dl5a="$BIO_DIR/aplicaciones.json"
 
 dl $dl5  $dl5a
 #sudo chmod +x $dl5a
 
-
+#o3win
 dl6="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/OPS/win"
 dl6a="$BIO_DIR/o3window"
 
 dl $dl6  $dl6a
 sudo chmod +x $dl6a
 
-
+#documentación
 dl7="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/o2doc2.py"
 dl7a="$BIO_DIR/o3documentation"
 
 dl $dl7  $dl7a
 sudo chmod +x $dl7a
 
-
+#herramienta o3 video unir segmentos
 dl8="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/dsk/dskvu"
 dl8a="$BIO_DIR/dskvu"
 
 dl $dl8  $dl8a
 sudo chmod +x $dl8a
 
-
+#herramienta conversor video
 dl9="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/dsk/dskvc"
 dl9a="$BIO_DIR/o3transcoder"
 
@@ -152,14 +157,14 @@ dl $dl9  $dl9a
 sudo chmod +x $dl9a
 
 
-dl10="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/odl1.py"
+dl10="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/o3downloader.py"
 dl10a="$BIO_DIR/o3downloader"
 
 dl $dl10  $dl10a
 sudo chmod +x $dl10a
 
 
-dl11="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/audio.py"
+dl11="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/o3audio.py"
 dl11a="$BIO_DIR/o3audio"
 
 dl $dl11  $dl11a

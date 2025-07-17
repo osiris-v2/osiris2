@@ -912,7 +912,7 @@ def main(args):
                     output, _ = p.communicate()
                     output = output.decode('utf-8').strip()
                     output = parse_lasturl(output)
-                    print("===================>",output)
+#VERbOSE                    print("===================>",output)
                 if output.startswith("http://") or output.startswith("https://"):
                     try:
                         subprocess.call([ffprobe_exec, "-i", output])

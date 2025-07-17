@@ -120,7 +120,8 @@ def text_to_speech(text: str, lang: str = 'es', save_path: str = None) -> str | 
 
         print(f"Osiris-TTS: ffplay finalizó")
         if stdout:
-            print(f"Osiris-TTS STDOUT:\n{stdout}")
+            stdout_ok="ESTADO 0"
+            print(f"Osiris-TTS STDOUT:\n{stdout_ok}")
         if stderr:
             print(f"Osiris-TTS STDERR:\n{stderr}", file=sys.stderr)
 

@@ -715,7 +715,7 @@ def main(ai_response_text: str, global_mode: str = "CLI"):
                             print(command_error)
                         system_execution_context[f"error_output_{action['group']}_{action['member']}_{int(time.time())}"] = {"stdout": command_output, "stderr": command_error, "returncode": result.returncode}
                         print("\\n(Salida/Error añadidos al contexto de Osiris.)")
-
+                        #return command_error # RETORNA ERROR
                 except FileNotFoundError:
                     print(f"❌ Error: El interprete de shell (ej. bash) no se encontró. Asegúrate de que Bash esté disponible en tu PATH.")
                     final_output_messages.append(f"ERROR de ejecución: Intérprete de shell no encontrado para {action['group']}->{action['member']}.")
