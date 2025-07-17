@@ -59,10 +59,10 @@ def pt_audio(text): #alib
     return ntext1
 
 
-
+def_audio_lrequest="com/tmp/last_request.mp3"
 
 apf()
-audioparser.text_to_speech("hola has entrado en osiris","es","com/tmp/last_request.mp3")
+audioparser.text_to_speech("hola has entrado en osiris","es",def_audio_lrequest)
 apf()
 
 
@@ -1460,7 +1460,7 @@ LIMIT_WHILE_ARGS = 10
 def main(args):
     """Función principal que maneja los argumentos de entrada para generar respuestas del modelo."""
     global ruta_archivo_key, gemini_model, model, conversation_context, load, last_response, topic, API_KEY
-    global auto_cromode, auto_response_window, auto_ap
+    global auto_cromode, auto_response_window, auto_ap, def_audio_lrequest
     global LIMIT_WHILE_ARGS
 
     
@@ -1551,7 +1551,15 @@ def main(args):
             "--setparams": "--sp",   # Nuevo: Configurar parámetros del modelo
             "--toggleautosave": "--ta",  # Nuevo: Activar/desactivar autosave
             "--listmodels":"--lms", #Lista los modelos genai
-            "--selectgenailmodel":"--sgm" # Seleccionar un Modelo Genai
+            "--selectgenailmodel":"--sgm",
+            "--aap":"--audio-auto-parse", # Seleccionar un Modelo Genai
+            "--ap":"--audio-parse",
+            "--apr":"--audio-parse-repeat",
+            "--sla":"--show-last-answer",
+            "--tvl":"--translate-video-link", #subtitula video usar metadiálogos @ (@subtitulos @fbold @color @creative etc... consultar documentación.)
+            "--li":"--load-image",
+            "--as":"--audio-save" #Copia la última respuesta procesada por audio a un nombre pasado como parámetro en com/datas.
+
         }
 
         
@@ -1625,6 +1633,14 @@ def main(args):
             conversation_context += str(nmx)
             print("--------------:\n\n")
             return
+        if command == "--as" or command == "--audio-save":
+            if len(args) > 1:
+                output = subproccess.run(["cp",def_audio_lrequest,args[1]])
+                print("--as",output)
+                return
+            else :
+                print("--as ERROR: ",args)
+                return
         if command == "--nmodel":
             sm = "\nSelección de modelos de API\n"
             conversation_context += sm
@@ -1990,9 +2006,9 @@ HELO = "\nHELO START - Se Ha inciado el SISTEMA OSIRIS a las: " + fecha_hora
 
 main(["--cm","--aap"])
 main(HELO)
-main(["--sgm","--arw","--l","develop.info"])
+main(["--sgm","--arw","--l","projects/mi_proyecto_osiris/info.human.ai"])
 
-conversation_context += HELO+"\n"
+conversation_context += HELO+"\n  Usa El Comando --arw para activar respuesta GUI           "
 
 if __name__ == "__main__":
     init = init + 1

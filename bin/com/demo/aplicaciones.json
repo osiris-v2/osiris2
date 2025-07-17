@@ -2,7 +2,7 @@
     {
         "id": 5,
         "name": "Lanzador de Aplicaciones",
-        "alias": "o3launcher &",
+        "alias": "o3launcher &>/dev/null",
         "path": "/o2iris",
         "icon": "/o2iris/img/icon/launcher.ico",
         "enabled": true
@@ -10,7 +10,7 @@
     {
         "id": 2,
         "name": "Editor de configuraciones",
-        "alias": "o3config &",
+        "alias": "o3config &>/dev/null",
         "path": "/o2iris",
         "icon": "/o2iris/img/icon/configurador.ico",
         "enabled": true
@@ -18,14 +18,14 @@
     {
         "id": 6,
         "name": "BIO win Manager",
-        "alias": "o3window &",
+        "alias": "o3window &>/dev/null",
         "path": "/o2iris",
         "enabled": true
     },
     {
         "id": 1,
         "name": "V\u00eddeo Player",
-        "alias": "dskv &",
+        "alias": "dskv &>/dev/null",
         "path": "/o2iris",
         "icon": "/o2iris/img/icon/videoplayer.ico",
         "enabled": true
@@ -33,7 +33,7 @@
     {
         "id": 8,
         "name": "V\u00eddeo Uni\u00f3n",
-        "alias": "dskvu &",
+        "alias": "dskvu &>/dev/null",
         "path": "/o2iris",
         "icon": "/o2iris/img/icon/videounion.ico",
         "enabled": true
@@ -41,7 +41,7 @@
     {
         "id": 9,
         "name": "V\u00eddeo Conversor",
-        "alias": "o3transcoder &",
+        "alias": "o3transcoder &>/dev/null",
         "path": "/o2iris",
         "icon": "/o2iris/img/icon/videoconvert.ico",
         "enabled": true
@@ -49,35 +49,35 @@
     {
         "id": 10,
         "name": "V\u00eddeo Downloader",
-        "alias": "o3downloader &",
+        "alias": "o3downloader &>/dev/null",
         "path": "/o2iris",
         "enabled": true
     },
     {
         "id": 11,
         "name": "Audio Speech",
-        "alias": "o3audio &",
+        "alias": "o3audio &>/dev/null",
         "path": "/o2iris",
         "enabled": true
     },
     {
         "id": 3,
         "name": "Demo Cripto-Wallet",
-        "alias": "o3wallet &",
+        "alias": "o3wallet &>/dev/null",
         "path": "/o2iris",
         "enabled": true
     },
     {
         "id": 4,
         "name": "Editor Sublime Text",
-        "alias": "subl &",
+        "alias": "subl &>/dev/null",
         "path": "/usr/bin",
         "enabled": true
     },
     {
         "id": 7,
         "name": "Documentaci\u00f3n",
-        "alias": "o3documentation &",
+        "alias": "o3documentation &>/dev/null",
         "path": "/o2iris",
         "icon": "/o2iris/img/icon/documentador.ico",
         "enabled": true
@@ -85,7 +85,7 @@
     {
         "id": 12,
         "name": "BlockChain Manager",
-        "alias": "o3blockchain &",
+        "alias": "o3blockchain &>/dev/null",
         "path": "/o2iris",
         "icon": "/o2iris/img/icon/blockchainmanager.ico",
         "enabled": true
@@ -93,7 +93,7 @@
     {
         "id": 13,
         "name": "Seeker Servers",
-        "alias": "o3servers &",
+        "alias": "o3servers &>/dev/null",
         "path": "/o2iris",
         "enabled": true
     },
@@ -108,7 +108,7 @@
     {
         "id": 15,
         "name": "Bio-install data",
-        "alias": "gnome-terminal --title='BIO INSTALL DATA' -- /bin/bash -c ' ; exec bash' &",
+        "alias": "gnome-terminal --title='BIO INSTALL DATA' -- /bin/bash -c ' ; exec bash' &>/dev/null",
         "path": "/o2iris",
         "icon": "",
         "enabled": true
@@ -116,7 +116,7 @@
     {
         "id": 16,
         "name": "Admin Keys - VerifiedBIO3",
-        "alias": "adminkeys &",
+        "alias": "adminkeys &>/dev/null",
         "path": "/o2iris",
         "icon": "",
         "enabled": true
@@ -124,24 +124,16 @@
     {
         "id": 17,
         "name": "GNOME-LNK-DSK",
-        "alias": "gnome-control-center",
+        "alias": "gnome-control-center &>/dev/null",
         "path": "/usr/bin",
         "icon": "",
         "enabled": true
     },
     {
         "id": 18,
-        "name": "Nueva App 18",
-        "alias": "",
-        "path": "",
-        "icon": "",
-        "enabled": false
-    },
-    {
-        "id": 19,
-        "name": "Nueva App 19",
-        "alias": "",
-        "path": "",
+        "name": "Navegador de A. NEMO ",
+        "alias": "nemo /o2iris &>/dev/null",
+        "path": "/usr/bin/",
         "icon": "",
         "enabled": false
     }
