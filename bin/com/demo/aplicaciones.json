@@ -135,6 +135,6 @@
         "alias": "nemo /o2iris &>/dev/null",
         "path": "/usr/bin/",
         "icon": "",
-        "enabled": false
+        "enabled": true
     }
 ]
