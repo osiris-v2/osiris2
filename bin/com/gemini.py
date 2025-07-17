@@ -62,9 +62,12 @@ def pt_audio(text): #alib
     Rext ="Audio Parsed: "
     clear=""
     if len(matches)>0:
-        Rtext += " Matches: " + str(len(matches))
-        for i in range(len(matches)):
-            clear += ntext1.replace(matches[i]," CONTINUAMOS AUDIO ")
+        Rtext += " Matches: " + len(matches)
+        try:
+            for i in range(len(matches)):
+                clear += ntext1.replace(matches[i]," CONTINUAMOS AUDIO ")
+        except Exception as e:
+            Rtext += "Info Exception: "+e
     else:
         Rtext = "No matches." + ntext1
     Rext += clear 
@@ -2018,10 +2021,12 @@ fecha_hora = fecha_hora_g()
 init = 0
 HELO = "\nHELO START - Se Ha inciado el SISTEMA OSIRIS a las: " + fecha_hora
 
-main(["--cm","--aap"])
+main(["--cm","--aap","--apr"])
+main(["--sgm","--arw","--apr"])
 main(HELO)
-main(["--sgm","--arw","--ap","--l","projects/mi_proyecto_osiris/info.human.ai"])
-
+main(["--l","loadCore.human.ai"])
+main(["--strict","--al","info.human.ai dijo."])
+print(["Escriba --al info.human.ai Conversación Anadido para Carga de Inicio"])
 conversation_context += HELO+"\n  Usa El Comando --arw para activar respuesta GUI           "
 
 if __name__ == "__main__":

@@ -50,6 +50,8 @@ bin/gitup-release.txt
 
 bin/develop.info
 
+bin/loadCore.human.ai
+
 #Directorio Completos en bin
 #Mientras no se definan y expliciten archivos
 #Actualizará los directorios completos a su contenido
