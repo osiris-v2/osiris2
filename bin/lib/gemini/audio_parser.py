@@ -79,7 +79,7 @@ def text_to_speech(text: str, lang: str = 'es', save_path: str = None) -> str | 
     global chflag
 
     text = pt_audio(text) #Limpia texto para audio
-    print("AUDIO TEXT:",text)
+#    print("AUDIO TEXT:",text)
 
     print(f"Osiris-TTS: Iniciando conversión de texto a voz para: '{text[:50]}...' (Idioma: {lang})")
 

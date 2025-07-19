@@ -82,7 +82,7 @@ def while_args(argS):
         print("while_args ERR:",e) 
 
 
-#print(" -> -> ->  ",croparser.INFO)
+print("CRO Info: ",croparser.INFO)
 
 core.log_event("gemini.py", "Inicio", "No hay mas detalles" , error="None")
 
@@ -1540,7 +1540,7 @@ def main(args):
         if command == "--ap" or command == "--audio-parser":
             xLR = last_response #  pt_audio(last_response) limpia texto desde cro parser
             print(xLR)
-            audioparser.text_to_speech(xLR,"es",def_audio_flag)
+            audioparser.text_to_speech(xLR,"es",def_audio_lrequest)
             apf()
             print("End Audio Parser")
             return

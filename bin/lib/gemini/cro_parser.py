@@ -607,31 +607,50 @@ class CROTranslator:
 
 
 
-def add_cc():
-    co = """
-                                Ejecutado Comando: """+command_output+"""
 
-                                """
-    xmsgr = ["Se añadió la salida al contexto. El usuario omitió añadir mensaje a esta acción.",
-                                "Se añadió la salida al contexto. El usuario solicitó dejar un mensaje añadido a la salidad de la ejecución del comando anterior.",
-                                "No se añadió salida al contexto y el usuario omitió dejar mensaje.",
-                                "No se añadió la salida al contexto. El usuario solicitó dejar un mensaje a la ejecución del comando anterior."]
-    add_context_confirm = input("""
+
+accr = ["Se añadió la salida al contexto. El usuario omitió añadir mensaje a esta acción.",
+        "Se añadió la salida al contexto. El usuario solicitó dejar un mensaje añadido a la salidad de la ejecución del comando anterior.",
+        "No se añadió salida al contexto y el usuario omitió dejar mensaje.",
+        "No se añadió la salida al contexto. El usuario solicitó dejar un mensaje a la ejecución del comando anterior."]
+             
+options_add_context_confirm = """
     ______________________________________________
+   |                                              |
+   |     Opciones Añadir Salida al Contexto.      |
+   |                                              |
+   |  1) Añandir salida al contexto y continuar   |
+   |  2)      (1 + Añadir mensaje)                |
+   |  3) No añadir salida al contexto y continuar | 
+   |  4)      (3 + añadir mensaje)                |
+   |______________________________________________|
 
-        Opciones Añadir Salida al Contexto.
-     1) Añandir salida al contexto y continuar
-     2)      (1 + Añadir mensaje)
-     3) No añadir salida al contexto y continuar
-     4)      (3 + añadir mensaje)
-    ______________________________________________
+"""
 
-    """).lower().strip()
-    return add_context_confirm
+
+
+
+def stdout_to_context():
+    global accr, options_add_context_confirm
+    """
+    Solicita al usuario un numero y lo devuelve como entero.
+    Maneja entradas no numericas.
+    """
+    while True:
+        try:
+            entrada = input(options_add_context_confirm)
+            numero = int(entrada)
+            return numero
+        except ValueError:
+            print("Esa no es una entrada valida. Por favor, introduce solo numeros.")
+
 
 
 # --- FUNCIÓN MAIN MODIFICADA PARA EJECUCIÓN SUPERVISADA ---
 def main(ai_response_text: str, global_mode: str = "CLI"):
+
+    global accr
+
     # IMPORTANTE: osiris_definitions ya se importa al inicio de este archivo
     # por lo tanto, está disponible en este scope.
 
@@ -716,23 +735,38 @@ def main(ai_response_text: str, global_mode: str = "CLI"):
                             print("\n--- Salida del comando ---")
                             print("COMOUT :",command_output)
                             print("""              """)
-                            #PENDIENTE Menú
-######INPUT                     ###Pasar a while
-                                add_text_confirm = add_cc()
-                                if add_context_confirm:
-                                    if int(add_context_confirm) <  5 and int(add_context_confirm):
-                                        system_execution_context[f"output_{action['group']}_{action['member']}_{int(time.time())}"] = xmsgr[int(add_context_confirm)]
-                                        print("\n(Salida añadida al contexto de Osiris para futuras referencias.)")
-#                                elif add_context_confirm == "3":
-#                                    system_execution_context[f"output_{action['group']}_{action['member']}_{int(time.time())}"] = command_output
-#                                    print("\n(La salida no se añadió al contexto.)")
+#add_context_confirm = add_cc()
+                            while True:
+                                valor_obtenido = stdout_to_context() # Llama a la funcion
+                                if 1 <= valor_obtenido <= 5:
+                                    print(f" Seleccionado: {valor_obtenido} ")
+                                    if valor_obtenido == 2 or valor_obtenido == 4:
+                                        msg = input("""
+               Introduzca a continuación su mensaje:
+                                        """)
                                     else:
-                                        print("Reintente de Nuevo")
-                                        add_cc()
+                                        msg = """
+                                        El Usuario NO introdujo Comentario-                                    
+                                        """
+                                    msgF = accr[valor_obtenido - 1] + msg
+                                    print("ADD_TO_CONTEX:")
+                                    #print(msg)
+                                    MSG = """
+                                    #SALIDA DEL COMANDO:
+                                    #----------------------
+
+                                    """+command_output+"""
+                                    #----------------------
+                                    #FIN SALIDA DEL COMANDO
+                                    #----------------------
+                                    """+msgF+"""
+                                    -----------------------
+                                    """
+                                    print(MSG)                                    
+                                    system_execution_context[f"output_{action['group']}_{action['member']}_{int(time.time())}"] = MSG
+                                    break # Sale del bucle porque la condicion se cumple
                                 else:
-                                    print("Reintente de Nuevo")
-                                    add_cc()
-                            add_cc()
+                                    print(f"El valor {valor_obtenido} no esta entre 1 y 5. Por favor, intentelo de nuevo.")
                     else:
                         print(f"👎 El comando falló con código de salida {result.returncode}.")
                         if command_output:

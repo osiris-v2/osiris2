@@ -202,7 +202,7 @@ def handle_command(args):
             print(f"El comando: {args[1]} ya está montado.") #existe en la lista
         args[0] = "use" #se establede use como primer argumento, contiñúa y establece el comando
     else:
-        if args[0] == "reset":  #comando reset para solucionar problemas de cursor en dos pasos 1º use+enter 2º reset+enter
+        if args[0] == "reset" or args[1] == "--clear" :  #comando reset para solucionar problemas de cursor en dos pasos 1º use+enter 2º reset+enter
             execute_command(["desktop","com","reset","--mode","fixed"])
             print("Prompt was reseted using desktop command with mode fixed")
             return
@@ -370,5 +370,9 @@ def main (args):
 
 # Ejecutar el CLI
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    if sys.argv[1] == "---use":
+        main(["use",sys.argv[2]])
+        main(sys.argv[2],sys.argv[3:])
+    else:
+        main(["use"]+sys.argv[1:])
     command_line()
