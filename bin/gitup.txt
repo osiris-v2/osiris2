@@ -130,10 +130,10 @@ bin/lib/gemini/widgets.py
 bin/lib/osiris2/multiprocess.py
 bin/lib/osiris2/__init__.py
 bin/lib/acero.py
-
+bin/lib/cuarzo.py
 
 #!!!!!!
-bin/lib
+#bin/lib
 
 #utilidades diversas en bin/scripts
 #bin/scripts/

@@ -41,7 +41,7 @@ try: #importaciones dinámicas
     croparser = core.CROPARSER
     core.dynmodule("lib.gemini.audio_parser","AP")
     audioparser = core.AP
-    core.dynmodule("lib.acero","aceroK")
+    core.dynmodule("lib.cuarzo","aceroK")
     acero = core.aceroK
 except Exception as E :
     print("ERDyM:",E)
@@ -320,7 +320,7 @@ def decode_img(base64_data):
 
 def show_text_window(text):
     acero.show_ai_response_window(text)
-    print("Win Acero Selected")
+    print("Win Cuarzo (aluminium, acero) Selected")
 #    win.show_text_window(text)
 
 #show_text_window("HOLA")
