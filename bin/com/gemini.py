@@ -319,9 +319,12 @@ def decode_img(base64_data):
 
 
 def show_text_window(text):
-    acero.show_ai_response_window(text)
+    global conversation_context
+    rtext = acero.show_ai_response_window(text)
     print("Win Cuarzo (aluminium, acero) Selected")
 #    win.show_text_window(text)
+    conversation_context += rtext
+    return rtext
 
 #show_text_window("HOLA")
 
