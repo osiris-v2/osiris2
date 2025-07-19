@@ -606,6 +606,30 @@ class CROTranslator:
         return self.translation_errors
 
 
+
+def add_cc():
+    co = """
+                                Ejecutado Comando: """+command_output+"""
+
+                                """
+    xmsgr = ["Se añadió la salida al contexto. El usuario omitió añadir mensaje a esta acción.",
+                                "Se añadió la salida al contexto. El usuario solicitó dejar un mensaje añadido a la salidad de la ejecución del comando anterior.",
+                                "No se añadió salida al contexto y el usuario omitió dejar mensaje.",
+                                "No se añadió la salida al contexto. El usuario solicitó dejar un mensaje a la ejecución del comando anterior."]
+    add_context_confirm = input("""
+    ______________________________________________
+
+        Opciones Añadir Salida al Contexto.
+     1) Añandir salida al contexto y continuar
+     2)      (1 + Añadir mensaje)
+     3) No añadir salida al contexto y continuar
+     4)      (3 + añadir mensaje)
+    ______________________________________________
+
+    """).lower().strip()
+    return add_context_confirm
+
+
 # --- FUNCIÓN MAIN MODIFICADA PARA EJECUCIÓN SUPERVISADA ---
 def main(ai_response_text: str, global_mode: str = "CLI"):
     # IMPORTANTE: osiris_definitions ya se importa al inicio de este archivo
@@ -693,26 +717,8 @@ def main(ai_response_text: str, global_mode: str = "CLI"):
                             print("COMOUT :",command_output)
                             print("""              """)
                             #PENDIENTE Menú
-                            def add_cc():
-                                co = """
-                                Ejecutado Comando: """+command_output+"""
-
-                                """
-                                xmsgr = ["Se añadió la salida al contexto. El usuario omitió añadir mensaje a esta acción.",
-                                "Se añadió la salida al contexto. El usuario solicitó dejar un mensaje añadido a la salidad de la ejecución del comando anterior.",
-                                "No se añadió salida al contexto y el usuario omitió dejar mensaje.",
-                                "No se añadió la salida al contexto. El usuario solicitó dejar un mensaje a la ejecución del comando anterior."]
-                                add_context_confirm = input("""
-    ______________________________________________
-
-        Opciones Añadir Salida al Contexto.
-     1) Añandir salida al contexto y continuar
-     2)      (1 + Añadir mensaje)
-     3) No añadir salida al contexto y continuar
-     4)      (3 + añadir mensaje)
-    ______________________________________________
-
-                                """).lower().strip()
+######INPUT                     ###Pasar a while
+                                add_text_confirm = add_cc()
                                 if add_context_confirm:
                                     if int(add_context_confirm) <  5 and int(add_context_confirm):
                                         system_execution_context[f"output_{action['group']}_{action['member']}_{int(time.time())}"] = xmsgr[int(add_context_confirm)]
