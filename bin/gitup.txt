@@ -122,12 +122,14 @@ bin/lib/processstart.py
 bin/lib/osiris/common.py
 bin/lib/gemini/utils.py
 bin/lib/gemini/cro_parser.py
+bin/lib/gemini/audio_parser.py
 bin/lib/gemini/osiris_definitions.py
 bin/lib/gemini/dyncontext.py
 bin/lib/aluminium_1.py
 bin/lib/gemini/widgets.py
 bin/lib/osiris2/multiprocess.py
 bin/lib/osiris2/__init__.py
+bin/lib/acero.py
 
 
 #!!!!!!
@@ -173,6 +175,9 @@ bin/scripts/files2deb.sh
 
 #instala  / gestiona Docker
 bin/scripts/docker.sh
+
+#monitor audio
+bin/scripts/monitor_mp3_flag.sh
 
 #Herramientas del directorio bin/tool
 #genera reporte para diagnostico servers

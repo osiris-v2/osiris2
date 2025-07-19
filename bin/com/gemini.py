@@ -41,8 +41,12 @@ try: #importaciones dinámicas
     croparser = core.CROPARSER
     core.dynmodule("lib.gemini.audio_parser","AP")
     audioparser = core.AP
+    core.dynmodule("lib.acero","aceroK")
+    acero = core.aceroK
 except Exception as E :
     print("ERDyM:",E)
+
+
 
 
 
@@ -315,9 +319,11 @@ def decode_img(base64_data):
 
 
 def show_text_window(text):
-    win.show_text_window(text)
+    acero.show_ai_response_window(text)
+    print("Win Acero Selected")
+#    win.show_text_window(text)
 
-
+#show_text_window("HOLA")
 
 personajes = {}
 modos = {}
@@ -1323,14 +1329,16 @@ def generate_with_image(image_path,ask):
     return None
 
 
+context_mode = "fast"
 def generate_response(user_input):
     """Genera una respuesta del modelo basada en la entrada del usuario."""
-    global conversation_context, last_response
+    global conversation_context, last_response,context_mode
     conversation_context += "User: "+user_input+"\n"
     try:
         response = model.generate_content(conversation_context)
         response_text = response.text
-        conversation_context += ""+ response_text+"\n"
+        if context_mode == "fast":
+            conversation_context += ""+ response_text+"\n"
         last_response = response_text  # Guarda la última respuesta
         return response_text
     except Exception as e:
@@ -1470,6 +1478,7 @@ def main(args):
     global auto_cromode, cro_loaded, auto_response_window, auto_ap, def_audio_dir, def_audio_lrequest, def_audio_flag
     global LIMIT_WHILE_ARGS
     global commands_map
+    global context_mode
 
 
 #    rmain = False
@@ -1549,6 +1558,14 @@ def main(args):
             API_KEY = obtener_key_gemini('resetkey')
             genai.configure(api_key=API_KEY)
             model = genai.GenerativeModel(gemini_model) 
+            return
+        if command == "--ctm" or command == "--context-mode":
+            #pone cro mode a ON o OFF sin recargar el archivo
+            if context_mode == "fast":
+                context_mode = False
+            else:
+                context_mode = "fast"
+            print("CONTEXT_MODE: ",context_mode)
             return
         if command == "--cmc" or command == "--cromode-commute":
             #pone cro mode a ON o OFF sin recargar el archivo
@@ -2006,7 +2023,8 @@ def main(args):
             "--tvl":"--translate-video-link", #subtitula video usar metadiálogos @ (@subtitulos @fbold @color @creative etc... consultar documentación.)
             "--li":"--load-image",
             "--asla":"--audio-save-last-answer", #Copia la última respuesta procesada por audio a un nombre pasado como parámetro guardándolo en com/datas.
-            "--cmc":"--cromode-commute" #cambia el estado de auto cromode a true / false
+            "--cmc":"--cromode-commute", #cambia el estado de auto cromode a true / false
+            "--ctm":"--context-mode" #Modos de Contexto
         }
 
         

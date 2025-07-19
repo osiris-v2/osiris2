@@ -4,7 +4,7 @@ import urllib.parse
 import time
 import shlex
 import subprocess
-from .cro_definitions import osiris_definitions # <--- IMPORTACION DE DEFINICIONES
+from .cro_definitions import cro_definitions # <--- IMPORTACION DE DEFINICIONES
 
 INFO = """
 Module Cro Parser Info
@@ -98,10 +98,10 @@ def execute_search_action(payload):
 
 
 class CROParser:
-    # Constructor modificado: ya no necesita recibir osiris_definitions como argumento
+    # Constructor modificado: ya no necesita recibir cro_definitions como argumento
     def __init__(self):
-        # Utiliza directamente la variable osiris_definitions importada
-        self.osiris_definitions = osiris_definitions
+        # Utiliza directamente la variable cro_definitions importada
+        self.cro_definitions = cro_definitions
         self.parsed_actions = []
         self.errors = []
         self.warnings = []
@@ -119,11 +119,11 @@ class CROParser:
         Puede generar múltiples acciones si un parámetro es ALLOW_MULTIPLE y ACTION_PER_VALUE.
         """
         actions = []
-        if group_name not in self.osiris_definitions["PROTO_DEFINITIONS"] or target_member not in self.osiris_definitions["PROTO_DEFINITIONS"][group_name]:
+        if group_name not in self.cro_definitions["PROTO_DEFINITIONS"] or target_member not in self.cro_definitions["PROTO_DEFINITIONS"][group_name]:
             self._log_error(f"Definición de protocolo no encontrada para {group_name} -> {target_member}")
             return []
 
-        proto_def = self.osiris_definitions["PROTO_DEFINITIONS"][group_name][target_member]
+        proto_def = self.cro_definitions["PROTO_DEFINITIONS"][group_name][target_member]
         
         template_key = next((k for k in proto_def.keys() if 'TEMPLATE' in k.upper()), None)
         base_template = proto_def.get(template_key)
@@ -323,13 +323,13 @@ class CROParser:
                     group_name = initiator_match.group(1)
                     members_str = initiator_match.group(2)
                     
-                    if group_name not in self.osiris_definitions["COMMAND_GROUPS"]:
+                    if group_name not in self.cro_definitions["COMMAND_GROUPS"]:
                         self._log_error(f"Unknown command group '{group_name}' in line: '{stripped_line}'")
                         continue
                     
                     valid_members = []
                     for member in [m.strip() for m in members_str.split(',')]:
-                        if member in self.osiris_definitions["COMMAND_GROUPS"][group_name]:
+                        if member in self.cro_definitions["COMMAND_GROUPS"][group_name]:
                             valid_members.append(member)
                         else:
                             self._log_warning(f"Invalid member '{member}' for group '{group_name}' in line: '{stripped_line}'")
@@ -414,8 +414,8 @@ class CROParser:
 
 class CROTranslator:
     def __init__(self, global_mode: str, require_confirmation_for_dangerous_actions: bool = True):
-        # Accede a las definiciones de osiris_definitions importadas directamente
-        self.osiris_definitions = osiris_definitions
+        # Accede a las definiciones de cro_definitions importadas directamente
+        self.cro_definitions = cro_definitions
         self.global_mode = global_mode.upper()
         self.require_confirmation = require_confirmation_for_dangerous_actions
         self.translation_errors = []
@@ -442,8 +442,8 @@ class CROTranslator:
             action_type = action["action_type"]
             member = action["member"]
 
-            # Accede a self.osiris_definitions para las definiciones de PROTO_DEFINITIONS
-            proto_def = self.osiris_definitions["PROTO_DEFINITIONS"][action["group_name"]][member]
+            # Accede a self.cro_definitions para las definiciones de PROTO_DEFINITIONS
+            proto_def = self.cro_definitions["PROTO_DEFINITIONS"][action["group_name"]][member]
 
             if action_type == "URL_SEARCH":
                 if self.global_mode in ["CLI", "DESKTOP"]:
@@ -564,7 +564,7 @@ class CROTranslator:
                 if self.global_mode in ["CLI", "DESKTOP"]:
                     path = params.get("PATH")
                     content = params.get("CONTENT")
-                    content = content.replace('"""', '"""')
+                    content = content.replace('\"\"\"', '"""')
                     content = content.replace('\\n', '\n')  #  ← Testing
                     overwrite = params.get("OVERWRITE", False)
                     
@@ -609,10 +609,10 @@ class CROTranslator:
 
 
 
-accr = ["Se añadió la salida al contexto. El usuario omitió añadir mensaje a esta acción.",
-        "Se añadió la salida al contexto. El usuario solicitó dejar un mensaje añadido a la salidad de la ejecución del comando anterior.",
-        "No se añadió salida al contexto y el usuario omitió dejar mensaje.",
-        "No se añadió la salida al contexto. El usuario solicitó dejar un mensaje a la ejecución del comando anterior."]
+accr = ["Se añadió la salida al contexto. El Supervisor Humano omitió añadir mensaje a esta acción.",
+        "Se añadió la salida al contexto. El Humano Supervisor dejó instrucciones a la IA :",
+        "No se añadió salida al contexto y el Supervisor omitió dejar mensaje.",
+        "No se añadió la salida al contexto. El Supervisor Dejó a la IA la siguiente instrucción :"]
              
 options_add_context_confirm = """
     ______________________________________________
@@ -651,13 +651,13 @@ def main(ai_response_text: str, global_mode: str = "CLI"):
 
     global accr
 
-    # IMPORTANTE: osiris_definitions ya se importa al inicio de este archivo
+    # IMPORTANTE: cro_definitions ya se importa al inicio de este archivo
     # por lo tanto, está disponible en este scope.
 
 #    print(f"\n--- Iniciando Proceso CRO para el modo: {global_mode.upper()} ---")
 #    print(f"Contenido recibido (inicio):\n'{ai_response_text[:200]}{'...' if len(ai_response_text) > 200 else ''}'\n")
 
-    # Instanciación de CROParser: No necesita osiris_definitions como argumento
+    # Instanciación de CROParser: No necesita cro_definitions como argumento
     parser = CROParser()
 
     parsed_actions = parser.parse(ai_response_text)
@@ -714,8 +714,8 @@ def main(ai_response_text: str, global_mode: str = "CLI"):
             print(f"\n💬 Comando propuesto para ejecución:")
             print(f"   >>> {command_to_execute}")
             
-            user_confirm = input("¿Deseas ejecutar este comando? (si/no): ").lower().strip()
-            if user_confirm == "si":
+            user_confirm = input("¿Deseas ejecutar este comando? (s/n): ").lower().strip()
+            if user_confirm == "s":
                 print("✅ Confirmación recibida. Ejecutando comando...")
                 try:
                     result = subprocess.run(

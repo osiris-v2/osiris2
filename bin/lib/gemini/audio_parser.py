@@ -47,7 +47,8 @@ def flagw():
     global file
     print(file)
     with open(file,"w+") as z:
-        z.write("NEWAUDIO - FLAG") 
+        timex = time.time()
+        z.write("last_request.mp3 - "+str(timex)) 
 
 
 
