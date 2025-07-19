@@ -243,6 +243,9 @@ bin/com/datas/ffmpeg/random/info.txt
 bin/com/datas/ffmpeg/random/intro.mp4
 bin/com/datas/cert/info.txt
 
+#audio(AiFlag voice)
+com/datas/ai/audios/readmp3.flag
+
 #bin web com
 bin/com/web/datas/ai/info.txt
 bin/com/web/install/

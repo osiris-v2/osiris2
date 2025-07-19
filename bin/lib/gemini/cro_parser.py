@@ -244,14 +244,12 @@ class CROParser:
         self.errors = []
         self.warnings = []
 
-        # Corregido: `\n` en lugar de `\\n` para el regex
         cro_blocks = re.findall(r"```CRO\s*\n(.*?)\n```", ai_response_text, re.DOTALL)
 
         if not cro_blocks:
             return []
 
         for block_content in cro_blocks:
-            # Corregido: `\n` en lugar de `\\n` para split
             lines = block_content.split('\n')
 
             current_group_name = None
@@ -288,14 +286,12 @@ class CROParser:
                 current_raw_cro_lines = []
 
             for line_idx, line in enumerate(lines):
-                # Corregido: `\r\n` en lugar de `\\r\\n`
                 clean_line = line.rstrip('\r\n')
 
                 if in_triple_quote_mode:
                     current_raw_cro_lines.append(clean_line)
                     # Corregido: `"""` en lugar de `"""`
                     if clean_line.strip() == '"""':
-                        # Corregido: `\n` en lugar de `\\n`
                         current_params[triple_quote_var_name] = "\n".join(triple_quote_content_buffer)
                         in_triple_quote_mode = False
                         triple_quote_var_name = None
@@ -307,7 +303,6 @@ class CROParser:
                 if in_heredoc_mode:
                     current_raw_cro_lines.append(clean_line)
                     if clean_line.strip() == heredoc_delimiter:
-                        # Corregido: `\n` en lugar de `\\n`
                         current_params[heredoc_var_name] = "\n".join(heredoc_content_buffer)
                         in_heredoc_mode = False
                         heredoc_var_name = None
@@ -569,9 +564,8 @@ class CROTranslator:
                 if self.global_mode in ["CLI", "DESKTOP"]:
                     path = params.get("PATH")
                     content = params.get("CONTENT")
-                    # Corregido: `"""` en lugar de `"""` y `\n` en lugar de `\\n`
                     content = content.replace('"""', '"""')
-                    content = content.replace('\n', '\n')
+                    content = content.replace('\\n', '\n')  #  ← Testing
                     overwrite = params.get("OVERWRITE", False)
                     
                     if path and content is not None:
@@ -579,7 +573,6 @@ class CROTranslator:
                         heredoc_delimiter = "EOF_OSIRIS_CONTENT"
                         redirect_operator = ">" if overwrite else ">>"
                         
-                        # Corregido: `\n` en lugar de `\\n`
                         command_string = f"cat {redirect_operator} {quoted_path} <<'{heredoc_delimiter}'\n{content}\n{heredoc_delimiter}"
                         
                         translated_output["executable_command"] = command_string
@@ -618,15 +611,15 @@ def main(ai_response_text: str, global_mode: str = "CLI"):
     # IMPORTANTE: osiris_definitions ya se importa al inicio de este archivo
     # por lo tanto, está disponible en este scope.
 
-#    print(f"\\n--- Iniciando Proceso CRO para el modo: {global_mode.upper()} ---")
-#    print(f"Contenido recibido (inicio):\\n'{ai_response_text[:200]}{'...' if len(ai_response_text) > 200 else ''}'\\n")
+#    print(f"\n--- Iniciando Proceso CRO para el modo: {global_mode.upper()} ---")
+#    print(f"Contenido recibido (inicio):\n'{ai_response_text[:200]}{'...' if len(ai_response_text) > 200 else ''}'\n")
 
     # Instanciación de CROParser: No necesita osiris_definitions como argumento
     parser = CROParser()
 
     parsed_actions = parser.parse(ai_response_text)
 
-#    print("\\n--- Resultados del Parseo CRO ---")
+#    print("\n--- Resultados del Parseo CRO ---")
     if parser.errors:
         print("❌ ERRORES DE PARSEO DETECTADOS:")
         for err in parser.errors:
@@ -640,13 +633,13 @@ def main(ai_response_text: str, global_mode: str = "CLI"):
         print("➡️ No se encontraron acciones CRO válidas para procesar.")
         return {} #Devuelve un diccionario vacío
 
-#    print("\\n--- Acciones CRO Válidas Encontradas ---")
+#    print("\n--- Acciones CRO Válidas Encontradas ---")
     # print(json.dumps(parsed_actions, indent=4)) # Para depuración detallada del parseo
 
     translator = CROTranslator(global_mode=global_mode)
     translated_actions = translator.translate_all_actions(parsed_actions)
 
-#    print("\\n--- Traducción de Acciones CRO a Comandos Ejecutables ---")
+#    print("\n--- Traducción de Acciones CRO a Comandos Ejecutables ---")
     if translator.get_errors():
         print("❌ ERRORES DE TRADUCCIÓN DETECTADOS:")
         for err in translator.get_errors():
@@ -659,7 +652,7 @@ def main(ai_response_text: str, global_mode: str = "CLI"):
     system_execution_context = {} 
 
     for i, action in enumerate(translated_actions):
-        print(f"\\n--- Procesando Acción Traducida #{i+1} ---")
+        print(f"\n--- Procesando Acción Traducida #{i+1} ---")
         print(f"  Grupo: {action['group']}")
         print(f"  Miembro: {action['member']}")
         print(f"  Tipo de Acción: {action['action_type']}")
@@ -675,7 +668,7 @@ def main(ai_response_text: str, global_mode: str = "CLI"):
         command_to_execute = action['executable_command']
         
         if action['needs_confirmation'] and isinstance(command_to_execute, str):
-            print(f"\\n💬 Comando propuesto para ejecución:")
+            print(f"\n💬 Comando propuesto para ejecución:")
             print(f"   >>> {command_to_execute}")
             
             user_confirm = input("¿Deseas ejecutar este comando? (si/no): ").lower().strip()
@@ -696,25 +689,54 @@ def main(ai_response_text: str, global_mode: str = "CLI"):
                     if result.returncode == 0:
                         print(f"👍 Comando ejecutado exitosamente.")
                         if command_output:
-                            print("\\n--- Salida del comando ---")
-                            print(command_output)
+                            print("\n--- Salida del comando ---")
+                            print("COMOUT :",command_output)
                             print("""              """)
-                            add_context_confirm = input("¿Deseas añadir la salida al contexto? (si/no): ").lower().strip()
-                            if add_context_confirm == "si":
-                                system_execution_context[f"output_{action['group']}_{action['member']}_{int(time.time())}"] = command_output
-                                print("\\n(Salida añadida al contexto de Osiris para futuras referencias.)")
-                            else:
-                                print("\\n(La salida no se añadió al contexto.)")
+                            #PENDIENTE Menú
+                            def add_cc():
+                                co = """
+                                Ejecutado Comando: """+command_output+"""
+
+                                """
+                                xmsgr = ["Se añadió la salida al contexto. El usuario omitió añadir mensaje a esta acción.",
+                                "Se añadió la salida al contexto. El usuario solicitó dejar un mensaje añadido a la salidad de la ejecución del comando anterior.",
+                                "No se añadió salida al contexto y el usuario omitió dejar mensaje.",
+                                "No se añadió la salida al contexto. El usuario solicitó dejar un mensaje a la ejecución del comando anterior."]
+                                add_context_confirm = input("""
+    ______________________________________________
+
+        Opciones Añadir Salida al Contexto.
+     1) Añandir salida al contexto y continuar
+     2)      (1 + Añadir mensaje)
+     3) No añadir salida al contexto y continuar
+     4)      (3 + añadir mensaje)
+    ______________________________________________
+
+                                """).lower().strip()
+                                if add_context_confirm:
+                                    if int(add_context_confirm) <  5 and int(add_context_confirm):
+                                        system_execution_context[f"output_{action['group']}_{action['member']}_{int(time.time())}"] = xmsgr[int(add_context_confirm)]
+                                        print("\n(Salida añadida al contexto de Osiris para futuras referencias.)")
+#                                elif add_context_confirm == "3":
+#                                    system_execution_context[f"output_{action['group']}_{action['member']}_{int(time.time())}"] = command_output
+#                                    print("\n(La salida no se añadió al contexto.)")
+                                    else:
+                                        print("Reintente de Nuevo")
+                                        add_cc()
+                                else:
+                                    print("Reintente de Nuevo")
+                                    add_cc()
+                            add_cc()
                     else:
                         print(f"👎 El comando falló con código de salida {result.returncode}.")
                         if command_output:
-                            print("\\n--- Salida del comando (stdout) ---")
+                            print("\n--- Salida del comando (stdout) ---")
                             print(command_output)
                         if command_error:
-                            print("\\n--- Salida de error del comando (stderr) ---")
+                            print("\n--- Salida de error del comando (stderr) ---")
                             print(command_error)
                         system_execution_context[f"error_output_{action['group']}_{action['member']}_{int(time.time())}"] = {"stdout": command_output, "stderr": command_error, "returncode": result.returncode}
-                        print("\\n(Salida/Error añadidos al contexto de Osiris.)")
+                        print("\n(Salida/Error añadidos al contexto de Osiris.)")
                         #return command_error # RETORNA ERROR
                 except FileNotFoundError:
                     print(f"❌ Error: El interprete de shell (ej. bash) no se encontró. Asegúrate de que Bash esté disponible en tu PATH.")
@@ -724,7 +746,13 @@ def main(ai_response_text: str, global_mode: str = "CLI"):
                     final_output_messages.append(f"ERROR de ejecución: {exec_e} para {action['group']}->{action['member']}.")
             else:
                 print("🚫 Ejecución cancelada por el usuario.")
+                cancelby = input("Introduce el motivo por el que cancelaste la acción: \n")
+                if cancelby:
+                    system_execution_context[f"error_output_{action['group']}_{action['member']}_{int(time.time())}"] = {"stderr": "USER CANCEL HUMANO DICE: "+cancelby, "stdout": "HUMAN CANCEL OPERATION", "returncode": 666}
+                else:
+                    system_execution_context[f"error_output_{action['group']}_{action['member']}_{int(time.time())}"] = {"stderr": "USER CANCEL INPUT CONFIRM ACTION FUE CANCELADO SIN EXPLICAR MOTIVOS", "stdout": "HUMAN", "returncode": 666}
                 final_output_messages.append(f"Acción '{action['group']}->{action['member']}' cancelada por el usuario.")
+                
         else: # No necesita confirmación o no es un comando de shell (ej. dict para WEB mode fetch)
             print(f"  Comando/Directriz a Ejecutar:")
             if isinstance(command_to_execute, dict):
@@ -755,10 +783,10 @@ def main(ai_response_text: str, global_mode: str = "CLI"):
                             check=False
                         )
                         if result.returncode == 0:
-                            print("\\n--- Salida de lectura ---")
+                            print("\n--- Salida de lectura ---")
                             print(result.stdout.strip())
                             system_execution_context[f"fs_read_output_{action['member']}_{int(time.time())}"] = result.stdout.strip()
-                            print("\\n(Salida añadida al contexto de Osiris.)")
+                            print("\n(Salida añadida al contexto de Osiris.)")
                         else:
                             print(f"👎 La lectura falló con código de salida {result.returncode}.")
                             print(f"Stderr: {result.stderr.strip()}")
@@ -773,14 +801,14 @@ def main(ai_response_text: str, global_mode: str = "CLI"):
             
             final_output_messages.append(f"✔️ Acción '{action['group']}->{action['member']}' procesada (simulada/directa) exitosamente.")
 
-#    print("\\n--- Resumen del Proceso CRO ---")
+#    print("\n--- Resumen del Proceso CRO ---")
     if final_output_messages:
         for msg in final_output_messages:
             print(msg)
     else:
         print("No se generaron mensajes de resumen.")
     
-#    print("\\n--- Contenido de Contexto Acumulado (simulado) ---")
+#    print("\n--- Contenido de Contexto Acumulado (simulado) ---")
     #print(json.dumps(system_execution_context, indent=2))
-    print("\\n--- Proceso CRO Finalizado ---")
+    print("\n--- Proceso CRO Finalizado ---")
     return system_execution_context

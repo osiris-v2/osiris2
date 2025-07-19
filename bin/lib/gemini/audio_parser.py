@@ -10,6 +10,8 @@ import subprocess
 import sys
 import time
 import lib.core as core
+import re
+
 print(core.INFO)
 
 
@@ -48,6 +50,18 @@ def flagw():
         z.write("NEWAUDIO - FLAG") 
 
 
+
+def pt_audio(text):
+    """Limpia el texto eliminando bloques de código Markdown y caracteres problemáticos."""
+    # Eliminar bloques de código Markdown (```...)
+    text = re.sub(r"```.*?```", "", text, flags=re.DOTALL)
+    # Eliminar comillas simples y dobles
+    text = text.replace("'", "").replace('"', '')
+    # Eliminar caracteres especiales problemáticos para audio (ej: asteriscos, hashes, etc.)
+    text = re.sub(r"[*#'`\[\]\(\)\{\}]", " ", text)  # Reemplaza con espacios
+    return text
+
+
 def text_to_speech(text: str, lang: str = 'es', save_path: str = None) -> str | None:
     """
     Convierte el texto a voz, guarda el audio si se indica, y lo reproduce.
@@ -63,7 +77,10 @@ def text_to_speech(text: str, lang: str = 'es', save_path: str = None) -> str | 
     """
     
     global chflag
-    
+
+    text = pt_audio(text) #Limpia texto para audio
+    print("AUDIO TEXT:",text)
+
     print(f"Osiris-TTS: Iniciando conversión de texto a voz para: '{text[:50]}...' (Idioma: {lang})")
 
     # Intentar crear objeto gTTS

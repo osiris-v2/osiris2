@@ -24,8 +24,13 @@ from pathlib import Path
 
 
 script_dir = Path(__file__).resolve().parent
-print(script_dir)
+#print(script_dir)
 
+
+
+def_audio_dir="com/datas/ai/audio/"
+def_audio_lrequest=def_audio_dir+"last_request.mp3"
+def_audio_flag=def_audio_dir+"readmp3.flag"
 
 
 
@@ -40,8 +45,6 @@ except Exception as E :
     print("ERDyM:",E)
 
 
-def_audio_flag = "com/datas/readmp3.flag"
-
 
 def apf():  #alib
     global def_audio_flag
@@ -52,30 +55,15 @@ def apr():  #alib
     audioparser.flags_r([def_audio_flag])
 
 
-def pt_audio(text): #alib
-    ntext = text.replace("*"," ")
-    ntext0 = ntext.replace("`"," ")
-    ntext1 = ntext0.replace("`"," ")
-    ntext1 = ntext0.replace("#"," ")
-    pattern = r".*?```CRO\n(.*?)\n```"
-    matches = re.findall(pattern, ntext1, re.DOTALL)
-    Rext ="Audio Parsed: "
-    clear=""
-    if len(matches)>0:
-        Rtext += " Matches: " + len(matches)
-        try:
-            for i in range(len(matches)):
-                clear += ntext1.replace(matches[i]," CONTINUAMOS AUDIO ")
-        except Exception as e:
-            Rtext += "Info Exception: "+e
-    else:
-        Rtext = "No matches." + ntext1
-    Rext += clear 
-
-    return Rtext
-
-
-def_audio_lrequest="com/tmp/last_request.mp3"
+def pt_audio(text):
+    """Limpia el texto eliminando bloques de código Markdown y caracteres problemáticos."""
+    # Eliminar bloques de código Markdown (```...)
+    text = re.sub(r"```.*?```", "", text, flags=re.DOTALL)
+    # Eliminar comillas simples y dobles
+    text = text.replace("'", "").replace('"', '')
+    # Eliminar caracteres especiales problemáticos para audio (ej: asteriscos, hashes, etc.)
+    text = re.sub(r"[*#'`\[\]\(\)\{\}]", " ", text)  # Reemplaza con espacios
+    return text
 
 def HeloEnterVoide():
     apf()
@@ -84,10 +72,19 @@ def HeloEnterVoide():
 
 
 
-print(" -> -> ->  ",croparser.INFO)
+
+def while_args(argS):
+    try:
+        for i in range(len(argS)):
+            main([argS[i]])
+            time.sleep(1)
+    except Exception as e:
+        print("while_args ERR:",e) 
+
+
+#print(" -> -> ->  ",croparser.INFO)
 
 core.log_event("gemini.py", "Inicio", "No hay mas detalles" , error="None")
-
 
 # Ruta del archivo para guardar la clave cifrada
 ruta_archivo_key = "com/datas/gemini_key.enc"
@@ -176,16 +173,6 @@ Instrucciones: ¡Bienvenido a Osiris!  Usa emojis para dinamizar la conversació
 \...
 
 """
-
-
-
-def while_args(argS):
-    try:
-        for i in range(len(argS)):
-            main([argS[i]," @...  "])
-            time.sleep(1)
-    except Exception as e:
-        print("while_args ERR:",e) 
 
 
 ############
@@ -1471,32 +1458,36 @@ def aap():
 
 
 
+cro_loaded = False
+
 LIMIT_WHILE_ARGS = 10
 
+commands_map = {}
 # Función para manejar los argumentos
 def main(args):
     """Función principal que maneja los argumentos de entrada para generar respuestas del modelo."""
     global ruta_archivo_key, gemini_model, model, conversation_context, load, last_response, topic, API_KEY
-    global auto_cromode, auto_response_window, auto_ap, def_audio_lrequest
+    global auto_cromode, cro_loaded, auto_response_window, auto_ap, def_audio_dir, def_audio_lrequest, def_audio_flag
     global LIMIT_WHILE_ARGS
+    global commands_map
 
-    
-    rmain = False
+
+#    rmain = False
     #Si es un bucle de argumentos
-    if len(args) < LIMIT_WHILE_ARGS + 1:
-        arg_n = 0
-        sem = args
-        for i in range(len(sem)):
-            if sem[i].startswith("--"):
-                arg_n = arg_n + 1
-                if arg_n == len(sem):
-                    rmain = True
-        if rmain == True :
-            while_args(sem)
-            return
-            #FIN BLOKE "WHILE"
+#    if len(args) < LIMIT_WHILE_ARGS + 1:
+#        arg_n = 0
+#        sem = args
+#        for i in range(len(sem)):
+#            if sem[i].startswith("--"):
+#                arg_n = arg_n + 1
+#                if arg_n == len(sem):
+#                    rmain = True
+#        if rmain == True :
+#            while_args(sem)
+#            return
+            #FIN BLOKE "WHILE" # """"
 
-                # Si no se envían comandos, se asume que se envía una pregunta de texto.
+# Si no se envían comandos, se asume que se envía una pregunta de texto.
     if not args[0].startswith("--"):
         user_input = " ".join(args)
         response_text = generate_response(user_input)
@@ -1537,62 +1528,19 @@ def main(args):
         return
 
     try:
-        # Mapeo de comandos cortos
-        commands_map = {
-            "--auto_response_window":"--arw", #abre respuestas en ventana (on/off)
-            "--cromode":"--cm",  # Activa modo CRO (on/off)
-            "--load": "--l",
-            "--addload": "--al",
-            "--showload": "--sl",
-            "--loadimage": "--li",
-            "--showwin": "--sw",
-            "--saveload": "--sav",
-            "--saverequest": "--sr",
-            "--saveanswer": "--sa",
-            "--savecontext": "--sc",
-            "--autosave": "--as",
-            "--newquestions": "--nq",
-            "--send": "--s",
-            "--listfiles": "--ls",
-            "--clearcontext": "--cc",
-            "--loadselect": "--lsel",
-            "--loadmultiple": "--lm",
-            "--info": "--i",
-            "--export": "--exp",
-            "--import": "--imp",
-            "--search": "--s",
-            "--settopic": "--st",
-            "--reset": "--r",
-            "--loadconfig": "--lc",  # Nuevo: Cargar configuración
-            "--log": "--log",        # Nuevo: Registrar interacciones en el log
-            "--setparams": "--sp",   # Nuevo: Configurar parámetros del modelo
-            "--toggleautosave": "--ta",  # Nuevo: Activar/desactivar autosave
-            "--listmodels":"--lms", #Lista los modelos genai
-            "--selectgenailmodel":"--sgm",
-            "--aap":"--audio-auto-parse", # Seleccionar un Modelo Genai
-            "--ap":"--audio-parse",
-            "--apr":"--audio-parse-repeat",
-            "--sla":"--show-last-answer",
-            "--tvl":"--translate-video-link", #subtitula video usar metadiálogos @ (@subtitulos @fbold @color @creative etc... consultar documentación.)
-            "--li":"--load-image",
-            "--as":"--audio-save" #Copia la última respuesta procesada por audio a un nombre pasado como parámetro en com/datas.
-
-        }
-
-        
 
 
         # Verificar el primer argumento
         command = args[0]
         
-        
+
         if command == "--apr" or command == "--audio-parser-repeat":        
             apr() 
             return
         if command == "--ap" or command == "--audio-parser":
-            xLR = pt_audio(last_response)
+            xLR = last_response #  pt_audio(last_response) limpia texto desde cro parser
             print(xLR)
-            audioparser.text_to_speech(xLR,"es","com/tmp/last_request.mp3")
+            audioparser.text_to_speech(xLR,"es",def_audio_flag)
             apf()
             print("End Audio Parser")
             return
@@ -1602,10 +1550,21 @@ def main(args):
             genai.configure(api_key=API_KEY)
             model = genai.GenerativeModel(gemini_model) 
             return
+        if command == "--cmc" or command == "--cromode-commute":
+            #pone cro mode a ON o OFF sin recargar el archivo
+            if auto_cromode == True:
+                auto_cromode = False
+            else:
+                auto_cromode = True
+            print("AUTO CRO MODE STATUS: ",auto_cromode)
+            print("IS ACTIVE CRO: ",cro_loaded)
+            conversation_context += "\n ~~~INTERNAL MSG: AUTOCROMODE FUE PUESTO A:"+str(auto_cromode)+"~~~ \n"
+            return
         if command == "--cm" or  command == "--cromode":
             if auto_cromode == False:
                 auto_cromode = True
                 main(["--l","develop.info"])
+                cro_loaded = True
                 conversation_context += "\n ~~~INTERNAL MSG: AUTOCROMODE FUE ACTIVADO~~~ \n"
                 main(["--al","""Se cargó y activó --cromode , directrices desde bin/develop.info de osiris release bio verified release /var/osiris2
                     (RECORDATORIO REFRESCO ACTUALIZACION DE) 
@@ -1634,6 +1593,12 @@ def main(args):
                 Usa salida standard
                 """
             print("AUTO_AUDIO:",auto_ap)
+            return
+        if command == "--sla" or command == "--showlastanswer":
+            if conversation_context:
+                show_text_window(last_response)
+            else:
+                print("Información", "No hay texto para mostrar.")
             return            
         if command == "--arw" or  command == "--auto_response_window":
             if auto_response_window == False:
@@ -1650,13 +1615,13 @@ def main(args):
             conversation_context += str(nmx)
             print("--------------:\n\n")
             return
-        if command == "--as" or command == "--audio-save":
+        if command == "--asla" or command == "--audio-save-last-answer":
             if len(args) > 1:
-                output = subprocess.run(["cp","com/datas/"+def_audio_lrequest,args[1]])
-                print("--as",output)
+                output = subprocess.run(["cp", def_audio_lrequest, def_audio_dir+args[1]])
+                print("--asla",output)
                 return
             else :
-                print("--as ERROR: ",args)
+                print("--asla ERROR: ",args)
                 return
         if command == "--nmodel":
             sm = "\nSelección de modelos de API\n"
@@ -1771,12 +1736,6 @@ def main(args):
         elif command == "--ss" or command == "--screenshot":
             screen_shot()
             return            
-        elif command == "--sla" or command == "--showlastanswer":
-            if conversation_context:
-                show_text_window(last_response)
-            else:
-                messagebox.showinfo("Información", "No hay texto para mostrar.")
-            return
         elif command == "--la" or command == "--loadanswer":
             if conversation_context:
                 load = last_response
@@ -2002,6 +1961,77 @@ def main(args):
                 print("Error API_KEY:",f)
                 return
         print("Error:",e)
+
+
+
+
+
+
+# Mapeo de comandos cortos
+        commands_map = {
+            "--auto_response_window":"--arw", #abre respuestas en ventana (on/off)
+            "--cromode":"--cm",  # Activa modo CRO (on/off)
+            "--load": "--l",
+            "--addload": "--al",
+            "--showload": "--sl",
+            "--loadimage": "--li",
+            "--showwin": "--sw",
+            "--saveload": "--sav",
+            "--saverequest": "--sr",
+            "--saveanswer": "--sa",
+            "--savecontext": "--sc",
+            "--autosave": "--as",
+            "--newquestions": "--nq",
+            "--send": "--s",
+            "--listfiles": "--ls",
+            "--clearcontext": "--cc",
+            "--loadselect": "--lsel",
+            "--loadmultiple": "--lm",
+            "--info": "--i",
+            "--export": "--exp",
+            "--import": "--imp",
+            "--search": "--s",
+            "--settopic": "--st",
+            "--reset": "--r",
+            "--loadconfig": "--lc",  # Nuevo: Cargar configuración
+            "--log": "--log",        # Nuevo: Registrar interacciones en el log
+            "--setparams": "--sp",   # Nuevo: Configurar parámetros del modelo
+            "--toggleautosave": "--ta",  # Nuevo: Activar/desactivar autosave
+            "--listmodels":"--lms", #Lista los modelos genai
+            "--selectgenailmodel":"--sgm",
+            "--aap":"--audio-auto-parse", # Seleccionar un Modelo Genai
+            "--ap":"--audio-parse",
+            "--apr":"--audio-parse-repeat",
+            "--sla":"--show-last-answer",
+            "--tvl":"--translate-video-link", #subtitula video usar metadiálogos @ (@subtitulos @fbold @color @creative etc... consultar documentación.)
+            "--li":"--load-image",
+            "--asla":"--audio-save-last-answer", #Copia la última respuesta procesada por audio a un nombre pasado como parámetro guardándolo en com/datas.
+            "--cmc":"--cromode-commute" #cambia el estado de auto cromode a true / false
+        }
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Ejecutar el programa
 
 
@@ -2014,6 +2044,7 @@ def fecha_hora_g():
     timestamp_unix = int(time.time()) 
     fecha_hora  = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(timestamp_unix))
     return fecha_hora
+
 #fecha_hora = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 fecha_hora = fecha_hora_g()
@@ -2021,16 +2052,29 @@ fecha_hora = fecha_hora_g()
 init = 0
 HELO = "\nHELO START - Se Ha inciado el SISTEMA OSIRIS a las: " + fecha_hora
 
-main(["--cm","--aap","--apr"])
-main(["--sgm","--arw","--apr"])
-main(HELO)
-main(["--l","loadCore.human.ai"])
-main(["--strict","--al","info.human.ai dijo."])
-print(["Escriba --al info.human.ai Conversación Anadido para Carga de Inicio"])
+use_def = False
+
+if sys.argv[2] == "--preload":
+    print("Iniciando precargas")
+    while_args(["--arw","--cm","--aap","--apr","--sgm","--apr"])
+    main(HELO)
+    main(["--l","/var/osiris2/bin/tool/loadCore.human.ai"])
+    ####main(["--al","--l tool/loadCore.human.ai dijo."])
+    print(["Escriba --al más texto (ej: info.human.ai Conversación Anadido para Carga de Inicio )"])
+    while_args(["--apr"])
+    print("Precargas finalizadas")
+else:
+    print("No se definió precarga. Se continúa con carga por defecto")
+    while_args(["--aap"])
+    use_def=True
+
+#print(sys.argv)
+
+
 conversation_context += HELO+"\n  Usa El Comando --arw para activar respuesta GUI           "
 
-if __name__ == "__main__":
-    init = init + 1
-    if init > 1:
-        HELO = ""
-    main(sys.argv[1:] + HELO )
+#main(sys.argv[1:] + HELO )
+if use_def == True:
+    while_args(["--ap","--apr"])
+    print("------------useDEF------------")
+print("EOF:gemini.py:2080")
