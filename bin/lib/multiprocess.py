@@ -3,9 +3,11 @@ import subprocess
 import time
 import signal
 import readline
-
+import lib.processstart as ps
 # Diccionario global para almacenar los handlers de procesos
 process_handlers = {}
+
+print("MP:",ps.INFO)
 
 # Información general del módulo
 info = """
@@ -94,7 +96,8 @@ class ProcessManager:
         if mode == "bg":
             process = subprocess.Popen(command, cwd=cwd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         else:
-            process = subprocess.Popen(command, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            process = mp.mp(command)
+            #process = subprocess.Popen(command, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     
         # Crear y almacenar el handler del proceso en el diccionario global
         handler = ProcessHandler(name, process, metadata, mode)  # Pasar mode aquí

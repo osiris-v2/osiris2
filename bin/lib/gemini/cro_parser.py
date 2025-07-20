@@ -751,17 +751,14 @@ def main(ai_response_text: str, global_mode: str = "CLI"):
                                     msgF = accr[valor_obtenido - 1] + msg
                                     print("ADD_TO_CONTEX:")
                                     #print(msg)
-                                    MSG = """
-                                    #SALIDA DEL COMANDO:
-                                    #----------------------
-
-                                    """+command_output+"""
-                                    #----------------------
-                                    #FIN SALIDA DEL COMANDO
-                                    #----------------------
-                                    """+msgF+"""
-                                    -----------------------
-                                    """
+                                    MSG = """                                    
+"""+msgF+"""                                    
+--------------------------------
+→SALIDA DEL COMANDO:
+    """+command_output+"""
+→FIN SALIDA DEL COMANDO.
+--------------------------------
+"""
                                     print(MSG)                                    
                                     system_execution_context[f"output_{action['group']}_{action['member']}_{int(time.time())}"] = MSG
                                     break # Sale del bucle porque la condicion se cumple

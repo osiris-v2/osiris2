@@ -7,7 +7,7 @@ import signal
 import sys
 import multiprocessing
 import random
-
+INFO = "MODULE PROCCESSSTART LIB LOADED"
 #print("Import module processstart")
 
 prueba = False

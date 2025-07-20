@@ -5,7 +5,7 @@ AUDIO_DIR="/var/osiris2/bin/com/datas/ai/audio"
 FLAG_FILE="${AUDIO_DIR}/readmp3.flag" # Ruta completa para el flag
 DEFAULT_AUDIO_FILE="${AUDIO_DIR}/last_request.mp3" # Ruta completa para el audio por defecto
 
-FFPLAY_COMMAND_BASE="ffplay -nodisp -autoexit -hide_banner" # Comando base para ffplay
+FFPLAY_COMMAND_BASE="ffplay -nodisp -autoexit -hide_banner -volume 88" # Comando base para ffplay
 
 # Función para detener cualquier proceso ffplay existente que esté reproduciendo archivos del directorio AUDIO_DIR
 stop_ffplay() {

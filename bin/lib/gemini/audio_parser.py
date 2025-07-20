@@ -59,7 +59,8 @@ def pt_audio(text):
     # Eliminar comillas simples y dobles
     text = text.replace("'", "").replace('"', '')
     # Eliminar caracteres especiales problemáticos para audio (ej: asteriscos, hashes, etc.)
-    text = re.sub(r"[*#'`\[\]\(\)\{\}]", " ", text)  # Reemplaza con espacios
+    text = re.sub(r"[*#'`\[\]\(\)\{\}\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F900-\U0001F9FF\U00002600-\U000027BF]+", " ", text) # Reemplaza con espacios y emojis
+#    text = re.sub(r"[*#'`\[\]\(\)\{\}]", " ", text)  # Reemplaza con espacios
     return text
 
 

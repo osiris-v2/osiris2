@@ -1332,7 +1332,7 @@ def generate_with_image(image_path,ask):
     return None
 
 
-context_mode = "fast"
+context_mode = "normal"
 def generate_response(user_input):
     """Genera una respuesta del modelo basada en la entrada del usuario."""
     global conversation_context, last_response,context_mode
@@ -1509,9 +1509,11 @@ def main(args):
 #            print("----------")
             CROreturn = croparser.main(response_text)
             print("CRO:auto")
+            CRO = None
             if not CROreturn :
                 print("NOT CRO RESULTS")
             else:
+                CRO = True
                 response = "True CRO"
                 CROreturn_text = "Resultados parseado CRO"
                 for key, value in CROreturn.items():
@@ -1532,8 +1534,19 @@ def main(args):
 # Y luego, si necesitas loggear el diccionario completo:
 # log_interaction(user_input, json.dumps(response_text, indent=2))
                 conversation_context += str(CROreturn_text)
-                response = generate_response("Resultados añadido al contexto. Analiza.")
-                print(response)
+                response = generate_response("RETROALIMENTACION Resultados añadido al contexto. Analiza. Se Procesará CRO si está Activo")
+                if CRO == True :
+                    if response:
+                        CROreturn2 = croparser.main(response)
+                        if CROreturn2:
+                            conversation_context += CROreturn2
+                            response = generate_response("RETROALIMENTACION Resultados añadido al contexto. Analiza. ESTA RESPUESTAS NO PROCESARA CRO USA TEXTO PLANO AUNQE esté Activo")
+                            print(":",CROreturn2)
+                        else:
+                            print("No-CROReturn2")
+                        print(response)
+                    else:
+                        print("No+Response.")
         aap()
         arw()
         log_interaction(user_input, response_text)  # Nuevo: Registrar interacción
@@ -2098,4 +2111,4 @@ conversation_context += HELO+"\n  Usa El Comando --arw para activar respuesta GU
 if use_def == True:
     while_args(["--ap","--apr"])
     print("------------useDEF------------")
-print("EOF:gemini.py:2080")
+print("EOF:gemini.py:2114")
