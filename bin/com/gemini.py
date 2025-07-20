@@ -1539,7 +1539,7 @@ def main(args):
                     if response:
                         CROreturn2 = croparser.main(response)
                         if CROreturn2:
-                            conversation_context += CROreturn2
+                            conversation_context += str(CROreturn2)
                             response = generate_response("RETROALIMENTACION Resultados añadido al contexto. Analiza. ESTA RESPUESTAS NO PROCESARA CRO USA TEXTO PLANO AUNQE esté Activo")
                             print(":",CROreturn2)
                         else:
