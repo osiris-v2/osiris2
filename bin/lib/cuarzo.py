@@ -15,6 +15,8 @@ from PyQt6.QtCore import (
 )
 
 
+user_text_ret = ""
+
 # --- CLASES BASE PARA VENTANAS ASISTENTES ---
 
 class BaseAssistantWindow(QDialog):
@@ -492,6 +494,7 @@ class ResponseViewerWindow(BaseAssistantWindow):
         self.main_layout.addLayout(input_layout)
 
     def _send_input_to_ai(self):
+        global user_text_ret
         '''Sends the user input to stdout with a special prefix for the AI to pick up. MODIFIED for QTextEdit.'''
         # MODIFIED: Use toPlainText() for QTextEdit
         user_text = self.user_input_field.toPlainText().strip()
@@ -500,9 +503,9 @@ class ResponseViewerWindow(BaseAssistantWindow):
             # configured to read and interpret this output.
             sys.stdout.write(f"{user_text}\n")
             sys.stdout.flush() # Ensure it's written immediately
-
             QMessageBox.information(self, "Envío Confirmado", "Tu mensaje ha sido enviado al sistema Osiris. El sistema lo procesará.")
             self.user_input_field.clear() # Clear the input field after sending
+            user_text_ret += user_text
         else:
             QMessageBox.warning(self, "Advertencia", "Por favor, introduce texto antes de enviar.")
 
@@ -676,11 +679,16 @@ def show_ai_response_window(text: str):
     if QApplication.instance() == app: # Only call exec if this app instance is the main one
         app.exec() # Keep the application running and handle events
 
+
 def main(args):
     # This is an example text that the AI could return.
+    global user_text_ret
     sample_ai_response = ''' ¡Hola! 😊 Soy Gemini AI, tu asistente aquí en Osiris. ¿En qué puedo ayudarte hoy? '''
     sample_ai_response+=args
     show_ai_response_window(sample_ai_response)
+    zm = user_text_ret
+    user_text_ret = ""
+    return zm
 
 if __name__ == "__main__":
     main(sys.argv[1:])

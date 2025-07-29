@@ -22,11 +22,17 @@ import hashlib
 #import datetime
 from pathlib import Path
 
+bytess = time.time()
+bytess = str(bytess).encode("utf-8")
+sessid = hashlib.md5(bytess).hexdigest()
+sessname = str(sessid)
+print("SESSION:",sessid)
+
 
 script_dir = Path(__file__).resolve().parent
 #print(script_dir)
 
-
+log_file = "com/datas/conversation_log_"+sessname+"_.txt"
 
 def_audio_dir="com/datas/ai/audio/"
 def_audio_lrequest=def_audio_dir+"last_request.mp3"
@@ -320,11 +326,18 @@ def decode_img(base64_data):
 
 def show_text_window(text):
     global conversation_context
-    rtext = acero.show_ai_response_window(text)
-    print("Win Cuarzo (aluminium, acero) Selected")
+    rtext = acero.main(text)
+    print("Win Cuarzo (aluminium, acero) Selected:",rtext)
 #    win.show_text_window(text)
-    conversation_context += rtext
-    return rtext
+    if rtext:
+        main(rtext)
+#        rsp = generate_response(rtext)    
+#        if rsp:
+#            conversation_context += rsp
+#            print(rsp)
+#            main(["sla"])
+
+#    return rtext
 
 #show_text_window("HOLA")
 
@@ -1332,7 +1345,7 @@ def generate_with_image(image_path,ask):
     return None
 
 
-context_mode = "normal"
+context_mode = "fast"
 def generate_response(user_input):
     """Genera una respuesta del modelo basada en la entrada del usuario."""
     global conversation_context, last_response,context_mode
@@ -1420,7 +1433,7 @@ def load_config(config_file):
 # Nuevo: Guardar logs de conversación
 def log_interaction(user_input, response_text):
     """Guarda las interacciones en un archivo log con timestamp."""
-    log_file = "com/datas/conversation_log.txt"
+    global log_file
     try:
         with open(log_file, 'a', encoding='utf-8') as log:
             log.write(f"{datetime.now()} - User: {user_input}\n {response_text}\n\n")
@@ -1540,7 +1553,19 @@ def main(args):
                         CROreturn2 = croparser.main(response)
                         if CROreturn2:
                             conversation_context += str(CROreturn2)
-                            response = generate_response("RETROALIMENTACION Resultados añadido al contexto. Analiza. ESTA RESPUESTAS NO PROCESARA CRO USA TEXTO PLANO AUNQE esté Activo")
+                            r_input = input("""
+                                Menú de Retro Alimentación:
+                                """)
+                            if r_input:
+                                ri2 = """
+                                Usuario Retroalimenta Dice:
+                                """+r_input+"""
+                                """
+                            else:
+                                r_input=""
+                            ra = "RETROALIMENTACION Resultados añadido al contexto. Analiza. ESTA RESPUESTAS NO PROCESARA CRO USA TEXTO PLANO AUNQE esté Activo"
+                            response = generate_response(ra+r_input)
+                            
                             print(":",CROreturn2)
                         else:
                             print("No-CROReturn2")
