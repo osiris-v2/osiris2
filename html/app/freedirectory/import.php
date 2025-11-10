@@ -86,7 +86,7 @@ break;
 }
 
 
-switch($ext){
+switch(strtolower($ext)){
 
 case 'gif':
 case 'jpg':

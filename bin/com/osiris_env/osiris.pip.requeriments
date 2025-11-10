@@ -37,3 +37,6 @@ pygments
 pydub
 gtts
 tensorflow
+torch
+torchvision
+torchaudio

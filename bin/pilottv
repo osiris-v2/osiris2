@@ -28,7 +28,7 @@ FFMPEG_FILE_PILOT="com/datas/ffmpeg/intro.mp4"
 progress_file="${datasDir}/progress_tv.txt"
 # Obtener la ruta completa del script
 SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
-logoTv="$ffmpegDir/logos/logo.png"
+logoTv="$ffmpegDir/logos/ptv.png"
 sinput=" Input File "
 input_file=$sinput
 # Cambiar al directorio del script
@@ -96,16 +96,17 @@ loglevel="warning"
   com/osiris_env/ffmpeg/bin/ffmpeg -y -re \
     -i "$input_file" \
     -i "$logoTv" \
-    -filter_complex "[0:v]scale=-2:540[v];[1:v]scale=iw*0.3:-1[logo];[v][logo]overlay=15:20:enable='between(t,0,inf)'" \
+    -filter_complex "[0:v]scale=-2:720[v];[1:v]scale=iw*0.4:-1[logo];[v][logo]overlay=15:20:enable='between(t,0,inf)'" \
     -loglevel "$loglevel" -preset ultrafast -b:a 128k \
-    -crf 28 \
+    -ar 44100 \
     -bf 2 \
     -coder 1 \
     -tune zerolatency \
-    -b:v 0 -bufsize 3000k -c:v h264 -c:a aac \
+    -bufsize 5000k -c:v libx264 -c:a aac \
     -bsf:v h264_mp4toannexb -bsf:a aac_adtstoasc -movflags +faststart -af "$audiofilter" \
-    -pix_fmt yuv420p -g 12 -r 24 -maxrate 1000k \
-    -s 856x540 \
+    -pix_fmt yuv420p -g 12 -r 24 -maxrate 2500k \
+    -vbr 2500k \
+    -s 1280x720 \
     -cpu-used 0 \
     -progress "$progress_file" \
     -metadata "text='$PREFIX_TV'" \

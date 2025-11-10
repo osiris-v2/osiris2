@@ -107,6 +107,8 @@ bin/install/lets-cert.sh
 bin/install/ssl-cert.sh
 #instala editor de escritorio Sublime Text
 bin/install/sublimeText_install.sh
+#Android studio
+bin/install/android_studio_install.sh
 
 
 

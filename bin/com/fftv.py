@@ -60,43 +60,46 @@ pid_queue = multiprocessing.Queue()  # Cola compartida para almacenar el PID del
 pid_proceso = None
 yt_last_args = False
 
-
 ffmpeg_exec="com/osiris_env/ffmpeg/bin/ffmpeg"
 ffprobe_exec="com/osiris_env/ffmpeg/bin/ffprobe"
-
 
 lineInput = None
 def_output = "rtmp://a.rtmp.youtube.com/live2/hypq-r4z9-9r8g-3phm-9py4"
 def_fout = "flv"
 def_progress_file = "com/datas/progress_tv.txt"
 def_seek_start = None #"00:38:17"
-def_audio_filter = "aresample=async=1,loudnorm=I=-16:TP=-1.5:LRA=11"
+def_audio_filter = "aresample=async=1,loudnorm=I=-14:TP=-1:LRA=8"
 def_preset = "ultrafast"
 def_screen = "1280x720"
 def_fps = "24"
 def_intro_file = "com/datas/ffmpeg/intro.mp4"
-def_profile = "youtube:2"
+def_profile = "ptv"
 def_logo_tv = "logo.png"
 def_fdir = yt_default_list_dir = "com/datas/ffmpeg"
 def_crf = "23"
 def_re = True
 def_ar = "44100"
+def_pix_fmt = "yuv420p"
 def_ls_extensions = ["mp4","mkv","webm","avi","mov","gif"]
 
 profiles = {
-    "youtube:1": {
-        "profileType":"Youtube Live Streaming 480p",
+    "ptv": {
+        "profileType":"Proletariado TV",
         "preset": def_preset,
-        "vbr":"1000k",
+        "vbr":"2500k",
         "abr":"128k",
-        "bufsize":"1296k",
-        "stream_loop":"-1",
+        "bufsize":"5000k",
+        "stream_loop":None,
+	"audio_filter":def_audio_filter,
+	"ar":def_ar,
+	"pix_fmt":"yuv420p",
         "input":lineInput,
-        "maxrate":"648k",
+        "maxrate":"2500k",
         "output":def_output,
         "progress":def_progress_file,
         "ss":def_seek_start,
-        "screen":"640x420"
+        "screen":"1280x720",
+	"logo": "/logos/ptv.png"
     },
         "youtube:2": {
         "profileType":"Youtube Live Streaming 720p",
@@ -379,7 +382,7 @@ def main(args):
                 if len(args)>2:
                     if args[2] == "lasturl":
                         main(["yt","lasturl"])
-                        return   
+                        return
                     try:
                         intn = int(args[2])
                         if  intn > 0:
@@ -472,17 +475,17 @@ def main(args):
                     intn = int(args[2])
                     if  intn > 0:
                         print(" MPV PLay:"+str(intn))
-                        subprocess.Popen(["scripts/plaympv.sh",os.path.abspath("" + yt_default_list_dir +"/"+ play[int(intn) - 1])],stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,shell=False)
+                        subprocess.Popen(["scripts/plaympv.sh",os.path.abspath("" + yt_default_list_dir +"/"+ play[int(intn) - 1])],stdout=subprocess.PIPE, stderr=subprocess.PIPE,shell=False)
                 except Exception as e:
                     if args[2].startswith(iprot):
                         main([args[2]])
                         if last_url != "" and last_url != False and last_url != None:
-                            subp = subprocess.Popen(["scripts/plaympv.sh",last_url],stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,shell=False)
+                            subp = subprocess.Popen(["scripts/plaympv.sh",last_url],stdout=subprocess.PIPE, stderr=subprocess.PIPE,shell=False)
                             print("HTTP DIRECT:",last_url)
                         return
                     elif args[2] == "lasturl":
                         if last_url != "" and last_url != False and last_url != None:
-                            subp = subprocess.Popen(["/home/osiris/plaympv.sh",last_url],stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,shell=False)
+                            subp = subprocess.Popen(["/home/osiris/plaympv.sh",last_url],stdout=subprocess.PIPE, stderr=subprocess.PIPE,shell=False)
                             print("LAST URL:",last_url)                                                
                     else:
                         print("MPV Exception:",e)
@@ -673,6 +676,22 @@ def main(args):
     else:
         yt_default_fps = []
 
+
+
+#pix_fmt (pixel format)
+
+    yt_default_pix_fmt = profiles[profile_name].get("pix_fmt") if "pix_fmt" in profiles[profile_name] else def_pix_fmt
+    if yt_default_pix_fmt != None:
+        if yt_default_pix_fmt == "":
+            yt_default_pix_fmt = []
+        else:
+            yt_default_pix_fmt = ["-pix_fmt",yt_default_pix_fmt]
+    else:
+        yt_default_pix_fmt = []
+
+
+
+
 # logo default (image)
 
     yt_logo_tv = profiles[profile_name].get("logo") if "logo" in profiles[profile_name] else def_logo_tv
@@ -807,7 +826,7 @@ def main(args):
                     args.append("intro")
             if args[1] == "lasturl":
                 if last_url:
-                    print("MAIN:",last_url)
+#                    print("MAIN:",last_url)
                     parse_input(last_url)
                     main(["yt","-i",last_url,"-c","-M","Lasturl mode change stream"])
                     return
@@ -1163,7 +1182,6 @@ def thread():
     hilo.start()
 
 
-
 def funcion_proceso(args):
     global estado_proceso
     try:
@@ -1181,13 +1199,15 @@ def funcion_proceso(args):
 
 def _funcion_interna(args):
     try:
-        proceso = subprocess.Popen(args,bufsize=0,close_fds=True,restore_signals=True,shell=False,stdin=None,stdout=None,stderr=subprocess.DEVNULL)
+        proceso = subprocess.Popen(args,bufsize=0,close_fds=True,restore_signals=True,shell=False,stdin=None,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         pid_proceso = proceso.pid
         pid_queue.put(pid_proceso)  # Pasamos el PID del proceso hijo a la cola
         print("Iniciado Hilo", pid_proceso)
     except Exception as e:
         print("Error Popen:", e)
         return
+
+
 
 def detener_proceso():
     global estado_proceso
