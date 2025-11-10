@@ -218,6 +218,7 @@ gemini_models = ["gemini-2.5-flash-preview-05-20",
 
 # Define la clave API (si ya existe)
 API_KEY = os.getenv("GOOGLE_API_KEY")
+API_KEY="AIzaSyBYMyXFV_hXU7Wxyg-b-8m983SVkZaKJOs"
 
 #Define modelo a usar
 gemini_model = gemini_models[0]
@@ -283,7 +284,11 @@ def select_model():
     conversation_context += inp + "\nCambiando a modelo: " + change_model_to + "\n"
 
 
-select_model()
+try:
+    select_model()
+    print("Select Model Tryed")
+except Exception as e:
+    print("ERROR EXCEPTON Select Model: ",e)
 
 load = ""
 last_response = ""
@@ -472,26 +477,26 @@ def video_translate(video_file_name="",prompt="",args=None):
         mode = "fixed" # bg / fixed
         if mode == "bg":
             print("""
-            	#################################################
+                #################################################
                 → Se está procesando el vídeo en segundo plano ←
                 #################################################
-            	
-            	""")
+                
+                """)
         elif mode == "fixed":
             print("""
-            	
-            	#################################################
+                
+                #################################################
                 → Se está procesando el vídeo. Espere........  ←
                 #################################################
-            	
-            	""")
+                
+                """)
         obj = {
         "mode":mode,
         "name":None,
         "com":["/usr/local/ffmpeg/bin/ffmpeg","-y","-loglevel","error","-i",video_file_name,
         "-af","aresample=async=1,loudnorm=I=-16:TP=-1.5:LRA=11",
         "-vf","scale=-2:720,subtitles="+vtranslate+":force_style='"+force_style_sub+"'",
-	"-pix_fmt","yuv420p",
+    "-pix_fmt","yuv420p",
         "-preset","ultrafast",
         "-c:v","libx264","-c:a","aac","-crf","21",
         subtitulado_out] 
@@ -684,6 +689,7 @@ def generate_response(user_input):
         #messagebox.showerror("Error", f"Error generando contenido con el modelo: {e}")
         print("Error", f"Error generando contenido con el modelo: {e}")
         return None
+
 
 def save_request(user_input):
     """Guarda la solicitud del usuario en un archivo."""
@@ -1343,9 +1349,6 @@ def main(args):
 
 
 
-
-
-
 # Mapeo de comandos cortos
         commands_map = {
             "--auto_response_window":"--arw", #abre respuestas en ventana (on/off)
@@ -1433,4 +1436,5 @@ conversation_context += HELO+"\n  Usa El Comando --arw para activar respuesta GU
 if use_def == True:
     while_args(["--ap","--apr"])
     print("------------useDEF------------")
+#    main(HELO)
 print("EOF:gemini.py:2114")

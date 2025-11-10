@@ -8,8 +8,8 @@ cffi
 pyOpenSSL
 pyperclip
 PyQt5
-PyQt6
-PyQt6-WebEngine
+PyQt6==6.9.0
+PyQt6-WebEngine==6.9.0
 PyQtWebEngine
 yt-dlp
 ffmpeg
