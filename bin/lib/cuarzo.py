@@ -683,7 +683,7 @@ def show_ai_response_window(text: str):
 def main(args):
     # This is an example text that the AI could return.
     global user_text_ret
-    sample_ai_response = ''' ¡Hola! 😊 Soy Gemini AI, tu asistente aquí en Osiris. ¿En qué puedo ayudarte hoy? '''
+    sample_ai_response = ''' Cuarzo Window. \n '''
     sample_ai_response+=args
     show_ai_response_window(sample_ai_response)
     zm = user_text_ret

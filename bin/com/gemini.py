@@ -59,6 +59,8 @@ try: #importaciones dinámicas
     audioparser = core.AP
     core.dynmodule("lib.cuarzo","aceroK")
     acero = core.aceroK
+    core.dynmodule("lib.gemini.load_osiris_context","LOC")
+    LOC = core.LOC
 except Exception as E :
     print("ERDyM:",E)
 
@@ -979,6 +981,44 @@ def main(args):
                 """
             print("AUTO_AUDIO:",auto_ap)
             return
+        if command == "--loc" or command == "--load-osiris-context":
+            if args[1] == "help":
+                LOC.load_osiris_context(["--help"])
+            else:
+                response_loc = LOC.load_osiris_context(["com/datas/prueba.dev.ai.json"])
+                print("LOC RESPONSE")
+                print(response_loc)
+                option = 0 
+                while True:
+                    read_i = input("""
+                    ¿Desea añadir la salida al contexto?
+                    1)  Añadir al contexto actual
+                    2)  Borrar Contexto actual y añadir
+                    3) No añadir nada
+                    Seleccione una opción (1, 2 o 3): """)
+                    try:
+                # Intentamos convertir la entrada a un entero
+                        option = int(read_i)
+                # Verificamos que la opción esté en el rango permitido
+                        if 1 <= option <= 3:
+                            break  # Salimos del ciclo si la opción es válida
+                        else:
+                            print("❌ Opción no válida. Por favor, ingrese 1, 2 o 3.")
+                    except ValueError:
+                # Capturamos el error si la entrada no es un número
+                        print("⚠️ Entrada inválida. Por favor, ingrese un número.")
+                print("--->", read_i) # read_i contendrá la última entrada válida
+                if option == 1:
+                    conversation_context += str(response_loc)
+                elif option == 2:
+                    main(["--cc"])
+                    conversation_context += str(response_loc)
+                elif option == 3:
+                    print("No se añadió nada al contexto")
+                else:
+                    print("Error previo del while que no debería darse")
+            return
+
         if command == "--sla" or command == "--showlastanswer":
             if conversation_context:
                 show_text_window(last_response)
@@ -1357,7 +1397,7 @@ def main(args):
             "--addload": "--al", #add load  añade el texto último cargado en memoria
             "--showload": "--sl", #show load  muestra contenido cargado en memoria
             "--loadimage": "--li", #carga una imagen para enviar a la ia desde una url + texto propmt.
-            "--showwin": "--sw",
+            "--showwin": "--sw",  #Muestra todo el contexto en una ventana
             "--saveload": "--sav",
             "--saverequest": "--sr",
             "--saveanswer": "--sa",
@@ -1389,7 +1429,8 @@ def main(args):
             "--li":"--load-image",
             "--asla":"--audio-save-last-answer", #Copia la última respuesta procesada por audio a un nombre pasado como parámetro guardándolo en com/datas.
             "--cmc":"--cromode-commute", #cambia el estado de auto cromode a true / false
-            "--ctm":"--context-mode" #Modos de Contexto
+            "--ctm":"--context-mode", #Modos de Contexto
+            "--loc":"--load-osiris-context" #cargas multiples e instrucciones desde json
         }
 
 
