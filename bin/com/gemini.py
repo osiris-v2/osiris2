@@ -1010,9 +1010,13 @@ def main(args):
                 print("--->", read_i) # read_i contendrá la última entrada válida
                 if option == 1:
                     conversation_context += str(response_loc)
+                    print("Conversación añadida al contexto actual")
                 elif option == 2:
+                    main(["--exp lastLOC"])
                     main(["--cc"])
                     conversation_context += str(response_loc)
+                    print("Información LOC añadida a un contexto nuevo")
+                    print("Para recuperar el último contexto use --imp lastLOC")
                 elif option == 3:
                     print("No se añadió nada al contexto")
                 else:
