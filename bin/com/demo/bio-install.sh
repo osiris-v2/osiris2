@@ -195,6 +195,13 @@ dl $dl13  $dl13a
 sudo chmod +x $dl13a
 
 
+#generador de json para Load Osiris Context (ai)
+dl14="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/dsk/osiris_json_editor_qt_7"
+dl14a="$BIO_DIR/o3loc"
+
+dl $dl14  $dl14a
+sudo chmod +x $dl14a
+
 
 # 2. Verificar e instalar dependencias
 echo "--- Verificando dependencias Python: ${REQUIRED_PACKAGES[@]} ---"

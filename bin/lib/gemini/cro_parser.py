@@ -738,7 +738,7 @@ def main(ai_response_text: str, global_mode: str = "CLI"):
 #add_context_confirm = add_cc()
                             while True:
                                 valor_obtenido = stdout_to_context() # Llama a la funcion
-                                if 1 <= valor_obtenido <= 5:
+                                if 1 <= valor_obtenido <= 4:
                                     print(f" Seleccionado: {valor_obtenido} ")
                                     if valor_obtenido == 2 or valor_obtenido == 4:
                                         msg = input("""

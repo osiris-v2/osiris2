@@ -136,4 +136,12 @@
         "path": "/usr/bin/",
         "icon": "",
         "enabled": true
+    },,
+    {
+        "id": 19,
+        "name": "Generate LOC ",
+        "alias": "o3loc &>/dev/null",
+        "path": "/2iris",
+        "icon": "",
+        "enabled": true
     }]
