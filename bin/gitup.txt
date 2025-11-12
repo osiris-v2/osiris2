@@ -269,7 +269,7 @@ bin/com/demo/walletav.py
 bin/com/demo/aplicaciones.json
 bin/com/demo/o2doc.py
 bin/com/demo/osiris_json_editor_qt_7.py
-bin/com/demo/o3launcher.py
+bin/com/demo/o3launcher
 
 #subdirectorios bio demo
 bin/com/demo/documentation/info.txt

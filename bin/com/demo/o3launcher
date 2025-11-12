@@ -1,0 +1,222 @@
+#!/usr/bin/env python3
+import sys
+import json
+import os
+import subprocess 
+from PyQt5.QtWidgets import (
+    QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QGridLayout,
+    QMessageBox, QSpacerItem, QSizePolicy
+)
+from PyQt5.QtGui import QIcon, QPixmap
+from PyQt5.QtCore import Qt, QSize
+
+class AppLauncher(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Osiris App Launcher 🚀")
+        
+        # Tamaño inicial sugerido y tamaño MÍNIMO muy bajo para permitir reducción extrema
+        self.setGeometry(100, 100, 800, 500) 
+        self.setMinimumSize(200, 150) # Permite reducir mucho la ventana
+        
+        self.main_v_layout = QVBoxLayout()
+        self.main_v_layout.setContentsMargins(0, 0, 0, 0) 
+
+        self.setup_window_controls()
+
+        self.grid_layout = QGridLayout()
+        self.grid_layout.setAlignment(Qt.AlignTop | Qt.AlignLeft)
+        self.grid_layout.setContentsMargins(15, 15, 15, 15) 
+        self.grid_layout.setSpacing(15) 
+        
+        self.main_v_layout.addLayout(self.grid_layout)
+        self.setLayout(self.main_v_layout)
+
+        self.load_and_create_buttons()
+    
+    def setup_window_controls(self):
+        control_bar_layout = QHBoxLayout()
+        control_bar_layout.setContentsMargins(10, 5, 10, 5) 
+        control_bar_layout.addStretch(1) 
+
+        self.maximize_button = QPushButton("  maximise")
+        self.maximize_button.clicked.connect(self.toggle_maximize)
+        self.maximize_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        control_bar_layout.addWidget(self.maximize_button)
+
+        self.fullscreen_button = QPushButton("⛶ fullscreen")
+        self.fullscreen_button.clicked.connect(self.toggle_fullscreen)
+        self.fullscreen_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        control_bar_layout.addWidget(self.fullscreen_button)
+
+        self.main_v_layout.addLayout(control_bar_layout)
+
+    def toggle_maximize(self):
+        if self.isMaximized():
+            self.showNormal()
+            self.maximize_button.setText("  maximise")
+        else:
+            self.showMaximized()
+            self.maximize_button.setText("  diminish")
+
+    def toggle_fullscreen(self):
+        if self.isFullScreen():
+            self.showNormal()
+            self.fullscreen_button.setText("⛶ fullscreen")
+            self.maximize_button.show() 
+        else:
+            self.showFullScreen()
+            self.fullscreen_button.setText("Exit Fullscreen")
+            self.maximize_button.hide() 
+
+    def load_and_create_buttons(self):
+        # ... [ Código de limpieza de widgets y carga de JSON sin cambios ] ...
+        for i in reversed(range(self.grid_layout.count())):
+            widget_item = self.grid_layout.itemAt(i)
+            if widget_item is not None:
+                if widget_item.widget():
+                    widget_item.widget().deleteLater()
+                elif widget_item.layout():
+                    self._clear_layout(widget_item.layout())
+
+        cols = 3 
+        row = 0
+        col = 0
+        self.app_cards = [] # Lista para almacenar las tarjetas y gestionarlas dinámicamente
+
+        try:
+            if not os.path.exists("aplicaciones.json"):
+                QMessageBox.critical(self, "Error", "Archivo 'aplicaciones.json' no encontrado.")
+                return
+
+            with open("aplicaciones.json", "r", encoding='utf-8') as file:
+                applications = json.load(file)
+
+            if not isinstance(applications, list):
+                QMessageBox.critical(self, "Error de Formato", "El archivo 'aplicaciones.json' debe contener una lista.")
+                return
+
+            for app_data in applications:
+                if not app_data.get("enabled", False):
+                    continue
+
+                name = app_data.get("name", "Aplicación desconocida")
+                alias = app_data.get("alias", "")
+                path = app_data.get("path", "")
+                icon_path = app_data.get("icon") 
+                full_command = os.path.join(path, alias) if path and alias else alias
+
+                app_card = QWidget()
+                # Permitir encogerse agresivamente y expandirse
+                app_card.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
+
+                app_card.setStyleSheet("""
+                    QWidget {
+                        border: 1px solid #ddd;
+                        border-radius: 8px;
+                        background-color: #fcfcfc;
+                        padding: 5px; /* Reducido el padding para permitir más compresión */
+                        min-width: 120px; /* Tamaño mínimo sugerido para la tarjeta */
+                    }
+                    QWidget:hover {
+                        border: 1px solid #aaddff; 
+                        background-color: #f0f8ff; 
+                    }
+                """)
+                
+                app_card_layout = QVBoxLayout(app_card)
+                app_card_layout.setContentsMargins(5, 5, 5, 5) 
+                app_card_layout.setSpacing(5) 
+
+                icon_name_layout = QHBoxLayout()
+                icon_label = QLabel()
+                
+                if icon_path and os.path.exists(icon_path):
+                    pixmap = QPixmap(icon_path)
+                    if not pixmap.isNull(): 
+                        # Escalar icono al reducir la ventana puede ser complejo, mantenemos un tamaño fijo o pequeño
+                        icon_label.setPixmap(pixmap.scaled(24, 24, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+                
+                icon_name_layout.addWidget(icon_label)
+                
+                name_label = QLabel(name)
+                name_label.setStyleSheet("font-weight: bold; font-size: 10px; color: #333;")
+                # Permitir que el texto se comprima mucho o se corte
+                name_label.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
+                name_label.setWordWrap(True) # Envolver texto si no cabe
+                icon_name_layout.addWidget(name_label)
+                icon_name_layout.addStretch(1) 
+                app_card_layout.addLayout(icon_name_layout)
+
+                buttons_layout = QHBoxLayout()
+                
+                launch_button = QPushButton("Lanzar") # Texto más corto para compresión
+                launch_button.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed) # Puede expandirse/comprimirse horizontalmente
+                launch_button.setToolTip(f"Ejecutar: {full_command}")
+                launch_button.clicked.connect(lambda _, cmd=full_command, app_name=name: self.launch_application(cmd, app_name))
+                buttons_layout.addWidget(launch_button)
+
+                info_button = QPushButton("Info") # Texto más corto
+                info_button.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
+                info_button.setToolTip(f"Mostrar detalles de {name}")
+                info_button.clicked.connect(lambda _, a=app_data: self.show_info(a))
+                buttons_layout.addWidget(info_button)
+                
+                buttons_layout.addStretch(1) 
+                app_card_layout.addLayout(buttons_layout)
+                
+                app_card_layout.addStretch(1) 
+
+                self.grid_layout.addWidget(app_card, row, col)
+                self.app_cards.append(app_card) # Almacenar referencia
+
+                col += 1
+                if col >= cols:
+                    col = 0
+                    row += 1
+            
+            self.grid_layout.setRowStretch(row, 1)
+            self.grid_layout.setColumnStretch(cols, 1)
+
+        except FileNotFoundError:
+            pass 
+        except json.JSONDecodeError:
+            QMessageBox.critical(self, "Error de JSON", "Error al decodificar 'aplicaciones.json'.")
+        except Exception as e:
+             QMessageBox.critical(self, "Error General de Carga", f"Ocurrió un error inesperado al cargar aplicaciones: {e}")
+
+    # --- Métodos launch_application, show_info y _clear_layout sin cambios ---
+    def launch_application(self, command, app_name):
+        if not command:
+            QMessageBox.warning(self, "Advertencia", f"No se encontró un comando o ruta válida para '{app_name}'.")
+            return
+        try:
+            subprocess.Popen(command, shell=True) 
+            print(f"Lanzando: {command}")
+        except FileNotFoundError:
+             QMessageBox.critical(self, "Error de Ejecución", f"No se pudo encontrar el ejecutable '{command}'.")
+        except Exception as e:
+            QMessageBox.critical(self, "Error de Ejecución", f"Ocurrió un error al intentar ejecutar '{command}': {e}")
+    def show_info(self, app_data):
+        info_text = f"Nombre: {app_data.get('name', 'N/A')}\n"
+        info_text += f"Alias/Comando: {app_data.get('alias', 'N/A')}\n"
+        info_text += f"Ruta: {app_data.get('path', 'N/A')}\n"
+        info_text += f"Icono: {app_data.get('icon', 'N/A')}\n"
+        info_text += f"Habilitado: {'Sí' if app_data.get('enabled', False) else 'No'}"
+        QMessageBox.information(self, f"Info: {app_data.get('name', '')}", info_text)
+    def _clear_layout(self, layout):
+        if layout is not None:
+            while layout.count():
+                item = layout.takeAt(0)
+                widget = item.widget()
+                if widget is not None:
+                    widget.deleteLater()
+                else:
+                    self._clear_layout(item.layout())
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    launcher = AppLauncher()
+    launcher.show()
+    sys.exit(app.exec_())
+
