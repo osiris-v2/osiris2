@@ -100,7 +100,7 @@ sudo chmod +x $dl1a
 
 
 #launcher
-dl2="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/o3launcher.py"
+dl2="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/o3launcher"
 dl2a="$BIO_DIR/o3launcher"
 
 dl $dl2  $dl2a
