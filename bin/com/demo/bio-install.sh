@@ -196,7 +196,7 @@ sudo chmod +x $dl13a
 
 
 #generador de json para Load Osiris Context (ai)
-dl14="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/dsk/osiris_json_editor_qt_7.py"
+dl14="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/demo/osiris_json_editor_qt_7.py"
 dl14a="$BIO_DIR/o3loc"
 
 dl $dl14  $dl14a
