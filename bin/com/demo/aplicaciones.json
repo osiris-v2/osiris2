@@ -136,7 +136,7 @@
         "path": "/usr/bin/",
         "icon": "",
         "enabled": true
-    },,
+    },
     {
         "id": 19,
         "name": "Generate LOC ",
