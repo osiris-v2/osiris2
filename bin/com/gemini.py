@@ -982,10 +982,23 @@ def main(args):
             print("AUTO_AUDIO:",auto_ap)
             return
         if command == "--loc" or command == "--load-osiris-context":
+            if len(args) < 2:
+                print("ERROR: Se requiere un archivo para cargar o 'help'. Uso: --loc <archivo> o --loc help")
+                return
+
+            # Si el argumento es "help", se mantiene el comportamiento actual
             if args[1] == "help":
                 LOC.load_osiris_context(["--help"])
             else:
-                response_loc = LOC.load_osiris_context(["com/datas/prueba.dev.ai.json"])
+                filepath_to_load = args[1] # Obtiene la ruta del archivo del argumento
+                
+                # Verifica si el archivo existe
+                if not os.path.isfile(filepath_to_load):
+                    print(f"ADVERTENCIA: El archivo '{filepath_to_load}' no existe. No se realizará la carga de contexto.")
+                    return # Suspende la carga y sale de la función
+
+                # Si el archivo existe, procede con la carga
+                response_loc = LOC.load_osiris_context([filepath_to_load])
                 print("LOC RESPONSE")
                 print(response_loc)
                 option = 0 
@@ -1012,8 +1025,8 @@ def main(args):
                     conversation_context += str(response_loc)
                     print("Conversación añadida al contexto actual")
                 elif option == 2:
-                    main(["--exp lastLOC"])
-                    main(["--cc"])
+                    main(["--exp", "lastLOC"]) # Exportar contexto actual antes de borrar
+                    main(["--cc"]) # Limpiar contexto actual
                     conversation_context += str(response_loc)
                     print("Información LOC añadida a un contexto nuevo")
                     print("Para recuperar el último contexto use --imp lastLOC")
@@ -1022,7 +1035,6 @@ def main(args):
                 else:
                     print("Error previo del while que no debería darse")
             return
-
         if command == "--sla" or command == "--showlastanswer":
             if conversation_context:
                 show_text_window(last_response)
