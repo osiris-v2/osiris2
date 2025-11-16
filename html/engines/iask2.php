@@ -72,7 +72,7 @@ $ask = base64_encode($ask);
 
 
 if(!$noExec){
-$response = shell_exec("../../bin/com/web/iask.sh  \"$selectModel\" ". $ask ." ".$NContext." ".$raddr." CXID-".$context_id." ".$xdata." ".$context_mode);
+$response = shell_exec("../../bin/com/web/iask2.sh  \"$selectModel\" ". $ask ." ".$NContext." ".$raddr." CXID-".$context_id." ".$xdata." ".$context_mode);
 }
 
 
@@ -93,7 +93,6 @@ JS;
 echo<<<JS
 constmenu(iardiv.id);
 mktparse(rsdiv,`$response`);
-iardiv.style = `overflow:auto;margin:5px;margin-top:10px;border-radius:10px;font-weight:500;border:solid 2px;background:#fdffde;padding:15px;font-size:15.2px;line-height:19.5px;word-spacing:1.5px;letter-spacing:1.00px;font-family:Roboto;`
 JS;
 }
 

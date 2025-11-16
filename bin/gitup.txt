@@ -134,7 +134,7 @@ bin/lib/osiris2/multiprocess.py
 bin/lib/osiris2/__init__.py
 bin/lib/acero.py
 bin/lib/cuarzo.py
-
+bin/lib/gemini/str_c.py
 #!!!!!!
 #bin/lib
 

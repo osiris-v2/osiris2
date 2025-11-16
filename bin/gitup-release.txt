@@ -44,8 +44,13 @@ bin/gitup.txt
 # y comando para subirlos ./gitup
 bin/gitup
 
+
 #Lista de archivos release para instaladores (Versión estable)
 bin/gitup-release.txt
+
+bin/develop.info
+
+bin/loadCore.human.ai
 
 #Directorio Completos en bin
 #Mientras no se definan y expliciten archivos
@@ -56,6 +61,9 @@ bin/gitup-release.txt
 
 bin/OPS/ops.c
 bin/OPS/ops
+bin/OPS/win.cpp
+bin/OPS/makewin.sh
+bin/OPS/win
 
 
 #... cliente - servidor (chat_server) rust 
@@ -90,10 +98,17 @@ bin/install/terminator_uninstall.sh
 #instala - desinstala tmux (composición de terminales)
 bin/install/tmux_install.sh
 bin/install/tmux_uninstall.sh
+#variables de sistema
 bin/install/osiris_env_sys_vars.sh
+#python pack
 bin/install/python_pack_install.sh
+#certificados ssl
 bin/install/lets-cert.sh
 bin/install/ssl-cert.sh
+#instala editor de escritorio Sublime Text
+bin/install/sublimeText_install.sh
+#Android studio
+bin/install/android_studio_install.sh
 
 
 
@@ -108,9 +123,20 @@ bin/lib/multiprocess.py
 bin/lib/processstart.py
 bin/lib/osiris/common.py
 bin/lib/gemini/utils.py
+bin/lib/gemini/cro_parser.py
+bin/lib/gemini/audio_parser.py
+bin/lib/gemini/osiris_definitions.py
+bin/lib/gemini/dyncontext.py
+bin/lib/gemini/load_osiris_context.py
+bin/lib/aluminium_1.py
 bin/lib/gemini/widgets.py
 bin/lib/osiris2/multiprocess.py
 bin/lib/osiris2/__init__.py
+bin/lib/acero.py
+bin/lib/cuarzo.py
+bin/lib/gemini/str_c.py
+#!!!!!!
+#bin/lib
 
 #utilidades diversas en bin/scripts
 #bin/scripts/
@@ -118,6 +144,16 @@ bin/lib/osiris2/__init__.py
 #Armadura para tmux (agrupamiento de terminales)
 #tmux1 es la composición por defecto
 bin/scripts/tmux1
+
+#cargador de perfiles
+bin/scripts/osiris_tmux.sh
+
+#tmux de inicio
+bin/scripts/o2tmux
+
+#perfil default
+bin/scripts/config/default.json
+
 #Lectura continua de progreso tv y hls
 bin/scripts/progress_hls
 bin/scripts/progress_tv
@@ -137,7 +173,14 @@ bin/scripts/server.run
 #corre el cliente rust
 bin/scripts/client.run
 
+#Importa Archivos de programa osiris a paquete instalador
+bin/scripts/files2deb.sh
 
+#instala  / gestiona Docker
+bin/scripts/docker.sh
+
+#monitor audio
+bin/scripts/monitor_mp3_flag.sh
 
 #Herramientas del directorio bin/tool
 #genera reporte para diagnostico servers
@@ -147,14 +190,16 @@ bin/tool/diagnosis1
 #genera reporte de picos y comprobaciones de memoria
 bin/tool/memory
 
-#herraientas desktop (ventanas)
+#herraientas desktop (ventanas) 
 bin/dsk/
-
+ 
 #modulos pip inicial - requerimientos globales
 bin/com/osiris_env/osiris.pip.requeriments
+#Mínimos para bio O3 (ozone)
+bin/com/osiris_env/bio.pip.requeriments
 bin/com/osiris_env/info.txt
 
-#default password is “osiris”
+#default password is “osiris” 
 bin/data/auth_pwd
 #bin/data/command_history.pkl (disabled upload history)
 
@@ -165,7 +210,15 @@ bin/install/www/tool/index.html
 
 #Archivos Comandos
 #para la consola osiris.py
-
+bin/com/odl1.py
+bin/com/o3launcher.py
+bin/com/o2doc2.py
+bin/com/o2doc.py
+bin/com/o2config.py
+bin/com/o2ws2.py
+bin/com/_server.py
+bin/com/_server2.py
+bin/com/processbck2.py
 bin/com/shell.py
 bin/com/create.py
 bin/com/cert.py
@@ -198,11 +251,14 @@ bin/com/datas/ffmpeg/random/info.txt
 bin/com/datas/ffmpeg/random/intro.mp4
 bin/com/datas/cert/info.txt
 
+#audio(AiFlag voice)
+com/datas/ai/audios/readmp3.flag
+
 #bin web com
 bin/com/web/datas/ai/info.txt
 bin/com/web/install/
 
-#Demos Educativo
+#Programas fuente y Demos para BIO esencialmente
 bin/com/demo/keyspp.py
 bin/com/demo/keysppqt.py
 bin/com/demo/keysppgen.py
@@ -210,8 +266,22 @@ bin/com/demo/execgitdemo.sh
 bin/com/demo/bio-install.sh
 bin/com/demo/wallet.py
 bin/com/demo/walletav.py
-#html - WWW
+bin/com/demo/aplicaciones.json
+bin/com/demo/o2doc.py
+bin/com/demo/osiris_json_editor_qt_7.py
+bin/com/demo/o3launcher
 
+#subdirectorios bio demo
+bin/com/demo/documentation/info.txt
+bin/com/demo/datas/info.txt
+
+bin/com/_server.py
+
+
+#o3 sources
+
+bin/com/o3audio.py
+bin/com/o3downloader.py
 
 #html - WWW
 
@@ -226,6 +296,11 @@ html/engines/
 
 html/textos/info.txt
 html/img/info.txt
+
+html/documentation/index.php
+
+# @webUser Templates
+html/@/ui/info.txt
 
 #Aplicaciones WEB
 #html/app
@@ -270,7 +345,7 @@ html/app/mitv/css/firefox.css
 
 html/app/mitv/tv/app.js
 html/app/mitv/tv/build.js
-html/app/mitv/tv/index.js 
+html/app/mitv/tv/index.js
 html/app/mitv/tv/load.js
 html/app/mitv/tv/paneles.js
 html/app/mitv/tv/source.js
@@ -279,25 +354,30 @@ html/app/mitv/tv/default.css
 html/app/mitv/tv/index.php
 html/app/mitv/tv/player2.php
 
-
-
 html/app/mitv/channels/main/.htaccess
 html/app/mitv/channels/main/live-ts/info.txt
 
-##RELEASE GENERADO EN 01-05-2025 00.32.00
 
-#(ask) ¿Ejecutar acción?
-#? (ask) if request # shareV #
-#mod+x 5
-##?!> request
+
+#Proyectos AiCreate
+bin/projects/mi_proyecto_osiris/ia_control
+bin/projects/mi_proyecto_osiris/info.human.ia
+bin/projects/mi_proyecto_osiris/readme.txt
+bin/projects/mi_proyecto_osiris/README.md
+bin/projects/mi_proyecto_osiris/main.py
+bin/projects/mi_proyecto_osiris/session_module.py
+bin/projects/mi_proyecto_osiris/datas/info.txt
+
+
+##RELEASE GENERADO EN 16-01-2025 04.39.00
+
 osiris2release.deb
 bio.deb
-#!
 
 #Archivos tmp release
 bin/com/tmp/zj91enedg3.png
 
 #Generado con la consola C  > ods>>
+#Comandos para la consola vars
 bin/com.vars
-
 #EOF
