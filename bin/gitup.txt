@@ -151,8 +151,8 @@ bin/scripts/osiris_tmux.sh
 #tmux de inicio
 bin/scripts/o2tmux
 
-#perfil default
-bin/scripts/config/default.json
+#perfils de configuración
+bin/scripts/config/
 
 #Lectura continua de progreso tv y hls
 bin/scripts/progress_hls

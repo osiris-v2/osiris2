@@ -1,0 +1,11 @@
+{
+  "panel0": "echo 'OSIRIS Panel (Custom Config)' && sleep 10",
+  "panel1": "echo 'SERVER Panel (Custom Config)' && netstat -tuln && sleep 10",
+  "panel2": "echo 'CLIENT Panel (Custom Config)' && ping -c 5 google.com && sleep 10",
+  "panel3": "echo 'OSIRIS RUN Panel (Custom Config)' && echo 'sudo osiris_run here' && sleep 10",
+  "panel4": "echo 'FREEMEM Panel (Custom Config)' && free -h && sleep 10",
+  "panel5": "echo 'PILOTTV Panel (Custom Config)' && echo 'Custom pilot tv log' && sleep 10",
+  "panel6": "echo 'OPS Panel (Custom Config)' && echo 'Custom ops monitoring' && sleep 10",
+  "panel7": "echo 'PROGRESS_TV Panel (Custom Config)' && echo 'Showing custom TV progress' && sleep 10",
+  "panel8": "echo 'PROGRESS_HLS Panel (Custom Config)' && echo 'Showing custom HLS progress' && sleep 10"
+}

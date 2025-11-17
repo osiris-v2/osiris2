@@ -1,0 +1,15 @@
+{
+  "panel0": "clear && reset && clear && cd ../../ && bash ./osiris",
+  "panel1": "clear && reset && clear && ./server++.run",
+  "panel2": "clear && reset && clear && ./client.run",
+
+  "panel3": "clear && reset && clear && ./server++.run",
+  "panel4": "clear && reset && clear && ./server++.run",
+
+  "panel5": "clear && reset && clear && ./client.run",
+
+  "panel6": "cd /var/osiris2/bin  && clear && reset && clear && sudo ./OPS/ops",
+  "panel7": "clear && reset && clear && cd /var/osiris2/bin/scripts && ./server++.run",
+  "panel8": "clear && reset && clear && ./server++.run",
+  "panel9": "clear && reset && clear && ./server++.run"
+}

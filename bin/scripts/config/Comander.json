@@ -1,0 +1,13 @@
+{
+
+  "panel0": "cd .. && clear && reset && sudo com --ods",
+  "panel7": "clear && reset && clear && ./server++.run",
+  "panel8": "clear && reset && clear && ./client.run",
+
+  "panel3": "clear && reset && clear && sudo com mount gemini",
+  "panel4": "clear && reset && clear && sudo com mount hubia",
+  "panel5": "clear && reset && clear && sudo com mount fftv",
+  "panel1": "clear && reset && clear && sudo com mount desktop",
+  "panel2": "clear && reset && clear && sudo com mount scanip",
+  "panel6": "clear && reset && clear && cd ../../ && bash ./osiris"
+}

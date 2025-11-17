@@ -1,0 +1,11 @@
+{
+  "panel1": "clear ; reset ; clear ; sudo com use desktop",
+  "panel0": "clear ; reset ; clear ; ./client.run",
+  "panel2": "clear ; reset ; clear ; ./server++.run",
+  "panel3": "clear ; reset ; clear ; sudo com use fftv",
+  "panel8": "clear ; reset ; clear ; cd .. ; sudo ./OPS/ops",
+  "panel5": "clear ; reset ; clear ; cd .. ; sudo ./pilottv",
+  "panel6": "clear ; reset ; clear ; /o2iris/o2oneTv",
+  "panel4": "clear ; reset ; clear ; ./progress_hls",
+  "panel7": "clear ; reset ; clear ; ./progress_tv"
+}

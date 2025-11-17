@@ -1,0 +1,11 @@
+{
+  "Entrypanel0": "clear && reset && clear && cd .. && python3 com.py ",
+  "Server": " netstat -tuln ; date ; ./server++.run ",
+  "panel2": "clear && reset && clear && cd .. && sudo ./OPS/ops  ",
+  "panel3": "cd /o2iris && ./o2 ./dpkg-optimizer.bash",
+  "panel4": "lpy /var/osiris2/bin/com/subcom/econo/wbod.py",
+  "panel5": "/var/osiris2/DEBIAN/osiris2/verified",
+  "panel6": "/o2iris/gen1/auth/bio.sh ",
+  "panel7": "./server.run",
+  "panel8": "/o2iris/lpy subcom/econo/wbod.py"
+}

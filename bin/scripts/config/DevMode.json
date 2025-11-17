@@ -1,0 +1,12 @@
+{
+  "panel1": "clear && reset && clear && ./server++.run",
+  "panel2": "clear && reset && clear && ./client.run",
+  "panel0": "sudo nano ../develop.info",
+  "panel3": "clear && reset && clear && sudo com use gemini",
+  "panel6": "cd .. && clear && reset && clear && sudo com use --od",
+  "panel5": "cd .. && clear && reset && clear && sudo ./OPS/ops",
+  "panel6": "clear && reset && clear && ./monitor_mp3_flag.sh",
+  "panel7": "clear && reset && clear && /o2iris/lpy /o2iris/o3launcher",
+  "panel8": "clear && reset && clear && sudo com desktop list_processes"
+}
+
