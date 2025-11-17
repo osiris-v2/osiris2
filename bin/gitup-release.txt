@@ -50,8 +50,6 @@ bin/gitup-release.txt
 
 bin/develop.info
 
-bin/loadCore.human.ai
-
 #Directorio Completos en bin
 #Mientras no se definan y expliciten archivos
 #Actualizará los directorios completos a su contenido
@@ -125,7 +123,7 @@ bin/lib/osiris/common.py
 bin/lib/gemini/utils.py
 bin/lib/gemini/cro_parser.py
 bin/lib/gemini/audio_parser.py
-bin/lib/gemini/osiris_definitions.py
+bin/lib/gemini/cro_definitions.py
 bin/lib/gemini/dyncontext.py
 bin/lib/gemini/load_osiris_context.py
 bin/lib/aluminium_1.py
@@ -149,7 +147,7 @@ bin/scripts/tmux1
 bin/scripts/osiris_tmux.sh
 
 #tmux de inicio
-bin/scripts/o2tmux
+bin/scripts/o2load
 
 #perfils de configuración
 bin/scripts/config/

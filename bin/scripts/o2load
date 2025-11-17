@@ -1,0 +1,106 @@
+#!/bin/bash
+# osiris2load.sh - Loader script for Osiris tmux configurations
+
+SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+CONFIG_DIR="$SCRIPT_DIR/config"
+OSIRIS_TMUX_SCRIPT="$SCRIPT_DIR/osiris_tmux.sh"
+
+# Ensure the 'config' directory exists
+mkdir -p "$CONFIG_DIR"
+
+# Check if the main tmux script exists and is accessible
+if [[ ! -f "$OSIRIS_TMUX_SCRIPT" ]]; then
+    echo "Error: The main tmux session script '$OSIRIS_TMUX_SCRIPT' was not found."
+    echo "Please ensure it exists in the same directory as '$0'."
+    exit 1
+fi
+
+# Function to run the main tmux script with current environment variables
+run_osiris_tmux() {
+    local config_type="$1"
+    echo "Starting tmux session with '$config_type' configuration..."
+    # The osiris_tmux.sh script will automatically pick up the exported
+    # COMMAND_PANELX and SESSION_NAME variables due to its default assignment syntax.
+    bash "$OSIRIS_TMUX_SCRIPT"
+    exit $?
+}
+
+# Find all JSON configuration files in the config directory
+config_files=()
+# Using find with -print0 and read -d '' for robust handling of filenames with spaces or special characters
+while IFS= read -r -d $'\0'; do
+    config_files+=("$REPLY")
+done < <(find "$CONFIG_DIR" -maxdepth 1 -type f -name "*.json" -print0 | sort -z)
+
+# Display options to the user
+echo " --- Select an Osiris Tmux Configuration ---"
+echo "   Default configuration (0) uses internal defaults of $OSIRIS_TMUX_SCRIPT)"
+echo "   0) Default configuration"
+
+if [[ ${#config_files[@]} -eq 0 ]]; then
+    echo "   (No custom JSON configurations found in '$CONFIG_DIR')"
+    echo "   Consider creating .json files in '$CONFIG_DIR' to add custom configs."
+else
+    for i in "${!config_files[@]}"; do
+        filename=$(basename "${config_files[$i]}")
+        config_name="${filename%.json}" # Remove .json extension for display
+        echo "   $((i + 1))) $config_name"
+    done
+fi
+
+echo "------------------------------------------"
+read -p "  Selecciona un pefil (0-${#config_files[@]}): " choice
+
+# Validate user input
+if ! [[ "$choice" =~ ^[0-9]+$ ]]; then
+    echo "Invalid input: '$choice'. Please enter a number."
+    exit 1
+fi
+
+if [[ "$choice" -eq 0 ]]; then
+    # Default configuration selected
+    # We explicitly set a session name for clarity, though osiris_tmux.sh would also create one.
+    export SESSION_NAME="osiris_tmux_session_default_$(date +%s)"
+    run_osiris_tmux "Default"
+elif (( choice > 0 && choice <= ${#config_files[@]} )); then
+    selected_index=$((choice - 1))
+    selected_file="${config_files[$selected_index]}"
+    config_name=$(basename "$selected_file" .json)
+
+    # Check for 'jq' dependency
+    if ! command -v jq &> /dev/null; then
+        echo "Error: 'jq' is not installed. Please install it to parse JSON configuration files."
+        echo "  On Debian/Ubuntu: sudo apt-get install jq"
+        echo "  On macOS: brew install jq"
+        echo "  On Fedora: sudo dnf install jq"
+        exit 1
+    fi
+
+    # Read the JSON content using jq
+    json_content=$(jq -c . "$selected_file") # -c for compact output
+
+    # Set SESSION_NAME based on the configuration file name
+    # Replace spaces and other non-alphanumeric characters with underscores for a valid session name
+    export SESSION_NAME="osiris_tmux_session_${config_name//[^a-zA-Z0-9_]/_}_$(date +%s)"
+
+    # Export COMMAND_PANEL variables from JSON
+    for i in $(seq 0 8); do # Iterate from 0 to 8 panels (total 9 panels)
+        key="panel$i"
+        # Use 'jq -r ".\"$key\" // empty"' to get the raw string value or empty if key is missing
+        command_value=$(echo "$json_content" | jq -r ".\"$key\" // empty")
+        if [[ -n "$command_value" ]]; then # If the command_value is not empty
+            export "COMMAND_PANEL${i}"="$command_value"
+            # Uncomment the line below for debugging what commands are being set:
+            # echo "DEBUG: Setting COMMAND_PANEL${i}=\"$command_value\""
+        fi
+    done
+
+    run_osiris_tmux "$config_name"
+else
+    echo "Invalid choice: $choice. Exiting."
+    exit 1
+fi
+
+#Llegamos al final salimos con código 0
+
+exit 0
