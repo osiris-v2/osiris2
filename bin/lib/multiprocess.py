@@ -7,7 +7,7 @@ import lib.processstart as ps
 # Diccionario global para almacenar los handlers de procesos
 process_handlers = {}
 
-print("MP:",ps.INFO)
+#print("MP:",ps.INFO)
 
 # Información general del módulo
 info = """

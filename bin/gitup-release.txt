@@ -358,18 +358,7 @@ html/app/mitv/channels/main/.htaccess
 html/app/mitv/channels/main/live-ts/info.txt
 
 
-
-#Proyectos AiCreate
-bin/projects/mi_proyecto_osiris/ia_control
-bin/projects/mi_proyecto_osiris/info.human.ia
-bin/projects/mi_proyecto_osiris/readme.txt
-bin/projects/mi_proyecto_osiris/README.md
-bin/projects/mi_proyecto_osiris/main.py
-bin/projects/mi_proyecto_osiris/session_module.py
-bin/projects/mi_proyecto_osiris/datas/info.txt
-
-
-##RELEASE GENERADO EN 16-01-2025 04.39.00
+##RELEASE GENERADO EN 17-11-2025 11.52.00
 
 osiris2release.deb
 bio.deb

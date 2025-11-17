@@ -2,7 +2,7 @@
 session_start();
 set_time_limit(3000);
 
-echo "IAMODEL";
+#echo "IAMODEL";
 
 if(!isset($_SESSION["CONTEXT_ID"])):
 $_SESSION["CONTEXT_ID"] = md5(rand(100,10000000000).date("DmYhis"));
@@ -12,7 +12,7 @@ endif;
 //# echo "alert(`".$_SESSION["CONTEXT_ID"]."`);";
 
 $context_id = $_SESSION["CONTEXT_ID"];
-echo $context_id;
+#echo $context_id;
 
 #ini_set('memory_limit', '-1');
 
@@ -64,7 +64,7 @@ $selectModel = "--b64prompt";
 endswitch;
 
 
-echo $selectModel;
+#echo $selectModel;
 
 $xdata = base64_encode($xdata);
 #$ask = addcslashes($ask,"\\\$");
