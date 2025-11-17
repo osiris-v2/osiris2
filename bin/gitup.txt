@@ -213,7 +213,6 @@ bin/install/www/tool/index.html
 bin/com/odl1.py
 bin/com/o3launcher.py
 bin/com/o2doc2.py
-bin/com/o2doc.py
 bin/com/o2config.py
 bin/com/o2ws2.py
 bin/com/_server.py
@@ -252,7 +251,7 @@ bin/com/datas/ffmpeg/random/intro.mp4
 bin/com/datas/cert/info.txt
 
 #audio(AiFlag voice)
-com/datas/ai/audios/readmp3.flag
+#com/datas/ai/audios/readmp3.flag
 
 #bin web com
 bin/com/web/datas/ai/info.txt
