@@ -3,6 +3,11 @@ import os
 import glob
 from datetime import datetime
 
+import lib.core as core
+core.dynmodule("lib.serializes","serialize")
+print(core.serialize.INFO)
+
+
 # --- Definición de Marcadores para el Contexto ---
 MARKERS = {
     "human_start": "--- INICIO INSTRUCCION HUMANA ---\n",
@@ -425,8 +430,9 @@ def load_osiris_context(json_paths, global_base_dir=None):
     # Advertencia final si el contexto aún se acerca al límite (considerando que hubo truncamiento anterior)
     if current_total_tokens >= max_tokens_limit * 0.95:
         warnings.append(f"Advertencia final: El contexto generado es muy extenso ({current_total_tokens}/{max_tokens_limit} tokens). La IA podría tener dificultades. 🥵")
+#    final_context_string = final_context_string.replace("\\n", "\n")
+    return str(final_context_string) + str(warnings)
 
-    return final_context_string, warnings
 
 # --- Formateador de Metadata de Path ---
 def _format_path_metadata(path, is_directory, base_path_for_relative):

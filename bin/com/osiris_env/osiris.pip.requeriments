@@ -1,4 +1,5 @@
-google-generativeai
+toml
+pyyaml
 Pillow
 datetime
 psutil
@@ -29,14 +30,15 @@ SpeechRecognition
 whisper
 boto3
 qrcode
-torch
 cipher
 Jinja2
 Markdown
 pygments
 pydub
 gtts
-tensorflow
-torch
-torchvision
-torchaudio
+google-genai
+google-generativeai
+huggingface_hub
+diffusers 
+transformers 
+accelerate

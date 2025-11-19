@@ -209,7 +209,6 @@ bin/install/www/tool/index.html
 #Archivos Comandos
 #para la consola osiris.py
 bin/com/odl1.py
-bin/com/o3launcher.py
 bin/com/o2doc2.py
 bin/com/o2config.py
 bin/com/o2ws2.py
@@ -256,6 +255,9 @@ bin/com/web/datas/ai/info.txt
 bin/com/web/install/
 
 #Programas fuente y Demos para BIO esencialmente
+#Cambiando a bin/bio/app las versiones más recientes app o3
+bin/bio/app/o3launcher
+
 bin/com/demo/keyspp.py
 bin/com/demo/keysppqt.py
 bin/com/demo/keysppgen.py
@@ -266,7 +268,6 @@ bin/com/demo/walletav.py
 bin/com/demo/aplicaciones.json
 bin/com/demo/o2doc.py
 bin/com/demo/osiris_json_editor_qt_7.py
-bin/com/demo/o3launcher
 
 #subdirectorios bio demo
 bin/com/demo/documentation/info.txt

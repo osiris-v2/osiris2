@@ -1,0 +1,710 @@
+#!/usr/bin/env python3
+import sys
+import json
+import os
+import subprocess
+from PyQt5.QtWidgets import (
+    QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
+    QMessageBox, QSpacerItem, QSizePolicy, QLineEdit, QDialog, QTextEdit,
+    QLayout, QScrollArea, QFileDialog, QMenu, QAction
+)
+from PyQt5.QtGui import QIcon, QPixmap
+from PyQt5.QtCore import Qt, QSize, QRect, QPoint
+
+
+# --- Clase personalizada FlowLayout para paneles flotantes ---
+# Esta clase organiza los widgets horizontalmente y los envuelve a la siguiente línea
+# cuando no hay más espacio, simulando un comportamiento "flotante".
+class FlowLayout(QLayout):
+    def __init__(self, parent=None, margin=10, spacing=15):
+        super(FlowLayout, self).__init__(parent)
+        self.setContentsMargins(margin, margin, margin, margin)
+        self.setSpacing(spacing)
+        self._item_list = []
+
+    def __del__(self):
+        # Asegurarse de liberar la memoria de los ítems al destruir el layout
+        item = self.takeAt(0)
+        while item:
+            item = self.takeAt(0)
+
+    def addItem(self, item):
+        self._item_list.append(item)
+
+    def count(self):
+        return len(self._item_list)
+
+    def itemAt(self, index):
+        if 0 <= index < len(self._item_list):
+            return self._item_list[index]
+        return None
+
+    def takeAt(self, index):
+        if 0 <= index < len(self._item_list):
+            return self._item_list.pop(index)
+        return None
+
+    def expandingDirections(self):
+        return Qt.Orientations(0) # Este layout no se expande infinitamente
+
+    def hasHeightForWidth(self):
+        return True # La altura depende del ancho disponible
+
+    def heightForWidth(self, width):
+        return self._do_layout(QRect(0, 0, width, 0), True)
+
+    def setGeometry(self, rect):
+        super(FlowLayout, self).setGeometry(rect)
+        self._do_layout(rect, False)
+
+    def sizeHint(self):
+        return self.minimumSize()
+
+    def minimumSize(self):
+        size = QSize()
+        for item in self._item_list:
+            size = size.expandedTo(item.minimumSize())
+        margin = self.contentsMargins()
+        size += QSize(margin.left() + margin.right(), margin.top() + margin.bottom())
+        return size
+
+    def _do_layout(self, rect, test_only):
+        x = rect.x() + self.contentsMargins().left()
+        y = rect.y() + self.contentsMargins().top()
+        line_height = 0
+        
+        for item in self._item_list:
+            item_size = item.sizeHint() 
+            # Asegurar que item_size tiene un ancho/alto válido para evitar errores de cálculo
+            if item_size.width() <= 0: item_size.setWidth(1)
+            if item_size.height() <= 0: item_size.setHeight(1)
+
+            space_needed_width = item_size.width() + self.spacing()
+
+            # Si el ítem no cabe en la línea actual y no es el primer ítem de la línea
+            # O si el ítem es más ancho que el espacio disponible en la línea (excluyendo el margen derecho)
+            if (x + item_size.width() > rect.right() - self.contentsMargins().right() and line_height > 0) or \
+               (item_size.width() > rect.width() - self.contentsMargins().left() - self.contentsMargins().right()):
+                # Mover a la siguiente línea
+                x = rect.x() + self.contentsMargins().left()
+                y = y + line_height + self.spacing()
+                line_height = 0 # Resetear la altura de línea para la nueva línea
+
+            if not test_only:
+                item.setGeometry(QRect(QPoint(x, y), item_size))
+
+            x += space_needed_width
+            line_height = max(line_height, item_size.height())
+
+        # Calcular la altura total utilizada por el layout
+        total_height = y + line_height - rect.y() + self.contentsMargins().bottom()
+        if not self._item_list: # Si no hay items, la altura es solo los márgenes
+            total_height = self.contentsMargins().top() + self.contentsMargins().bottom()
+        return total_height
+
+
+# --- Clase JsonEditorDialog para editar el archivo JSON ---
+class JsonEditorDialog(QDialog):
+    def __init__(self, json_file_path, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Editor JSON de Aplicaciones 📝")
+        self.setGeometry(200, 200, 700, 500) # Tamaño fijo para el editor
+        
+        self.json_file_path = json_file_path
+        self.original_content = "" # Para detectar si hay cambios
+        
+        self.init_ui()
+        self.load_json_content()
+
+    def init_ui(self):
+        main_layout = QVBoxLayout(self)
+        
+        self.text_edit = QTextEdit()
+        self.text_edit.setPlaceholderText("Cargando contenido JSON... ⏳")
+        main_layout.addWidget(self.text_edit)
+        
+        buttons_layout = QHBoxLayout()
+        self.save_button = QPushButton("Guardar ✅")
+        self.save_button.setObjectName("SaveJsonButton") # Para aplicar estilo CSS
+        self.save_button.clicked.connect(self.save_json_content)
+        
+        self.cancel_button = QPushButton("Cancelar ❌")
+        self.cancel_button.setObjectName("CancelJsonButton") # Para aplicar estilo CSS
+        self.cancel_button.clicked.connect(self.reject) # QDialog reject cierra con QDialog.Rejected
+        
+        buttons_layout.addStretch(1) # Empuja los botones a la derecha
+        buttons_layout.addWidget(self.save_button)
+        buttons_layout.addWidget(self.cancel_button)
+        main_layout.addLayout(buttons_layout)
+
+    def load_json_content(self):
+        try:
+            with open(self.json_file_path, "r", encoding='utf-8') as file:
+                # Cargar y formatear el JSON para que sea legible en el editor
+                data = json.load(file)
+                self.original_content = json.dumps(data, indent=4, ensure_ascii=False)
+                self.text_edit.setText(self.original_content)
+        except FileNotFoundError:
+            QMessageBox.critical(self, "Error de Archivo", f"El archivo '{self.json_file_path}' no fue encontrado. 📁❌")
+            self.text_edit.setReadOnly(True)
+            self.save_button.setEnabled(False)
+        except json.JSONDecodeError:
+            QMessageBox.critical(self, "Error de JSON", f"El archivo '{self.json_file_path}' tiene un formato JSON inválido. 🛠️❌")
+            # Permitir edición para que el usuario pueda intentar corregirlo
+            # Guardar el contenido crudo si falla el JSON.load para que el usuario lo vea
+            try:
+                with open(self.json_file_path, "r", encoding='utf-8') as file:
+                    raw_content = file.read()
+                    self.text_edit.setText("/* Error: El JSON original es inválido. Por favor, corrige este contenido. */\n" + raw_content)
+            except Exception as read_e:
+                self.text_edit.setText(f"/* Error: No se pudo leer el archivo '{self.json_file_path}' ni siquiera de forma cruda. */\nError: {str(read_e)}")
+
+            self.original_content = "" # No hay contenido original válido si no se pudo parsear
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Error de Carga", f"Ocurrió un error inesperado al cargar el archivo JSON: {str(e)} 💥")
+            self.text_edit.setReadOnly(True)
+            self.save_button.setEnabled(False)
+
+    def save_json_content(self):
+        new_content = self.text_edit.toPlainText()
+        
+        # Primero, intentar parsear el nuevo contenido para asegurar que es JSON válido
+        try:
+            parsed_json = json.loads(new_content)
+        except json.JSONDecodeError:
+            QMessageBox.critical(self, "Error de Formato", "El contenido JSON no es válido. Por favor, corrígelo antes de guardar. 🛠️❌")
+            return
+            
+        # Comparar con el original si hay un original válido para evitar guardar sin cambios
+        if self.original_content and new_content == self.original_content:
+            QMessageBox.information(self, "Sin Cambios", "No se detectaron cambios en el JSON. 😉")
+            self.accept()
+            return
+
+        try:
+            # Guardar el JSON ya validado y formateado
+            with open(self.json_file_path, "w", encoding='utf-8') as file:
+                json.dump(parsed_json, file, indent=4, ensure_ascii=False) # Guardar formateado
+            QMessageBox.information(self, "Guardado Exitoso", "El archivo JSON ha sido guardado correctamente. ✨")
+            self.accept() # QDialog accept cierra con QDialog.Accepted
+        except Exception as e:
+            QMessageBox.critical(self, "Error al Guardar", f"No se pudo guardar el archivo JSON: {str(e)} 💥")
+
+# --- Ventana principal del Lanzador de Aplicaciones ---
+class AppLauncher(QWidget):
+    # Ruta del archivo JSON como constante de clase, se puede cambiar en tiempo de ejecución
+    JSON_FILE_PATH = "aplicaciones.json" 
+
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Osiris App Launcher 🚀")
+        self.setGeometry(100, 100, 1000, 700) # Tamaño inicial mas grande
+        
+        self.init_ui()
+        self.apply_stylesheet()
+        self.load_and_create_buttons()
+
+    def apply_stylesheet(self):
+        # Tema semi-oscuro futurista con colores de acento
+        stylesheet = """
+        QWidget {
+            background-color: #2b2b2b; /* Fondo oscuro casi negro */
+            color: #f0f0f0; /* Texto claro */
+            font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif; /* Fuentes modernas */
+            font-size: 12px; /* Más pequeño */
+        }
+
+        /* Estilo para las tarjetas de aplicación */
+        QWidget#AppCard {
+            background-color: #3c3c3c; /* Un poco más claro que el fondo principal */
+            border: 1px solid #555; /* Borde sutil */
+            border-radius: 8px; /* Esquinas más redondeadas, un poco menos que antes */
+            padding: 10px; /* Menos padding para contenido */
+            /* El min-width y max-width se gestionan en Python para un control preciso */
+        }
+
+        QWidget#AppCard:hover {
+            background-color: #4a4a4a; /* Fondo más claro al pasar el ratón */
+            border: 1px solid #7cb9e8; /* Borde azul futurista */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra sutil para profundidad */
+        }
+
+        QLabel {
+            color: #f0f0f0;
+        }
+
+        /* Etiqueta para el icono dentro de la tarjeta */
+        QLabel#AppIconLabel {
+            /* No se necesita mucho estilo aquí, el pixmap es la clave */
+        }
+
+        QLabel#AppNameLabel {
+            font-weight: bold;
+            font-size: 15px; /* Nombre de la app más pequeño */
+            color: #7cb9e8; /* Color de acento para el nombre */
+            background-color: #333333; /* Fondo para que ocupe toda su línea */
+            padding: 2px 5px; /* Pequeño padding para el texto */
+            border-radius: 4px; /* Suaves bordes para el fondo del texto */
+            white-space: nowrap; /* Evitar que el texto se rompa en varias líneas */
+            overflow: hidden; /* Ocultar el contenido que exceda el ancho */
+            /* text-overflow: ellipsis; /* Esto no es totalmente compatible con PyQt en QLabel por CSS */
+        }
+        
+        /* Estilo para los botones generales */
+        QPushButton {
+            background-color: #5a5a5a; /* Gris oscuro para botones */
+            color: #e0e0e0;
+            border: none;
+            border-radius: 6px; /* Esquinas redondeadas para botones, un poco menos */
+            padding: 8px 12px; /* Menos padding */
+            min-width: 70px; /* Ancho mínimo para que sean fáciles de pulsar, más pequeño */
+            min-height: 30px; /* Altura mínima, más pequeña */
+            font-size: 13px; /* Más pequeño */
+        }
+
+        QPushButton:hover {
+            background-color: #6a6a6a;
+            border: 1px solid #9ec3e3; /* Borde sutil al pasar el ratón */
+        }
+
+        QPushButton:pressed {
+            background-color: #4a4a4a;
+        }
+
+        /* Botón de Lanzar (verde) */
+        QPushButton#LaunchButton {
+            background-color: #28a745; /* Verde Bootstrap */
+        }
+        QPushButton#LaunchButton:hover {
+            background-color: #218838;
+        }
+
+        /* Botón de Información (azul) */
+        QPushButton#InfoButton {
+            background-color: #007bff; /* Azul Bootstrap */
+        }
+        QPushButton#InfoButton:hover {
+            background-color: #0069d9;
+        }
+
+        /* Botón de Editar JSON (morado/violeta) */
+        QPushButton#EditJsonButton,
+        QPushButton#SaveJsonButton {
+            background-color: #6f42c1; /* Morado/Violeta */
+        }
+        QPushButton#EditJsonButton:hover,
+        QPushButton#SaveJsonButton:hover {
+            background-color: #5b37a4;
+        }
+        /* Nuevo botón para Cargar JSON */
+        QPushButton#LoadJsonButton {
+            background-color: #ffc107; /* Amarillo/naranja */
+            color: #333333; /* Texto oscuro para el botón amarillo */
+        }
+        QPushButton#LoadJsonButton:hover {
+            background-color: #e0a800;
+        }
+
+        /* Nuevo botón de Ayuda */
+        QPushButton#HelpButton {
+            background-color: #17a2b8; /* Azul cyan */
+        }
+        QPushButton#HelpButton:hover {
+            background-color: #138496;
+        }
+
+        QPushButton#CancelJsonButton {
+            background-color: #dc3545; /* Rojo */
+        }
+        QPushButton#CancelJsonButton:hover {
+            background-color: #c82333;
+        }
+
+        QLineEdit {
+            background-color: #3c3c3c;
+            border: 1px solid #555;
+            border-radius: 5px;
+            padding: 4px; /* Más pequeño */
+            color: #f0f0f0;
+            font-size: 13px; /* Más pequeño */
+        }
+
+        QTextEdit {
+            background-color: #3c3c3c;
+            border: 1px solid #555;
+            border-radius: 5px;
+            padding: 5px;
+            color: #f0f0f0;
+            font-size: 13px; /* Más pequeño */
+        }
+
+        QScrollArea {
+            border: none; /* Eliminar borde del área de scroll */
+        }
+        QScrollBar:vertical {
+            border: none;
+            background: #3c3c3c;
+            width: 10px;
+            margin: 0px 0px 0px 0px;
+        }
+        QScrollBar::handle:vertical {
+            background: #6f42c1; /* Morado para el "handle" */
+            min-height: 20px;
+            border-radius: 5px;
+        }
+        QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {\n            background: none;\n        }\n        QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {\n            background: none;\n        }\n        QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {\n            background: none;\n        }\n\n        /* Estilos para QMessageBox */\n        QMessageBox {\n            background-color: #2b2b2b;\n            color: #f0f0f0;\n            font-size: 13px; /* Más pequeño */\n        }\n        QMessageBox QLabel {\n            color: #f0f0f0;\n            font-size: 13px; /* Más pequeño */\n        }\n        QMessageBox QPushButton {\n            background-color: #5a5a5a;\n            color: #e0e0e0;\n            border: none;\n            border-radius: 5px;\n            padding: 5px 10px;\n        }\n        QMessageBox QPushButton:hover {\n            background-color: #6a6a6a;\n        }\n        QMenu {\n            background-color: #3c3c3c;\n            border: 1px solid #555;\n            border-radius: 5px;\n            color: #f0f0f0;\n        }\n        QMenu::item {\n            padding: 8px 20px 8px 20px;\n        }\n        QMenu::item:selected {\n            background-color: #6f42c1;\n            color: #f0f0f0;\n        }\n        """
+        self.setStyleSheet(stylesheet)
+
+    def init_ui(self):
+        self.main_layout = QVBoxLayout(self)
+        self.main_layout.setContentsMargins(10, 15, 10, 15) # Márgenes izq/der mínimos
+        self.main_layout.setSpacing(10) # Espacio general reducido
+
+        # --- Barra de control superior (Buscar, Editar JSON, Cargar JSON, Ayuda) ---
+        control_bar_layout = QHBoxLayout()
+        control_bar_layout.setSpacing(10)
+
+        self.search_input = QLineEdit()
+        self.search_input.setPlaceholderText("Buscar aplicación por nombre o alias... 🔍")
+        self.search_input.textChanged.connect(self.filter_applications)
+        control_bar_layout.addWidget(self.search_input)
+
+        self.load_json_button = QPushButton("Cargar JSON Nuevo 📂")
+        self.load_json_button.setObjectName("LoadJsonButton")
+        self.load_json_button.clicked.connect(self.load_new_json_file)
+        control_bar_layout.addWidget(self.load_json_button)
+
+        self.edit_json_button = QPushButton("Editar JSON ⚙️")
+        self.edit_json_button.setObjectName("EditJsonButton") # Para aplicar estilo CSS
+        self.edit_json_button.clicked.connect(self.open_json_editor)
+        control_bar_layout.addWidget(self.edit_json_button)
+
+        self.help_button = QPushButton("Ayuda ❓")
+        self.help_button.setObjectName("HelpButton")
+        self.help_button.clicked.connect(self.show_help_menu)
+        control_bar_layout.addWidget(self.help_button)
+
+        self.main_layout.addLayout(control_bar_layout)
+        
+        # --- Área de desplazamiento para las tarjetas de aplicación (Paneles flotantes) ---
+        # Un QScrollArea permite que el FlowLayout se expanda verticalmente si es necesario.
+        self.scroll_area = QScrollArea()
+        self.scroll_area.setWidgetResizable(True)
+        # Desactivar la barra de desplazamiento horizontal ya que el FlowLayout se encarga de envolver el contenido
+        self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff) 
+        
+        self.scroll_content_widget = QWidget()
+        # FlowLayout con márgenes y espaciado reducidos
+        self.flow_layout = FlowLayout(self.scroll_content_widget, margin=5, spacing=10) 
+        self.scroll_content_widget.setLayout(self.flow_layout)
+        
+        self.scroll_area.setWidget(self.scroll_content_widget)
+        self.main_layout.addWidget(self.scroll_area)
+
+        # Lista para mantener las referencias a las tarjetas de aplicación y sus datos para el filtrado
+        self.app_cards = []
+
+    def _clear_layout(self, layout):
+        """Función auxiliar para limpiar un layout y sus widgets."""
+        if layout is not None:
+            while layout.count():
+                item = layout.takeAt(0)
+                if item.widget():
+                    item.widget().deleteLater() # Eliminar el widget
+                elif item.layout():
+                    self._clear_layout(item.layout()) # Limpiar layouts anidados
+
+    def load_and_create_buttons(self):
+        # Limpiar todas las tarjetas de aplicación existentes
+        for card in self.app_cards:
+            card.deleteLater()
+        self.app_cards = []
+        self._clear_layout(self.flow_layout) # Asegurarse de limpiar el FlowLayout también
+
+        try:
+            if not os.path.exists(self.JSON_FILE_PATH):
+                QMessageBox.critical(self, "Error", f"Archivo '{self.JSON_FILE_PATH}' no encontrado. Asegúrate de que está en el mismo directorio que el script o carga uno nuevo. 📄❌")
+                return
+
+            with open(self.JSON_FILE_PATH, "r", encoding='utf-8') as file:
+                applications_data = json.load(file)
+
+            if not isinstance(applications_data, list):
+                QMessageBox.critical(self, "Error de Formato", "El archivo de configuración JSON debe contener una lista de objetos. 🚫")
+                return # Added return here to stop processing if format is incorrect
+
+            # Calcular ancho fijo para los paneles basado en los botones
+            # QPushButton tiene min-width: 70px y padding: 8px 12px (izq/der)
+            # Ancho efectivo del botón = 70 + (2 * 12) = 94px
+            BUTTON_WIDTH_EFFECTIVE = 94 
+            BUTTON_SPACING = 6 # Espaciado entre los dos botones
+            CARD_INTERNAL_PADDING = 8 # app_card_layout.setContentsMargins(8)
+            ICON_SIZE = 32 # Tamaño del icono para el display
+
+            # Ancho total del panel = (2 * Ancho efectivo del botón) + Espaciado entre botones + (2 * Padding interno de la tarjeta)
+            fixed_card_width = (BUTTON_WIDTH_EFFECTIVE * 2) + BUTTON_SPACING + (CARD_INTERNAL_PADDING * 2)
+            
+            # Altura aproximada del panel
+            # Mantener 115px para un tamaño consistente y visualmente agradable
+            fixed_card_height = 115 
+
+            for app_data in applications_data:
+                try:
+                    # Omitir si la aplicación no está habilitada o si le falta información crucial
+                    if not app_data.get("enabled", False):
+                        continue
+                    if not app_data.get("name") or not app_data.get("alias"):
+                        QMessageBox.warning(self, "Advertencia", f"Una aplicación en el JSON está incompleta y no se cargará. Necesita 'name' y 'alias'. ⚠️")
+                        continue
+
+                    name = app_data.get("name", "Aplicación desconocida")
+                    alias = app_data.get("alias", "")
+                    path = app_data.get("path", "")
+                    icon_path = app_data.get("icon")
+                    # Construir el comando completo. Si 'path' está vacío, 'alias' debe ser una ruta completa o un comando en el PATH.
+                    full_command = os.path.join(path, alias) if path and alias else alias
+
+                    # Crear un QWidget para cada "tarjeta" de aplicación
+                    app_card = QWidget()
+                    app_card.setObjectName("AppCard") # Para aplicar estilo CSS
+                    # ¡Paneles un poco más pequeños y ancho fijo!
+                    app_card.setFixedSize(fixed_card_width, fixed_card_height) 
+                    app_card.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed) # Tamaño fijo para la tarjeta
+
+                    app_card_layout = QVBoxLayout(app_card)
+                    app_card_layout.setContentsMargins(CARD_INTERNAL_PADDING, CARD_INTERNAL_PADDING, CARD_INTERNAL_PADDING, CARD_INTERNAL_PADDING) # Padding interno de la tarjeta
+                    app_card_layout.setSpacing(6) # Espacio entre elementos dentro de la tarjeta
+                    
+                    # --- Nueva estructura: Icono a la izquierda, Nombre centrado en el espacio restante ---
+                    icon_name_layout = QHBoxLayout()
+                    icon_name_layout.setSpacing(5) # Espacio entre el icono y el texto
+
+                    icon_label = QLabel()
+                    icon_label.setObjectName("AppIconLabel") # Para aplicar estilo CSS si es necesario
+                    # Cargar icono si existe y es válido
+                    if icon_path and os.path.exists(icon_path):
+                        pixmap = QPixmap(icon_path)
+                        if not pixmap.isNull(): # Verificar si la carga del pixmap fue exitosa
+                            # Escalar el icono al tamaño definido
+                            icon_label.setPixmap(pixmap.scaled(ICON_SIZE, ICON_SIZE, Qt.KeepAspectRatio, Qt.SmoothTransformation)) 
+                        else:
+                            print(f"Advertencia: No se pudo cargar el icono para '{name}' en '{icon_path}'. Archivo corrupto o formato no soportado. 🖼️❌")
+                    
+                    icon_label.setFixedSize(ICON_SIZE, ICON_SIZE) # Asegurar el tamaño del icono
+                    icon_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter) # Alineación izquierda y vertical centrada
+                    icon_name_layout.addWidget(icon_label)
+                    
+                    name_label = QLabel(name)
+                    name_label.setObjectName("AppNameLabel") # Para aplicar estilo CSS
+                    # Texto centrado en el espacio restante, con overflow hidden
+                    name_label.setAlignment(Qt.AlignCenter) # Centrar el texto dentro del QLabel
+                    name_label.setWordWrap(False) # Asegurar que no se rompe en varias líneas
+                    # Expandir para que el fondo ocupe la línea (dentro del ancho fijo del panel)
+                    name_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+                    icon_name_layout.addWidget(name_label, 1) # El '1' indica que se expande
+                    # --- Fin de la nueva estructura de Icono y Nombre ---
+
+                    app_card_layout.addLayout(icon_name_layout)
+                    
+                    # Sección de botones
+                    buttons_layout = QHBoxLayout()
+                    buttons_layout.setSpacing(BUTTON_SPACING) # Espacio entre botones
+                    
+                    # Empuja los botones al centro (simetría)
+                    buttons_layout.addStretch(1) 
+                    
+                    launch_button = QPushButton("Lanzar 🚀")
+                    launch_button.setObjectName("LaunchButton") # Para aplicar estilo CSS
+                    launch_button.setToolTip(f"Ejecutar: {full_command}")
+                    # Conectar el botón a la función de lanzamiento con el comando completo
+                    launch_button.clicked.connect(lambda _, cmd=full_command, app_name=name: self.launch_application(cmd, app_name))
+                    buttons_layout.addWidget(launch_button)
+
+                    info_button = QPushButton("Info ℹ️")
+                    info_button.setObjectName("InfoButton") # Para aplicar estilo CSS
+                    info_button.setToolTip(f"Mostrar detalles de {name}")
+                    # Conectar el botón de info a la función show_info con los datos de la aplicación
+                    info_button.clicked.connect(lambda _, a=app_data: self.show_info(a))
+                    buttons_layout.addWidget(info_button)
+                    
+                    # Empuja los botones al centro (simetría)
+                    buttons_layout.addStretch(1) 
+                    app_card_layout.addLayout(buttons_layout)
+                    
+                    self.flow_layout.addWidget(app_card)
+                    # Almacenar la tarjeta y sus datos asociados para un filtrado eficiente
+                    app_card.setProperty("app_data", app_data) 
+                    self.app_cards.append(app_card)
+
+                except Exception as e:
+                    # Capturar errores específicos al cargar una aplicación y continuar con la siguiente
+                    QMessageBox.warning(self, "Error al cargar aplicación", f"No se pudo cargar la aplicación '{app_data.get('name', 'desconocida')}' del JSON: {str(e)} ⚠️")
+
+        except json.JSONDecodeError:
+            QMessageBox.critical(self, "Error de JSON", f"Error al decodificar el archivo '{self.JSON_FILE_PATH}'. Verifica su formato JSON. 🛠️❌")
+        except Exception as e:
+            QMessageBox.critical(self, "Error desconocido", f"Ocurrió un error inesperado al cargar las aplicaciones: {str(e)} 💥")
+
+        # Después de cargar todos los botones, aplicar el filtro si hay texto en la búsqueda
+        self.filter_applications(self.search_input.text())
+
+
+    def launch_application(self, command, app_name):
+        """Lanza la aplicación especificada usando subprocess."""
+        if not command:
+            QMessageBox.warning(self, "Error de Lanzamiento", f"La ruta o comando para '{app_name}' está vacío. No se puede lanzar. 🚫")
+            return
+
+        try:
+            # Usar subprocess.Popen para lanzar la aplicación en segundo plano
+            # shell=True permite ejecutar comandos complejos o con variables de entorno
+            # stdout y stderr a devnull para evitar que la salida inunde la consola del lanzador
+            subprocess.Popen(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            QMessageBox.information(self, "Lanzado", f"Aplicación '{app_name}' lanzada. ¡Disfruta! 🎉")
+        except FileNotFoundError:
+            QMessageBox.warning(self, "Error de Ejecución", f"El comando '{command}' no se encontró. Asegúrate de que la aplicación está instalada y en tu PATH o la ruta es correcta. 📁❌")
+        except Exception as e:
+            QMessageBox.critical(self, "Error Inesperado", f"No se pudo iniciar la aplicación '{app_name}': {str(e)} 💥")
+
+    def show_info(self, app):
+        """Muestra una ventana de mensaje con la información detallada de la aplicación."""
+        try:
+            # Obtener información detallada del JSON
+            name = app.get("name", "Sin nombre")
+            alias = app.get("alias", "Sin alias")
+            path = app.get("path", "Sin ruta")
+            icon = app.get("icon", "Sin icono")
+            enabled = app.get("enabled", False)
+            description = app.get("description", "Sin descripción.") # Nueva funcionalidad: descripción
+
+            # Formatear el mensaje, incluyendo la nueva descripción
+            info_message = (
+                f"Nombre: {name}\n"
+                f"Alias (comando): {alias}\n"
+                f"Ruta del directorio: {path}\n"
+                f"Ruta del icono: {icon if icon else 'Ninguno especificado'}\n"
+                f"Habilitado: {'Sí' if enabled else 'No'}\n"
+                f"Descripción: {description}"
+            )
+
+            # Mostrar mensaje de información
+            QMessageBox.information(self, f"Información de {name}", info_message)
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"No se pudo mostrar la información: {str(e)} 💥")
+
+    def open_json_editor(self):
+        """Abre un diálogo para editar el archivo JSON de aplicaciones."""
+        editor = JsonEditorDialog(self.JSON_FILE_PATH, self)
+        # Si el usuario guarda los cambios, recargar las aplicaciones
+        if editor.exec_() == QDialog.Accepted: 
+            self.load_and_create_buttons() # Recargar aplicaciones para reflejar los cambios
+            QMessageBox.information(self, "Actualización", "Lista de aplicaciones actualizada después de editar el JSON. 🔄")
+
+    def load_new_json_file(self):
+        """Permite al usuario seleccionar y cargar un nuevo archivo JSON."""
+        file_dialog = QFileDialog(self)
+        file_dialog.setWindowTitle("Seleccionar archivo JSON de aplicaciones 📂")
+        file_dialog.setNameFilter("Archivos JSON (*.json);;Todos los archivos (*)")
+        file_dialog.setFileMode(QFileDialog.ExistingFile)
+
+        if file_dialog.exec_() == QDialog.Accepted:
+            new_json_path = file_dialog.selectedFiles()[0]
+            if not new_json_path.lower().endswith(".json"):
+                QMessageBox.warning(self, "Archivo Inválido", "Por favor, selecciona un archivo con extensión '.json'. 🚫")
+                return
+
+            try:
+                # Intentar cargar y validar el nuevo JSON
+                with open(new_json_path, "r", encoding='utf-8') as file:
+                    temp_data = json.load(file) # Load the data temporarily
+                
+                # VALIDATION: Check if the loaded data is a list
+                if not isinstance(temp_data, list):
+                    QMessageBox.critical(self, "Error de Formato", f"El archivo '{os.path.basename(new_json_path)}' debe contener una lista de objetos. 🚫")
+                    return # Stop here if it's not a list
+                
+                # If valid, update the path and reload buttons
+                self.JSON_FILE_PATH = new_json_path
+                self.load_and_create_buttons() # This call should now always receive a file that, if parsed, is a list.
+                QMessageBox.information(self, "JSON Cargado", f"Archivo de aplicaciones '{os.path.basename(new_json_path)}' cargado exitosamente. ✨")
+            except FileNotFoundError:
+                QMessageBox.critical(self, "Error de Archivo", f"El archivo '{new_json_path}' no fue encontrado. 📁❌")
+            except json.JSONDecodeError:
+                QMessageBox.critical(self, "Error de JSON", f"El archivo '{new_json_path}' tiene un formato JSON inválido. Por favor, corrígelo. 🛠️❌")
+            except Exception as e:
+                QMessageBox.critical(self, "Error de Carga", f"Ocurrió un error inesperado al cargar el nuevo JSON: {str(e)} 💥")
+
+    def show_help_menu(self):
+        """Muestra un menú de ayuda con opciones de Ayuda y Acerca de."""
+        menu = QMenu(self)
+
+        help_action = QAction("Ayuda 📘", self)
+        help_action.triggered.connect(self.show_help_dialog)
+        menu.addAction(help_action)
+
+        about_action = QAction("Acerca de Osiris 🌟", self)
+        about_action.triggered.connect(self.show_about_dialog)
+        menu.addAction(about_action)
+
+        # Mostrar el menú en la posición del botón
+        menu.exec_(self.help_button.mapToGlobal(QPoint(0, self.help_button.height())))
+
+    def show_help_dialog(self):
+        """Muestra un diálogo con información de ayuda general."""
+        help_text = (
+            "¡Bienvenido a Osiris App Launcher! 🚀\n\n"
+            "Aquí tienes algunos consejos para usarlo:\n\n"
+            "1.  **Buscar aplicaciones:** Usa la barra de búsqueda superior para filtrar por nombre, alias o descripción.\n"
+            "2.  **Lanzar:** Haz clic en 'Lanzar 🚀' para iniciar una aplicación. Asegúrate de que la ruta o el comando estén correctos.\n"
+            "3.  **Información:** Usa 'Info ℹ️' para ver detalles de la aplicación, incluyendo su descripción.\n"
+            "4.  **Editar JSON:** El botón 'Editar JSON ⚙️' abre un editor para modificar el archivo de configuración actual. ¡Ten cuidado al editar!\n"
+            "5.  **Cargar JSON Nuevo:** Con 'Cargar JSON Nuevo 📂' puedes cambiar el archivo de configuración de aplicaciones a otro archivo JSON en tu sistema.\n"
+            "6.  **Personalización:** Edita el archivo de configuración JSON para añadir, eliminar o modificar tus aplicaciones.\n\n"
+            "¡Esperamos que disfrutes de tu experiencia con Osiris! ✨"
+        )
+        QMessageBox.information(self, "Ayuda de Osiris", help_text)
+
+    def show_about_dialog(self):
+        """Muestra un diálogo con información 'Acerca de'."""
+        about_text = (
+            "Osiris App Launcher 🌟\n\n"
+            "Versión: 2.0.0 (gemini2)\n"
+            "Desarrollado con PyQt5 y la ayuda de Gemini AI 🤖✨\n"
+            "Interfaz Name: Osiris\n"
+            "Idioma: Español\n\n"
+            "Un lanzador de aplicaciones modernista y personalizable para tu sistema.\n"
+            "¡Potencia tu flujo de trabajo con un toque futurista! 🌌"
+        )
+        QMessageBox.about(self, "Acerca de Osiris App Launcher", about_text)
+
+
+    def filter_applications(self, text):
+        """Filtra las tarjetas de aplicaciones según el texto de búsqueda."""
+        search_term = text.lower().strip() # Eliminar espacios en blanco y convertir a minúsculas
+
+        for app_card_widget in self.app_cards:
+            app_data = app_card_widget.property("app_data") # Recuperar los datos asociados a la tarjeta
+            
+            # Asegurarse de que los datos existen y son válidos para el filtrado
+            if app_data is None:
+                app_card_widget.setVisible(False)
+                continue
+
+            name = app_data.get("name", "").lower()
+            alias = app_data.get("alias", "").lower()
+            description = app_data.get("description", "").lower() # Filtrar también por descripción
+            
+            # Mostrar la tarjeta si el término de búsqueda está en el nombre, alias o descripción
+            if search_term in name or search_term in alias or search_term in description:
+                app_card_widget.setVisible(True)
+            else:
+                app_card_widget.setVisible(False)
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    launcher = AppLauncher()
+    launcher.show()
+    sys.exit(app.exec_())

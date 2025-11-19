@@ -91,17 +91,17 @@ mktparse(getId(`responsediv_$rewid`),`$response`);
 JS;
 } else {
 echo<<<JS
-constmenu(iardiv.id);
-mktparse(rsdiv,`$response`);
+//constmenu(iardiv.id);
+mktparse(DisplayContent,`\n $response`);
 JS;
 }
 
 endif;
 else:
-echo<<<JS
-iardiv.innerHTML = "No se ha recibido una respuesta correctamente";
-iardiv.style = "background:#fdfffe;padding:10px;font-size:16px;font-family:arial;";
-JS;
+//echo<<<JS
+//iardiv.innerHTML = "No se ha recibido una respuesta correctamente";
+//iardiv.style = "background:#fdfffe;padding:10px;font-size:16px;font-family:arial;";
+//JS;
 endif;
 
 
