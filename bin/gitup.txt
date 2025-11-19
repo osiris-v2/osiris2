@@ -257,6 +257,7 @@ bin/com/web/install/
 #Programas fuente y Demos para BIO esencialmente
 #Cambiando a bin/bio/app las versiones más recientes app o3
 bin/bio/app/o3launcher
+bin/bio/app/o3downloader
 
 bin/com/demo/keyspp.py
 bin/com/demo/keysppqt.py
@@ -272,14 +273,8 @@ bin/com/demo/osiris_json_editor_qt_7.py
 #subdirectorios bio demo
 bin/com/demo/documentation/info.txt
 bin/com/demo/datas/info.txt
-
 bin/com/_server.py
-
-
-#o3 sources
-
 bin/com/o3audio.py
-bin/com/o3downloader.py
 
 #html - WWW
 

@@ -1,0 +1,1465 @@
+#!/usr/bin/env python3
+
+import os
+import sys
+import re
+import json
+import subprocess
+from PyQt5.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
+    QPushButton, QLineEdit, QLabel, QTextEdit, QFileDialog,
+    QCheckBox, QRadioButton, QGroupBox, QComboBox,
+    QProgressBar, QTableWidget, QTableWidgetItem, QHeaderView,
+    QMenu, QMessageBox, QAbstractItemView, QSizePolicy, QTabWidget,
+    QAction, QDockWidget, QSplitter, QSpacerItem, QScrollArea
+)
+from PyQt5.QtCore import (
+    QThread, pyqtSignal, pyqtSlot, QProcess, QSettings, Qt, QUrl, QTimer, QSize
+)
+from PyQt5.QtGui import QDesktopServices, QIcon, QIntValidator, QFontMetrics
+
+# Interfaz Name: Osiris Downloader AI
+# Version: 8.0.0 (Major Refactor: Robust status, flexible queue, advanced options, error handling)
+# Idioma: Español
+# Instrucciones: ¡Bienvenido a Osiris Downloader AI! 🚀
+# Usa emojis para dinamizar la conversación.
+
+# --- Clase del Hilo de Descarga (Worker) ---
+# Este hilo se encarga de ejecutar el comando yt-dlp y parsear su salida
+# para actualizar la interfaz gráfica sin bloquearla.
+class DownloadWorker(QThread):
+    """
+    QThread para gestionar un único proceso de descarga de yt-dlp.
+    Emite señales para actualizaciones de progreso, finalización y errores.
+    """
+    progress_update = pyqtSignal(str, float, str, str) # URL, porcentaje, velocidad, eta
+    status_update = pyqtSignal(str, str, str) # URL, estado (ej. "Descargando"), o una línea de log raw
+    download_finished = pyqtSignal(str, int) # URL, código de salida (0 para éxito)
+    download_error = pyqtSignal(str, str) # URL, mensaje de error
+
+    def __init__(self, url: str, output_dir: str, file_name_template: str,\
+                 naming_mode: str, format_option: str, additional_options: dict, parent=None):
+        super().__init__(parent)
+        self.url = url
+        self.output_dir = output_dir
+        self.file_name_template = file_name_template
+        self.naming_mode = naming_mode # "default", "auto", "custom"
+        self.format_option = format_option
+        self.additional_options = additional_options
+        self._is_stopped = False
+        self.process: subprocess.Popen = None
+
+        # --- CORRECCIÓN: regex mucho más tolerante ---
+        # Capta porcentajes enteros o decimales, acepta total opcional, speed opcional (incluye "Unknown") y ETA opcional.
+        self.progress_regex = re.compile(
+    r'\[download\]\s+'
+    r'(?P<percentage>\d+(?:\.\d+)?)%'                 # porcentaje
+    r'(?:\s+of\s+(?P<total>~?\s*\d+(?:\.\d+)?[KMGT]?iB))?'   # tamaño con o sin ~ y con espacios
+    r'(?:\s+at\s+(?P<speed>\d+(?:\.\d+)?[KMGT]?iB/s))?'      # velocidad con espacios dobles
+    r'(?:\s+ETA\s+(?P<eta>[\d:]+))?',                 # ETA normal
+    re.IGNORECASE
+)
+
+
+        # Regex para estados específicos y post-procesamiento
+        self.status_regexes = {
+            "already_downloaded": re.compile(r'\[download\] (.+) has already been downloaded', re.IGNORECASE),
+            "destination": re.compile(r'\[download\]\s+Destination:\s+(.+)', re.IGNORECASE),
+            "extract_audio": re.compile(r'\[ExtractAudio\]\s+Destination:\s+(.+)', re.IGNORECASE),
+            "merger": re.compile(r'\[Merger\]\s+Merging formats into "(.+)"', re.IGNORECASE),
+            "metadata": re.compile(r'\[Metadata\]\s+Adding metadata to "(.+)"', re.IGNORECASE),
+            "thumbnails": re.compile(r'\[Thumbnails\]\s+Writing thumbnail to "(.+)"', re.IGNORECASE),
+            "convert_video": re.compile(r'\[VideoConvertor\]\s+Converting video from "(.+)" to "(.+)"', re.IGNORECASE),
+            "deleting_original": re.compile(r'\[(ExtractAudio|VideoConvertor|Merger)\]\s+Deleting original file', re.IGNORECASE),
+            "finished": re.compile(r'\[download\].*has finished|The download has finished!', re.IGNORECASE),
+            "warning": re.compile(r'WARNING:\s*(.+)', re.IGNORECASE),
+            "error": re.compile(r'ERROR:\s*(.+)', re.IGNORECASE),
+            "post_processing_ffmpeg": re.compile(r'\[ffmpeg\].*Post-processing', re.IGNORECASE),
+            "sponsorkblock": re.compile(r'\[SponsorBlock\].*', re.IGNORECASE),
+            "split_chapters": re.compile(r'\[SplitChapters\].*', re.IGNORECASE),
+            "fixup_thumbnail": re.compile(r'\[FixupThumbnail\].*', re.IGNORECASE),
+            "modify_chapters": re.compile(r'\[ModifyChapters\].*', re.IGNORECASE),
+            "move_files": re.compile(r'\[MoveFiles\].*', re.IGNORECASE),
+            "subtitles": re.compile(r'\[Subtitles\].*', re.IGNORECASE),
+            "embed_subtitles": re.compile(r'\[EmbedSubtitles\].*', re.IGNORECASE),
+            "post_processing_general_info": re.compile(r'\[(?:info|FixupM3u8|FixupMpd|FixupFilename|Keyframe|FixupDuration|FixupTimestamp|FixupMpegts|FixupWebm|Compress|PostConvert|MoveFiles|WriteInfoJson|ModifyChapters|SponsorBlock)\].*', re.IGNORECASE),
+            "extracting": re.compile(r'\[extractor\]\s+(.+):\s+Extracting', re.IGNORECASE),
+        }
+        self.current_status_message = "Inicializando..." # Track a more persistent status for post-processing
+
+    def run(self):
+        # Captura errores inesperados que puedan ocurrir fuera del bloque try-except principal
+        try:
+            self._run_download_process()
+        except Exception as e:
+            msg = f"Error inesperado en el hilo de descarga para {self.url}: {e} 💔"
+            self.download_error.emit(self.url, msg)
+            self.status_update.emit(self.url, "Error inesperado 💔", "")
+
+    def _run_download_process(self):
+        if self._is_stopped:
+            self.status_update.emit(self.url, "Cancelado", "")
+            self.download_finished.emit(self.url, -1)
+            return
+
+        self.status_update.emit(self.url, "Inicializando... ⚙️", "")
+
+        command = self._build_ytdlp_command()
+        # Emitimos el comando como LOG inicial (útil para debugging)
+        self.status_update.emit(self.url, "LOG", f"# Comando yt-dlp ejecutado:\n# {' '.join(command)}")
+
+        try:
+            startupinfo = None
+            if sys.platform == "win32":
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                startupinfo.wShowWindow = subprocess.SW_HIDE
+
+            self.process = subprocess.Popen(
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT, # Merge stderr into stdout
+                text=True,
+                encoding='utf-8',
+                errors='replace',
+                bufsize=1,
+                universal_newlines=True,
+                startupinfo=startupinfo
+            )
+
+            self.status_update.emit(self.url, "Descargando... ⬇️", "")
+            self.current_status_message = "Descargando..."
+
+            # Leemos línea a línea la salida y PRIMERO intentamos parsear progreso / estados
+            for line in self.process.stdout:
+                if self._is_stopped:
+                    try:
+                        self.process.terminate()
+                    except Exception:
+                        pass
+                    self.status_update.emit(self.url, "Cancelado por usuario ❌", "")
+                    break
+
+                stripped_line = line.strip()
+                if not stripped_line:
+                    continue
+
+                # 1) Intentar detectar estados específicos
+                status_matched = False
+                for status_key, regex in self.status_regexes.items():
+                    match = regex.search(stripped_line)
+                    if match:
+                        new_status_message = ""
+                        if status_key == "already_downloaded":
+                            self.status_update.emit(self.url, "Ya descargado ✅", stripped_line)
+                            self.download_finished.emit(self.url, 0)
+                            return
+                        elif status_key == "destination":
+                            new_status_message = "Destino establecido"
+                            self.status_update.emit(self.url, new_status_message, stripped_line)
+                        elif status_key == "extract_audio":
+                            new_status_message = "Extrayendo audio 🎧"
+                            self.status_update.emit(self.url, new_status_message, stripped_line)
+                        elif status_key == "merger":
+                            new_status_message = "Mergeando archivos 🎞️"
+                            self.status_update.emit(self.url, new_status_message, stripped_line)
+                        elif status_key == "metadata":
+                            new_status_message = "Añadiendo metadatos 🏷️"
+                            self.status_update.emit(self.url, new_status_message, stripped_line)
+                        elif status_key == "thumbnails":
+                            new_status_message = "Incrustando miniaturas 🖼️"
+                            self.status_update.emit(self.url, new_status_message, stripped_line)
+                        elif status_key == "convert_video":
+                            new_status_message = "Convirtiendo video 🔄"
+                            self.status_update.emit(self.url, new_status_message, stripped_line)
+                        elif status_key == "deleting_original":
+                            new_status_message = "Limpiando archivos 🧹"
+                            self.status_update.emit(self.url, new_status_message, stripped_line)
+                        elif status_key == "post_processing_ffmpeg":
+                            new_status_message = "Post-procesando (FFmpeg) ⚙️"
+                            self.status_update.emit(self.url, new_status_message, stripped_line)
+                        elif status_key == "sponsorkblock":
+                            new_status_message = "Procesando SponsorBlock 🚫"
+                            self.status_update.emit(self.url, new_status_message, stripped_line)
+                        elif status_key == "split_chapters":
+                            new_status_message = "Dividiendo capítulos 📚"
+                            self.status_update.emit(self.url, new_status_message, stripped_line)
+                        elif status_key == "fixup_thumbnail":
+                            new_status_message = "Ajustando miniatura 🖼️"
+                            self.status_update.emit(self.url, new_status_message, stripped_line)
+                        elif status_key == "modify_chapters":
+                            new_status_message = "Modificando capítulos 📝"
+                            self.status_update.emit(self.url, new_status_message, stripped_line)
+                        elif status_key == "move_files":
+                            new_status_message = "Moviendo archivos 📁"
+                            self.status_update.emit(self.url, new_status_message, stripped_line)
+                        elif status_key == "subtitles":
+                            new_status_message = "Escribiendo subtítulos 💬"
+                            self.status_update.emit(self.url, new_status_message, stripped_line)
+                        elif status_key == "embed_subtitles":
+                            new_status_message = "Incrustando subtítulos 💬"
+                            self.status_update.emit(self.url, new_status_message, stripped_line)
+                        elif status_key == "post_processing_general_info":
+                            if not any(k in self.current_status_message.lower() for k in ["audio", "merge", "metadatos", "miniatura", "convertiendo", "limpiando", "ffmpeg", "sponsorblock", "capítulos", "subtítulos", "moviendo"]):
+                                new_status_message = "Post-procesando... ⚙️"
+                                self.status_update.emit(self.url, new_status_message, stripped_line)
+                        elif status_key == "extracting":
+                            new_status_message = "Extrayendo info... 🔎"
+                            self.status_update.emit(self.url, new_status_message, stripped_line)
+                        elif status_key == "finished":
+                            new_status_message = "Finalizando... ✨"
+                            self.status_update.emit(self.url, new_status_message, stripped_line)
+                        elif status_key == "error":
+                            new_status_message = f"Error: {match.group(1)}"
+                            self.download_error.emit(self.url, new_status_message)
+                            self.status_update.emit(self.url, new_status_message, stripped_line)
+                        elif status_key == "warning":
+                            self.status_update.emit(self.url, "LOG", f"WARN: {match.group(1)}")
+                        # actualizar current_status_message si procede
+                        if new_status_message and new_status_message != self.current_status_message:
+                            self.current_status_message = new_status_message
+                        status_matched = True
+                        break
+
+                if status_matched:
+                    continue
+
+                # 2) Intentar detectar progreso (antes de emitir LOG)
+                prog = self.progress_regex.search(stripped_line)
+                if prog:
+                    try:
+                        percentage = float(prog.group('percentage'))
+                    except Exception:
+                        percentage = 0.0
+                    speed_raw = prog.group('speed')
+                    eta_raw = prog.group('eta')
+                    speed = speed_raw if speed_raw and speed_raw.lower() != 'unknown' else 'N/A'
+                    eta = eta_raw if eta_raw and eta_raw.lower() != 'unknown' else 'N/A'
+                    self.progress_update.emit(self.url, percentage, speed, eta)
+                    if "Descargando" not in self.current_status_message:
+                        self.current_status_message = "Descargando..."
+                        self.status_update.emit(self.url, self.current_status_message, "")
+                    continue
+
+                # 3) Si no coincide nada de lo anterior, emitir como LOG (ahora SÓLO si es relevante)
+                # Evitamos inundar la GUI con líneas triviales.
+                if stripped_line:
+                    self.status_update.emit(self.url, "LOG", stripped_line)
+
+            # Terminó de leer la salida
+            self.process.wait()
+            exit_code = self.process.returncode
+
+            if self._is_stopped:
+                self.download_finished.emit(self.url, -1)
+            elif exit_code == 0:
+                # Emitimos finalización y progreso 100%
+                self.progress_update.emit(self.url, 100.0, "N/A", "00:00")
+                self.status_update.emit(self.url, "Completado 🎉", "")
+                self.download_finished.emit(self.url, 0)
+            else:
+                remaining_output = ""
+                try:
+                    remaining_output = self.process.stdout.read()
+                except Exception:
+                    pass
+                error_message = f"yt-dlp salió con código {exit_code}. Mensaje:\n{remaining_output or 'N/A'}"
+                self.download_error.emit(self.url, error_message)
+                self.status_update.emit(self.url, f"Error (código {exit_code})", remaining_output)
+
+        except FileNotFoundError:
+            msg = "Error: yt-dlp no encontrado. Asegúrate de que esté instalado y en tu PATH."
+            self.download_error.emit(self.url, msg)
+            self.status_update.emit(self.url, "Error de instalación", msg)
+        except Exception as e:
+            msg = f"Error inesperado al ejecutar yt-dlp: {e}"
+            self.download_error.emit(self.url, msg)
+            self.status_update.emit(self.url, "Error inesperado", str(e))
+
+    def stop(self):
+        self._is_stopped = True
+        if self.process and self.process.poll() is None: # If process is still running
+            try:
+                self.process.terminate() # Request termination
+            except Exception:
+                pass
+            # Give it some time to terminate gracefully, then kill if still running
+            QTimer.singleShot(1000, lambda: self.process.kill() if self.process and self.process.poll() is None else None)
+            self.status_update.emit(self.url, "Solicitando detención...", "")
+
+    def _build_ytdlp_command(self) -> list:
+        command = ["yt-dlp", "--progress", "--no-warnings"] # Keep --no-warnings to reduce log verbosity
+
+        # Nombres de archivo y directorio de salida
+        if self.naming_mode == "default":
+            # Usar -P para especificar solo el directorio de salida
+            command.extend(["-P", self.output_dir])
+        else: # "auto" or "custom"
+            output_template = os.path.join(self.output_dir, self.file_name_template)
+            command.extend(["-o", f"{output_template}.%(ext)s"])
+
+        # Format Options
+        is_audio_format_selected = self.format_option in ["mp3", "aac", "flac", "wav", "opus"]
+        if is_audio_format_selected:
+            command.extend(["-x", "--audio-format", self.format_option])
+            # Check for specific audio format override in advanced options
+            if self.additional_options.get("audio_format_checkbox") and self.additional_options.get("audio_format_val") and \
+               self.additional_options["audio_format_val"] != self.format_option:
+                command[-1] = self.additional_options["audio_format_val"]
+        else:
+            # Default to best quality video+audio, then recode if format_option specified
+            command.extend(["-f", "bestvideo+bestaudio/best"])
+            if self.format_option:
+                command.extend(["--recode-video", self.format_option])
+
+        # Additional Audio-only handling if not already handled by format_option
+        if self.additional_options.get("audio_only") and not is_audio_format_selected:
+            command.extend(["-x"]) # Extract audio
+            if self.additional_options.get("audio_format_checkbox") and self.additional_options.get("audio_format_val"):
+                command.extend(["--audio-format", self.additional_options["audio_format_val"]])
+            else:
+                command.extend(["--audio-format", "mp3"]) # Default audio format if none specified
+
+        # Basic Options
+        if self.additional_options.get("limit_speed") and self.additional_options.get("speed_limit_val"):
+            command.extend(["-r", self.additional_options["speed_limit_val"]])
+        if self.additional_options.get("embed_thumbnail"):
+            command.append("--embed-thumbnail")
+        if self.additional_options.get("embed_metadata"):
+            command.append("--embed-metadata")
+
+        # Advanced Options
+        if self.additional_options.get("user_agent") and self.additional_options.get("user_agent_val"):
+            command.extend(["--user-agent", self.additional_options["user_agent_val"]])
+        if self.additional_options.get("add_headers") and self.additional_options.get("headers_val"):
+            for header in self.additional_options["headers_val"].split(';'):
+                if ':' in header.strip():
+                    command.extend(["--add-header", header.strip()])
+
+        # Cookies from browser with custom path support
+        if self.additional_options.get("cookies_from_browser") and self.additional_options.get("browser_val"):
+            browser_arg = self.additional_options["browser_val"]
+            if self.additional_options.get("custom_cookies_path_checkbox") and self.additional_options.get("custom_cookies_path_val"):
+                browser_arg = f"{browser_arg}:{self.additional_options['custom_cookies_path_val']}"
+            command.extend(["--cookies-from-browser", browser_arg])
+
+        if self.additional_options.get("username") and self.additional_options.get("username_val"):
+            command.extend(["--username", self.additional_options["username_val"]])
+        if self.additional_options.get("password") and self.additional_options.get("password_val"):
+            command.extend(["--password", self.additional_options["password_val"]])
+        if self.additional_options.get("playlist_start") and self.additional_options.get("playlist_start_val"):
+            command.extend(["--playlist-start", self.additional_options["playlist_start_val"]])
+        if self.additional_options.get("playlist_end") and self.additional_options.get("playlist_end_val"):
+            command.extend(["--playlist-end", self.additional_options["playlist_end_val"]])
+        if self.additional_options.get("proxy") and self.additional_options.get("proxy_val"):
+            command.extend(["--proxy", self.additional_options["proxy_val"]])
+        if self.additional_options.get("custom_args") and self.additional_options.get("custom_args_val"):
+            # Split custom arguments safely, allowing quoted arguments
+            import shlex
+            try:
+                custom_args_list = shlex.split(self.additional_options["custom_args_val"])
+                command.extend(custom_args_list)
+            except Exception:
+                # fallback naive split
+                command.extend(self.additional_options["custom_args_val"].split())
+
+        command.append(self.url)
+        return command
+
+# --- Clase Principal de la Aplicación (GUI) ---
+class OsirisDownloaderApp(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Osiris Downloader AI 🚀")
+        # Ensure the icon path is correctly handled for packaging
+        icon_path = self.resource_path("osiris_icon.png")
+        if os.path.exists(icon_path):
+            self.setWindowIcon(QIcon(icon_path))
+        else:
+            # Print a debug warning rather than popup during start
+            print(f"Advertencia: No se encontró el ícono en {icon_path}")
+
+        self.resize(1200, 850) # Adjusted initial size for more content
+
+        self.output_dir = os.path.expanduser("~")
+        self.is_downloading_active = False # Tracks if *any* download is active
+        self.download_threads = {} # {url: DownloadWorker instance} for currently running threads
+        self.pending_urls = [] # URLs waiting to be started (sequential/parallel queue)
+        self.current_download_idx = 0 # Index for self.pending_urls
+
+        # Stores comprehensive info about each URL added to the table
+        self.download_metadata = {}
+
+        self.log_buffer = []
+        self.log_update_timer = QTimer(self)
+        # Reduce UI churn by collecting logs slightly less frequently
+        self.log_update_timer.setInterval(200) # was 50, now 200ms
+        self.log_update_timer.timeout.connect(self.flush_log_buffer)
+        self.log_update_timer.start()
+
+        self.init_ui()
+        self.load_settings()
+        self.update_ui_from_settings()
+
+        self.statusBar().showMessage("Osiris Downloader AI listo. ¡Que empiecen las descargas! ✨")
+
+        # Global exception handler for the main thread (Point 6)
+        sys.excepthook = self.handle_exception
+
+    def handle_exception(self, exc_type, exc_value, exc_traceback):
+        """Global exception handler to catch unhandled exceptions in the main thread."""
+        sys.__excepthook__(exc_type, exc_value, exc_traceback) # Call default handler first
+        error_msg = f"Error inesperado en la aplicación:\nTipo: {exc_type.__name__}\nMensaje: {exc_value}\n\nPor favor, informa de este error para mejorarlo. 💔"
+        QMessageBox.critical(self, "Error de la Aplicación 💥", error_msg)
+
+    def resource_path(self, relative_path: str) -> str:
+        """Get absolute path to resource, works for dev and PyInstaller."""
+        try:
+            base_path = sys._MEIPASS
+        except Exception:
+            base_path = os.path.abspath(".")
+        return os.path.join(base_path, relative_path)
+
+    def init_ui(self):
+        """Reorganiza la UI usando un QSplitter para mayor flexibilidad."""
+        # Widget central principal
+        main_widget = QWidget()
+        self.setCentralWidget(main_widget)
+        main_layout = QHBoxLayout(main_widget)
+
+        # Splitter principal (vertical) para contenido principal (URLs + Tabs de progreso/log)
+        v_splitter = QSplitter(Qt.Vertical)
+        v_splitter.setHandleWidth(8) # Make splitter handle more visible
+
+        # Panel superior (Entrada de URL y controles)
+        top_panel = QWidget()
+        top_layout = QVBoxLayout(top_panel)
+        top_layout.setContentsMargins(0,0,0,0)
+
+        url_group = QGroupBox("URLs para Descargar (una por línea) 🔗")
+        url_layout = QVBoxLayout(url_group)
+        self.urls_text_edit = QTextEdit()
+        self.urls_text_edit.setPlaceholderText("Pega tus URLs aquí (YouTube, Vimeo, Twitter, etc.)...")
+        self.urls_text_edit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self._setup_url_text_edit_context_menu()
+        url_layout.addWidget(self.urls_text_edit)
+        top_layout.addWidget(url_group, 3) # Give more space to URL input
+
+        button_layout = QHBoxLayout()
+        self.start_button = QPushButton("Iniciar Descarga ⬇️")
+        self.start_button.clicked.connect(self.start_download)
+        self.stop_button = QPushButton("Detener Todas 🛑")
+        self.stop_button.clicked.connect(self.stop_all_downloads)
+        self.stop_button.setDisabled(True)
+        button_layout.addWidget(self.start_button)
+        button_layout.addWidget(self.stop_button)
+        top_layout.addLayout(button_layout)
+
+        v_splitter.addWidget(top_panel)
+
+        # Panel inferior (Pestañas de Progreso y Log)
+        bottom_panel = QWidget()
+        bottom_layout = QVBoxLayout(bottom_panel)
+        bottom_layout.setContentsMargins(0,0,0,0)
+        bottom_tabs = QTabWidget()
+        bottom_tabs.setContentsMargins(0,0,0,0)
+
+        # Pestaña de Progreso
+        progress_tab = QWidget()
+        progress_layout = QVBoxLayout(progress_tab)
+        self.download_table = QTableWidget()
+        self.download_table.setColumnCount(5)
+        self.download_table.setHorizontalHeaderLabels(["URL", "Progreso", "Estado", "Velocidad", "ETA"])
+        self.download_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch) # URL column stretches
+        self.download_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Interactive) # Progress bar
+        self.download_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents) # Status
+        self.download_table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents) # Speed
+        self.download_table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents) # ETA
+        self.download_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.download_table.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.download_table.setAlternatingRowColors(True) # Improve readability
+        self.download_table.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.download_table.customContextMenuRequested.connect(self._setup_table_context_menu)
+        progress_layout.addWidget(self.download_table)
+        bottom_tabs.addTab(progress_tab, "Progreso 📊")
+
+        # Pestaña de Log
+        log_tab = QWidget()
+        log_layout = QVBoxLayout(log_tab)
+
+        log_controls_layout = QHBoxLayout()
+        clear_log_button = QPushButton("Limpiar Registro 🧹")
+        clear_log_button.clicked.connect(self.clear_log)
+        log_controls_layout.addStretch(1) # Push button to right
+        log_controls_layout.addWidget(clear_log_button)
+        log_layout.addLayout(log_controls_layout)
+
+        self.output_log_text = QTextEdit()
+        self.output_log_text.setReadOnly(True)
+        log_layout.addWidget(self.output_log_text)
+        bottom_tabs.addTab(log_tab, "Registro 📝")
+
+        bottom_layout.addWidget(bottom_tabs)
+        v_splitter.addWidget(bottom_panel)
+
+        v_splitter.setSizes([250, 600]) # Tamaños iniciales para los paneles (ajustado)
+
+        # Crear el dock de opciones
+        self.create_options_dock()
+
+        main_layout.addWidget(v_splitter, 1) # Main splitter takes available space
+        self.create_menus()
+        self._apply_styles()
+
+    def create_options_dock(self):
+        """Crea el QDockWidget para las opciones."""
+        self.options_dock = QDockWidget("Opciones ✨", self)
+        self.options_dock.setObjectName("OptionsDock")
+        self.options_dock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+        self.options_dock.setMinimumWidth(300) # Ensure it has enough width
+
+        options_main_widget = QWidget()
+        options_layout_container = QVBoxLayout(options_main_widget)
+        options_layout_container.setContentsMargins(5,5,5,5)
+
+        self.options_tab_widget = QTabWidget()
+        self.options_tab_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        self._create_general_naming_tab()
+        self._create_basic_options_tab()
+        self._create_advanced_options_tab()
+
+        options_layout_container.addWidget(self.options_tab_widget)
+        options_layout_container.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)) # Push tabs to top
+        self.options_dock.setWidget(options_main_widget)
+        self.addDockWidget(Qt.RightDockWidgetArea, self.options_dock) # Default to right
+
+    def _create_form_layout_tab(self) -> tuple:
+        tab = QWidget()
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+        form_widget = QWidget()
+        form_layout = QFormLayout(form_widget)
+        form_layout.setContentsMargins(10, 10, 10, 10)
+        form_layout.setVerticalSpacing(10)
+
+        scroll_area.setWidget(form_widget)
+
+        tab_layout = QVBoxLayout(tab)
+        tab_layout.setContentsMargins(0,0,0,0)
+        tab_layout.addWidget(scroll_area)
+
+        return tab, form_layout
+
+    def _create_general_naming_tab(self):
+        tab, layout = self._create_form_layout_tab()
+
+        # Output directory
+        dir_layout = QHBoxLayout()
+        self.output_dir_label = QLabel(self.output_dir)
+        self.output_dir_label.setWordWrap(True)
+        self.output_dir_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        dir_layout.addWidget(self.output_dir_label, 1)
+        select_dir_button = QPushButton("Seleccionar")
+        select_dir_button.clicked.connect(self.select_output_dir)
+        dir_layout.addWidget(select_dir_button)
+        open_dir_button = QPushButton("Abrir 📁")
+        open_dir_button.clicked.connect(self.open_output_dir)
+        dir_layout.addWidget(open_dir_button)
+        layout.addRow("Directorio Salida 📂:", dir_layout)
+
+        # Download Mode
+        mode_group = QGroupBox("Modo de Descarga")
+        mode_layout = QHBoxLayout(mode_group)
+        self.sequential_radio = QRadioButton("Secuencial ➡️")
+        self.sequential_radio.setChecked(True)
+        self.parallel_radio = QRadioButton("Paralelo ⚡")
+        self.parallel_max_downloads_label = QLabel("Máx:")
+        self.parallel_max_downloads_input = QLineEdit("3")
+        self.parallel_max_downloads_input.setValidator(QIntValidator(1, 10))
+        self.parallel_max_downloads_input.setFixedWidth(40)
+        self.parallel_max_downloads_input.setEnabled(False) # Enabled by parallel_radio
+        mode_layout.addWidget(self.sequential_radio)
+        mode_layout.addWidget(self.parallel_radio)
+        mode_layout.addWidget(self.parallel_max_downloads_label)
+        mode_layout.addWidget(self.parallel_max_downloads_input)
+        mode_layout.addStretch(1)
+        self.parallel_radio.toggled.connect(self.parallel_max_downloads_input.setEnabled)
+        layout.addRow(mode_group)
+
+        # Output Format
+        self.format_combo = QComboBox()
+        self.format_combo.addItems(["MP4", "MKV", "WEBM", "MP3", "AAC", "FLAC", "WAV", "OPUS"])
+        self.format_combo.currentIndexChanged.connect(self.update_format_option_ui_logic)
+        layout.addRow("Formato de Salida:", self.format_combo)
+
+        # Naming Options
+        naming_group = QGroupBox("Nombres de Archivo")
+        naming_layout = QVBoxLayout(naming_group)
+        self.default_name_radio = QRadioButton("Por defecto (de yt-dlp)")
+        self.default_name_radio.setChecked(True)
+        self.default_name_radio.toggled.connect(lambda: self._update_naming_mode("default"))
+        self.auto_name_radio = QRadioButton("Automático (URL + índice)")
+        self.auto_name_radio.toggled.connect(lambda: self._update_naming_mode("auto"))
+        self.custom_name_radio = QRadioButton("Personalizado:")
+        self.custom_name_radio.toggled.connect(lambda: self._update_naming_mode("custom"))
+        self.custom_output_name_edit = QLineEdit()
+        self.custom_output_name_edit.setPlaceholderText("Ej: video_descargado_%(title)s (sin extensión)")
+        self.custom_output_name_edit.setEnabled(False)
+        naming_layout.addWidget(self.default_name_radio)
+        naming_layout.addWidget(self.auto_name_radio)
+        custom_layout = QHBoxLayout()
+        custom_layout.addWidget(self.custom_name_radio)
+        custom_layout.addWidget(self.custom_output_name_edit)
+        naming_layout.addLayout(custom_layout)
+        layout.addRow(naming_group)
+
+        self.options_tab_widget.addTab(tab, "General ⚙️")
+
+    def _create_basic_options_tab(self):
+        tab, layout = self._create_form_layout_tab()
+        self.audio_only_checkbox = QCheckBox("Extraer solo audio")
+        self.limit_speed_checkbox = QCheckBox("Limitar velocidad:")
+        self.speed_limit_input = QLineEdit("1M")
+        self.speed_limit_input.setPlaceholderText("Ej: 1M, 500K")
+        self.embed_thumbnail_checkbox = QCheckBox("Incrustar miniatura")
+        self.embed_metadata_checkbox = QCheckBox("Incrustar metadatos")
+
+        layout.addRow(self.audio_only_checkbox)
+        speed_layout = QHBoxLayout()
+        speed_layout.addWidget(self.limit_speed_checkbox)
+        speed_layout.addWidget(self.speed_limit_input)
+        speed_layout.addStretch(1)
+        layout.addRow(speed_layout)
+        layout.addRow(self.embed_thumbnail_checkbox)
+        layout.addRow(self.embed_metadata_checkbox)
+
+        self.limit_speed_checkbox.toggled.connect(self.speed_limit_input.setEnabled)
+        self.speed_limit_input.setEnabled(False)
+        self.options_tab_widget.addTab(tab, "Básicas 🛠️")
+
+    def _create_advanced_options_tab(self):
+        tab, layout = self._create_form_layout_tab()
+        self.audio_format_checkbox = QCheckBox("Formato Audio Específico:")
+        self.audio_format_combo = QComboBox()
+        self.audio_format_combo.addItems(["mp3", "aac", "flac", "wav", "opus"])
+        self.user_agent_checkbox = QCheckBox("User-Agent Custom:")
+        self.user_agent_input = QLineEdit("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+        self.user_agent_input.setPlaceholderText("Ej: Mozilla/5.0 ... Chrome/...")
+        self.add_headers_checkbox = QCheckBox("Añadir Cabeceras:")
+        self.headers_input = QLineEdit()
+        self.headers_input.setPlaceholderText("Ej: Referer: https://example.com; Authorization: Bearer XYZ")
+        self.cookies_checkbox = QCheckBox("Usar Cookies de Navegador:")
+        self.browser_combo = QComboBox()
+        self.browser_combo.addItems(["chrome", "firefox", "edge", "safari", "opera", "brave", "vivaldi"])
+        self.browser_combo.setToolTip("Para usuarios root, yt-dlp podría no encontrar cookies automáticamente. Considera usar 'Ruta/Archivo Custom'.")
+        # Point 5: Custom Cookies Path/File
+        self.custom_cookies_path_checkbox = QCheckBox("Ruta/Archivo Cookies Custom:")
+        self.custom_cookies_path_input = QLineEdit()
+        self.custom_cookies_path_input.setPlaceholderText("Ej: /home/user/.config/google-chrome/Default (para root)")
+        self.username_checkbox = QCheckBox("Usuario:")
+        self.username_input = QLineEdit()
+        self.password_checkbox = QCheckBox("Contraseña:")
+        self.password_input = QLineEdit()
+        self.password_input.setEchoMode(QLineEdit.Password)
+        self.playlist_start_checkbox = QCheckBox("Playlist desde #:")
+        self.playlist_start_input = QLineEdit("1")
+        self.playlist_start_input.setValidator(QIntValidator(1, 99999))
+        self.playlist_end_checkbox = QCheckBox("hasta #:")
+        self.playlist_end_input = QLineEdit()
+        self.playlist_end_input.setValidator(QIntValidator(1, 99999))
+        self.proxy_checkbox = QCheckBox("Usar Proxy:")
+        self.proxy_input = QLineEdit()
+        self.proxy_input.setPlaceholderText("Ej: http://127.0.0.1:8080 o socks5://user:pass@host:port")
+        self.custom_args_checkbox = QCheckBox("Argumentos Custom:")
+        self.custom_args_input = QLineEdit()
+        self.custom_args_input.setPlaceholderText("Ej: --verbose --format bestvideo")
+
+        # --- CORRECCIÓN: add_row_with_toggle mejora layout y size policies ---
+        def add_row_with_toggle(checkbox, widget_list):
+            if not isinstance(widget_list, list):
+                widget_list = [widget_list]
+            h_layout = QHBoxLayout()
+            h_layout.addWidget(checkbox)
+            for i, widget in enumerate(widget_list):
+                # Make each widget expand horizontally
+                widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+                h_layout.addWidget(widget)
+                # Give stretch weight to the widget column (so it auto-ensanche)
+                h_layout.setStretch(i + 1, 1)
+            # final stretch to keep things neat
+            h_layout.addStretch(1)
+            layout.addRow(h_layout)
+            for widget in widget_list:
+                checkbox.toggled.connect(widget.setEnabled)
+                widget.setEnabled(False) # Default to disabled
+
+        add_row_with_toggle(self.audio_format_checkbox, self.audio_format_combo)
+        add_row_with_toggle(self.user_agent_checkbox, self.user_agent_input)
+        add_row_with_toggle(self.add_headers_checkbox, self.headers_input)
+        add_row_with_toggle(self.cookies_checkbox, self.browser_combo)
+
+        # Point 5: Custom cookies path should be dependent on cookies_checkbox as well
+        self.cookies_checkbox.toggled.connect(self.custom_cookies_path_checkbox.setEnabled)
+        self.custom_cookies_path_checkbox.toggled.connect(self.custom_cookies_path_input.setEnabled)
+        self.custom_cookies_path_checkbox.setEnabled(False) # Initially disabled with cookies_checkbox
+        self.custom_cookies_path_input.setEnabled(False) # Initially disabled
+        layout.addRow(self.custom_cookies_path_checkbox, self.custom_cookies_path_input)
+
+        add_row_with_toggle(self.username_checkbox, self.username_input)
+        add_row_with_toggle(self.password_checkbox, self.password_input)
+
+        playlist_layout = QHBoxLayout()
+        playlist_layout.addWidget(self.playlist_start_checkbox)
+        self.playlist_start_input.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        playlist_layout.addWidget(self.playlist_start_input)
+        playlist_layout.addWidget(self.playlist_end_checkbox)
+        self.playlist_end_input.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        playlist_layout.addWidget(self.playlist_end_input)
+        playlist_layout.addStretch(1)
+        layout.addRow("Rango de Playlist:", playlist_layout)
+        self.playlist_start_checkbox.toggled.connect(self.playlist_start_input.setEnabled)
+        self.playlist_start_input.setEnabled(False)
+        self.playlist_end_checkbox.toggled.connect(self.playlist_end_input.setEnabled)
+        self.playlist_end_input.setEnabled(False)
+
+        add_row_with_toggle(self.proxy_checkbox, self.proxy_input)
+        add_row_with_toggle(self.custom_args_checkbox, self.custom_args_input)
+
+        self.options_tab_widget.addTab(tab, "Avanzadas 🧠")
+
+    def create_menus(self):
+        menubar = self.menuBar()
+        view_menu = menubar.addMenu("Ver 👀")
+        view_menu.addAction(self.options_dock.toggleViewAction())
+
+        help_menu = menubar.addMenu("Ayuda ❓")
+        about_action = QAction("Acerca de Osiris Downloader AI", self)
+        about_action.triggered.connect(self.show_about_dialog)
+        help_menu.addAction(about_action)
+
+    def show_about_dialog(self):
+        QMessageBox.about(self, "Acerca de Osiris Downloader AI",
+            "<h3>Osiris Downloader AI 🚀</h3>"
+            "Versión: 8.0.0<br>"
+            "Creado por: Osiris Innovations<br>"
+            "Interfaz para yt-dlp, ¡la herramienta definitiva para descargar videos!<br><br>"
+            "Este software es de código abierto y utiliza <b>yt-dlp</b>.<br>"
+            "<a href='https://github.com/yt-dlp/yt-dlp'>Visita yt-dlp en GitHub</a>"
+        )
+
+    def _update_naming_mode(self, mode: str):
+        is_custom = (mode == "custom")
+        self.custom_output_name_edit.setEnabled(is_custom)
+
+    def update_format_option_ui_logic(self):
+        selected_format = self.format_combo.currentText()
+        is_audio = selected_format in ["MP3", "AAC", "FLAC", "WAV", "OPUS"]
+        self.audio_only_checkbox.setChecked(is_audio)
+        self.audio_only_checkbox.setDisabled(is_audio) # Cannot uncheck if a direct audio format is chosen
+
+    def select_output_dir(self):
+        new_dir = QFileDialog.getExistingDirectory(self, "Seleccionar Directorio", self.output_dir)
+        if new_dir:
+            self.output_dir = new_dir
+            self.update_output_dir_display()
+
+    def open_output_dir(self):
+        """Opens the selected output directory in the system file explorer."""
+        try:
+            if os.path.exists(self.output_dir):
+                QDesktopServices.openUrl(QUrl.fromLocalFile(self.output_dir))
+            else:
+                QMessageBox.warning(self, "Directorio No Encontrado", f"El directorio de salida no existe: {self.output_dir} 📂")
+        except Exception as e:
+            QMessageBox.critical(self, "Error al Abrir Directorio", f"No se pudo abrir el directorio: {e} 💥")
+
+    def update_output_dir_display(self):
+        # Elide text if it's too long
+        label_width = self.output_dir_label.width()
+        if label_width > 0:
+            font_metrics = self.output_dir_label.fontMetrics()
+            elided_text = font_metrics.elidedText(self.output_dir, Qt.ElideMiddle, label_width)
+            self.output_dir_label.setText(elided_text)
+        else: # Fallback if label not yet rendered or width is 0
+            self.output_dir_label.setText(self.output_dir)
+        self.output_dir_label.setToolTip(self.output_dir)
+
+    def start_download(self):
+        input_urls = [url.strip() for url in self.urls_text_edit.toPlainText().splitlines() if url.strip()]
+        if not input_urls:
+            QMessageBox.warning(self, "Sin URLs", "Por favor, introduce al menos una URL para descargar. 🚫")
+            return
+
+        # Basic URL validation
+        validated_urls = []
+        for url in input_urls:
+            if not QUrl(url).isValid() or not (QUrl(url).scheme() in ['http', 'https']):
+                QMessageBox.warning(self, "URL Inválida", f"La URL '{url}' no es válida o no tiene un esquema HTTP/HTTPS. Será ignorada. ⚠️")
+            else:
+                validated_urls.append(url)
+
+        if not validated_urls:
+            QMessageBox.warning(self, "Sin URLs Válidas", "Ninguna de las URLs introducidas es válida. 🚫")
+            return
+
+        self.save_settings()
+
+        # Update pending_urls based on new input and existing table state
+        newly_added_to_queue = []
+        for url in validated_urls:
+            if url not in self.download_metadata:
+                # Completely new URL
+                newly_added_to_queue.append(url)
+                self.pending_urls.append(url)
+                self._add_url_to_table(url)
+            elif url not in self.download_threads:
+                # URL exists in table, but not actively downloading. Check status.
+                meta = self.download_metadata[url]
+                current_status = meta['status_item'].text()
+                if "Completado" in current_status or "Error" in current_status or "Cancelado" in current_status or "Eliminado" in current_status:
+                    # Allow re-download by resetting status and adding to pending queue
+                    self.reset_download_status(url)
+                    self.pending_urls.append(url)
+                    newly_added_to_queue.append(url) # Track for log update
+
+        if not newly_added_to_queue and not self.download_threads:
+            QMessageBox.information(self, "Sin Nuevas Descargas", "Todas las URLs ya están en progreso o han sido procesadas y no requieren re-descarga. ⏳")
+            return
+
+        self.is_downloading_active = True
+        self.start_button.setDisabled(True)
+        self.stop_button.setDisabled(False)
+        self.log_buffer.append("Osiris: Descargas iniciadas. ¡Preparando el sistema! 🌟")
+
+        if self.parallel_radio.isChecked():
+            self.max_parallel_downloads = int(self.parallel_max_downloads_input.text())
+            self.start_next_parallel_downloads()
+        else:
+            # Re-initialize current_download_idx to ensure it starts from the first pending URL
+            self.current_download_idx = 0
+            self.start_next_sequential_download()
+
+    def _add_url_to_table(self, url: str):
+        row_idx = self.download_table.rowCount()
+        self.download_table.insertRow(row_idx)
+
+        url_item = QTableWidgetItem(url)
+        url_item.setToolTip(url) # Show full URL on hover
+        self.download_table.setItem(row_idx, 0, url_item)
+
+        progress_bar = QProgressBar()
+        progress_bar.setAlignment(Qt.AlignCenter)
+        progress_bar.setValue(0)
+        self.download_table.setCellWidget(row_idx, 1, progress_bar)
+
+        status_item = QTableWidgetItem("En cola ⏳")
+        speed_item = QTableWidgetItem("N/A")
+        eta_item = QTableWidgetItem("N/A")
+
+        self.download_table.setItem(row_idx, 2, status_item)
+        self.download_table.setItem(row_idx, 3, speed_item)
+        self.download_table.setItem(row_idx, 4, eta_item)
+
+        # Store references for later updates
+        self.download_metadata[url] = {
+            'row': row_idx,
+            'progress_bar': progress_bar,
+            'status_item': status_item,
+            'speed_item': speed_item,
+            'eta_item': eta_item,
+            'file_path': None # To store final file path if known
+        }
+        self.download_table.resizeRowsToContents() # Adjust row height for progress bar
+
+    def reset_download_status(self, url: str):
+        """Resets the status of a previously processed URL in the table for re-download."""
+        if url in self.download_metadata:
+            meta = self.download_metadata[url]
+            meta['progress_bar'].setValue(0)
+            meta['status_item'].setText("En cola ⏳")
+            meta['speed_item'].setText("N/A")
+            meta['eta_item'].setText("N/A")
+            meta['file_path'] = None
+            self.log_buffer.append(f"Osiris: URL {QUrl(url).fileName() or url} reiniciada para descarga. ✨")
+
+    def stop_all_downloads(self):
+        if not self.is_downloading_active: return
+        self.log_buffer.append("Osiris: Solicitando la detención de todas las descargas... 🛑")
+
+        # Stop all active workers
+        for worker in list(self.download_threads.values()):
+            worker.stop()
+
+        # Clear the pending queue
+        self.pending_urls.clear()
+        self.current_download_idx = 0
+
+        # Update status for any remaining "En cola" items
+        for url, meta in self.download_metadata.items():
+            if url not in self.download_threads and meta['status_item'].text() == "En cola ⏳":
+                meta['status_item'].setText("Cancelado ❌")
+                meta['progress_bar'].setValue(0)
+                meta['speed_item'].setText("N/A")
+                meta['eta_item'].setText("N/A")
+
+        if not self.download_threads: # If no threads were active, but there were pending ones
+            self.download_process_finished(is_stopped_by_user=True)
+
+    def clear_log(self):
+        """Clears the output log text area."""
+        self.output_log_text.clear()
+        self.log_buffer.clear()
+        self.log_buffer.append("Osiris: Registro de eventos limpiado. 🧹")
+        self.flush_log_buffer()
+
+    def _setup_table_context_menu(self, pos):
+        item = self.download_table.itemAt(pos)
+        if not item: return
+
+        row = item.row()
+        url = self.download_table.item(row, 0).text()
+        status_text = self.download_table.item(row, 2).text()
+        meta = self.download_metadata.get(url)
+
+        menu = QMenu(self)
+
+        if url in self.download_threads:
+            stop_action = menu.addAction("Detener Descarga 🛑")
+            stop_action.triggered.connect(lambda: self.stop_single_download(url))
+        else:
+            start_action = menu.addAction("Re-descargar ⬇️")
+            start_action.triggered.connect(lambda: self.restart_single_download(url))
+
+        # Open folder only if file_path is known or output_dir exists
+        if meta and meta.get('file_path') and os.path.exists(os.path.dirname(meta['file_path'])):
+            open_folder_action = menu.addAction("Abrir Carpeta de Salida 📁")
+            open_folder_action.triggered.connect(lambda: QDesktopServices.openUrl(QUrl.fromLocalFile(os.path.dirname(meta['file_path']))))
+        elif os.path.exists(self.output_dir): # Fallback to open general output dir
+            open_folder_action = menu.addAction("Abrir Carpeta de Salida General 📁")
+            open_folder_action.triggered.connect(self.open_output_dir)
+
+        menu.addSeparator()
+        remove_action = menu.addAction("Eliminar de la Lista 🗑️")
+        remove_action.triggered.connect(lambda: self.remove_download_from_list(url))
+
+        menu.exec_(self.download_table.mapToGlobal(pos))
+
+    def stop_single_download(self, url: str):
+        worker = self.download_threads.get(url)
+        if worker:
+            worker.stop()
+            self.log_buffer.append(f"Osiris: Solicitando detención de descarga para {QUrl(url).fileName() or url} 🛑")
+
+    def restart_single_download(self, url: str):
+        if url in self.download_threads:
+            QMessageBox.information(self, "Descarga Activa", f"La URL {QUrl(url).fileName() or url} ya está descargándose. 🔄")
+            return
+
+        # Ensure it's not already in pending queue for some reason
+        if url in self.pending_urls:
+            QMessageBox.information(self, "En Cola", f"La URL {QUrl(url).fileName() or url} ya está en la cola pendiente. ⏳")
+            return
+
+        self.reset_download_status(url)
+        self.pending_urls.append(url)
+
+        self.is_downloading_active = True
+        self.start_button.setDisabled(True)
+        self.stop_button.setDisabled(False)
+
+        if self.parallel_radio.isChecked():
+            self.max_parallel_downloads = int(self.parallel_max_downloads_input.text())
+            self.start_next_parallel_downloads()
+        else:
+            if not self.download_threads:
+                self.start_next_sequential_download()
+            else:
+                self.log_buffer.append(f"Osiris: {QUrl(url).fileName() or url} añadido a la cola para re-descarga. ⏳")
+
+    def remove_download_from_list(self, url: str):
+        if url in self.download_threads:
+            QMessageBox.warning(self, "Descarga Activa", "No se puede eliminar una descarga activa. Por favor, deténla primero. 🛑")
+            return
+
+        reply = QMessageBox.question(self, "Eliminar Descarga",
+                                     f"¿Estás seguro de que quieres eliminar {QUrl(url).fileName() or url} de la lista?",
+                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+
+        if reply == QMessageBox.Yes:
+            if url in self.download_metadata:
+                row_to_remove = self.download_metadata[url]['row']
+                self.download_table.removeRow(row_to_remove)
+                del self.download_metadata[url]
+
+                # Re-index remaining rows in download_metadata
+                for current_url, meta in self.download_metadata.items():
+                    if meta['row'] > row_to_remove:
+                        meta['row'] -= 1
+
+                # Also remove from pending_urls if it was there
+                if url in self.pending_urls:
+                    try:
+                        idx = self.pending_urls.index(url)
+                        self.pending_urls.remove(url)
+                        if not self.parallel_radio.isChecked() and idx <= self.current_download_idx and self.current_download_idx > 0:
+                            self.current_download_idx -= 1
+                    except ValueError:
+                        pass
+
+                self.log_buffer.append(f"Osiris: {QUrl(url).fileName() or url} eliminado de la lista. 🗑️")
+            else:
+                self.log_buffer.append(f"Osiris: {QUrl(url).fileName() or url} no encontrado en la lista. ❓")
+
+    def start_next_sequential_download(self):
+        if self.current_download_idx < len(self.pending_urls) and not self.download_threads:
+            url = self.pending_urls[self.current_download_idx]
+            self._start_single_download(url)
+
+    def start_next_parallel_downloads(self):
+        while len(self.download_threads) < self.max_parallel_downloads and self.current_download_idx < len(self.pending_urls):
+            url = self.pending_urls[self.current_download_idx]
+            if url not in self.download_threads and self.download_metadata[url]['status_item'].text() not in ["Completado 🎉", "Error 💥", "Cancelado ❌", "Ya descargado ✅"]:
+                self._start_single_download(url)
+            self.current_download_idx += 1
+
+    def _start_single_download(self, url: str):
+        if url in self.download_threads: # Already running, skip
+            return
+
+        file_name_template = ""
+        naming_mode = "default"
+        if self.default_name_radio.isChecked():
+            naming_mode = "default"
+        elif self.auto_name_radio.isChecked():
+            naming_mode = "auto"
+            idx_for_naming = self.download_metadata[url]['row']
+            safe_host = re.sub(r'[^a-zA-Z0-9_-]', '', QUrl(url).host().split('.')[-2] if QUrl(url).host() else "download")
+            file_name_template = f"{safe_host}_{idx_for_naming + 1}"
+        elif self.custom_name_radio.isChecked():
+            naming_mode = "custom"
+            file_name_template = self.custom_output_name_edit.text()
+            if not file_name_template: # Fallback if custom is selected but empty
+                QMessageBox.warning(self, "Nombre de archivo personalizado", "El nombre de archivo personalizado está vacío. Usando modo automático. 📝")
+                naming_mode = "auto"
+                idx_for_naming = self.download_metadata[url]['row']
+                safe_host = re.sub(r'[^a-zA-Z0-9_-]', '', QUrl(url).host().split('.')[-2] if QUrl(url).host() else "download")
+                file_name_template = f"{safe_host}_{idx_for_naming + 1}"
+
+        options = self._collect_current_options()
+        format_map = {"MP4": "mp4", "MKV": "mkv", "WEBM": "webm", "MP3": "mp3",
+                      "AAC": "aac", "FLAC": "flac", "WAV": "wav", "OPUS": "opus"}
+        format_option = format_map.get(self.format_combo.currentText(), "mp4")
+
+        worker = DownloadWorker(url, self.output_dir, file_name_template, naming_mode, format_option, options)
+        self.download_threads[url] = worker
+
+        # Connect signals directly to methods, they will use URL to find row info
+        worker.progress_update.connect(self.update_download_progress)
+        worker.status_update.connect(self.update_download_status)
+        worker.download_finished.connect(self.handle_download_finished)
+        worker.download_error.connect(self.handle_download_error)
+
+        worker.start()
+        # Update status in table to "Iniciando..."
+        if url in self.download_metadata:
+            self.download_metadata[url]['status_item'].setText("Iniciando... 🚀")
+
+    def _collect_current_options(self) -> dict:
+        return {
+            # Basic Options
+            "audio_only": self.audio_only_checkbox.isChecked(),
+            "limit_speed": self.limit_speed_checkbox.isChecked(),
+            "speed_limit_val": self.speed_limit_input.text(),
+            "embed_thumbnail": self.embed_thumbnail_checkbox.isChecked(),
+            "embed_metadata": self.embed_metadata_checkbox.isChecked(),
+
+            # Advanced Options
+            "audio_format_checkbox": self.audio_format_checkbox.isChecked(),
+            "audio_format_val": self.audio_format_combo.currentText(),
+            "user_agent": self.user_agent_checkbox.isChecked(),
+            "user_agent_val": self.user_agent_input.text(),
+            "add_headers": self.add_headers_checkbox.isChecked(),
+            "headers_val": self.headers_input.text(),
+            "cookies_from_browser": self.cookies_checkbox.isChecked(),
+            "browser_val": self.browser_combo.currentText(),
+            "custom_cookies_path_checkbox": self.custom_cookies_path_checkbox.isChecked(),
+            "custom_cookies_path_val": self.custom_cookies_path_input.text(),
+            "username": self.username_checkbox.isChecked(),
+            "username_val": self.username_input.text(),
+            "password": self.password_checkbox.isChecked(),
+            "password_val": self.password_input.text(),
+            "playlist_start": self.playlist_start_checkbox.isChecked(),
+            "playlist_start_val": self.playlist_start_input.text(),
+            "playlist_end": self.playlist_end_checkbox.isChecked(),
+            "playlist_end_val": self.playlist_end_input.text(),
+            "proxy": self.proxy_checkbox.isChecked(),
+            "proxy_val": self.proxy_input.text(),
+            "custom_args": self.custom_args_checkbox.isChecked(),
+            "custom_args_val": self.custom_args_input.text(),
+        }
+
+    @pyqtSlot(str, float, str, str)
+    def update_download_progress(self, url: str, percentage: float, speed: str, eta: str):
+        if url in self.download_metadata:
+            meta = self.download_metadata[url]
+            try:
+                val = int(min(max(percentage, 0), 100))
+            except Exception:
+                val = 0
+            meta['progress_bar'].setValue(val)
+
+            # Only update status to "Descargando..." if current status is less specific
+            current_status_text = meta['status_item'].text()
+            if "Descargando" in current_status_text or current_status_text in ["Iniciando... 🚀", "Extrayendo info... 🔎", "En cola ⏳"]:
+                meta['status_item'].setText("Descargando... ⬇️")
+            meta['speed_item'].setText(speed)
+            meta['eta_item'].setText(eta)
+        # Avoid frequent row resize on every progress update for performance
+
+    @pyqtSlot(str, str, str)
+    def update_download_status(self, url: str, status_msg: str, log_line: str):
+        safe_url_for_log = QUrl(url).fileName() or url # More readable for log
+        if log_line:
+            self.log_buffer.append(f"[{safe_url_for_log}] {log_line}")
+
+        if status_msg:
+            if url in self.download_metadata:
+                meta = self.download_metadata[url]
+                current_status_text = meta['status_item'].text()
+
+                # Prioritize explicit post-processing and final statuses
+                if "Descargando" in status_msg and "Descargando" not in current_status_text and \
+                   not any(k in current_status_text for k in ["audio", "merge", "metadatos", "miniatura", "convertiendo", "limpiando", "FFmpeg", "SponsorBlock", "capítulos", "subtítulos", "moviendo", "Error", "Completado", "Cancelado", "Ya descargado"]):
+                    # Don't overwrite more specific post-processing messages with generic "Descargando"
+                    meta['status_item'].setText(status_msg)
+                elif "Descargando" not in status_msg: # Always update for non-downloading statuses
+                    meta['status_item'].setText(status_msg)
+
+                # Special handling for "Destination" line to get final file path
+                if "Destination:" in log_line:
+                    try:
+                        file_path = log_line.split("Destination:")[-1].strip()
+                        meta['file_path'] = file_path
+                    except Exception:
+                        pass
+
+            # Add a concise log entry
+            self.log_buffer.append(f"Osiris ({safe_url_for_log}): {status_msg}")
+
+    @pyqtSlot(str, int)
+    def handle_download_finished(self, url: str, exit_code: int):
+        worker = self.download_threads.pop(url, None)
+        if worker:
+            try:
+                worker.quit()
+                worker.wait()
+            except Exception:
+                pass
+
+        if url in self.download_metadata:
+            meta = self.download_metadata[url]
+            if exit_code == 0:
+                meta['progress_bar'].setValue(100)
+                meta['status_item'].setText("Completado 🎉")
+                meta['speed_item'].setText("Finalizado")
+                meta['eta_item'].setText("00:00")
+            elif exit_code == -1: # User cancelled
+                meta['status_item'].setText("Cancelado ❌")
+                meta['speed_item'].setText("N/A")
+                meta['eta_item'].setText("N/A")
+            else:
+                if not "Error" in meta['status_item'].text(): # Prevent overwriting a more specific error message
+                    meta['status_item'].setText(f"Falló ({exit_code}) 💔")
+                meta['speed_item'].setText("N/A")
+                meta['eta_item'].setText("N/A")
+        self.download_table.resizeRowsToContents()
+
+        # Manage next downloads
+        if not self.parallel_radio.isChecked(): # Sequential mode
+            self.current_download_idx += 1
+            if self.current_download_idx < len(self.pending_urls):
+                self._start_single_download(self.pending_urls[self.current_download_idx])
+            else:
+                self.download_process_finished()
+        else: # Parallel mode
+            self.start_next_parallel_downloads()
+            if not self.download_threads and self.current_download_idx >= len(self.pending_urls):
+                self.download_process_finished()
+
+    @pyqtSlot(str, str)
+    def handle_download_error(self, url: str, error_message: str):
+        self.log_buffer.append(f"Osiris: ¡ERROR CRÍTICO! {QUrl(url).fileName() or url}:\n{error_message} 💥")
+
+        # Display alert (Point 6)
+        QMessageBox.critical(self, "Error de Descarga 💥", f"¡Error en la URL {QUrl(url).fileName() or url}!\n{error_message}")
+
+        if url in self.download_metadata:
+            meta = self.download_metadata[url]
+            meta['progress_bar'].setValue(0)
+            meta['status_item'].setText("Error 💥")
+            meta['speed_item'].setText("N/A")
+            meta['eta_item'].setText("N/A")
+
+        worker = self.download_threads.pop(url, None)
+        if worker:
+            try:
+                worker.quit()
+                worker.wait()
+            except Exception:
+                pass
+
+        # Manage next downloads, similar to handle_download_finished
+        if not self.parallel_radio.isChecked(): # Sequential mode
+            self.current_download_idx += 1
+            if self.current_download_idx < len(self.pending_urls):
+                self._start_single_download(self.pending_urls[self.current_download_idx])
+            else:
+                self.download_process_finished()
+        else: # Parallel mode
+            self.start_next_parallel_downloads()
+            if not self.download_threads and self.current_download_idx >= len(self.pending_urls):
+                self.download_process_finished()
+
+    def download_process_finished(self, is_stopped_by_user: bool = False):
+        self.is_downloading_active = False
+        self.start_button.setDisabled(False)
+        self.stop_button.setDisabled(True)
+        msg = "Las descargas han sido detenidas. 🛑" if is_stopped_by_user else "¡Todas las descargas han finalizado! 🎉"
+        self.log_buffer.append(f"Osiris: {msg}")
+
+        QMessageBox.information(self, "Proceso Finalizado", msg)
+
+        self.pending_urls.clear() # Ensure pending queue is truly clear at the end
+        self.current_download_idx = 0
+
+    @pyqtSlot()
+    def flush_log_buffer(self):
+        if self.log_buffer:
+            self.output_log_text.append("\n".join(self.log_buffer))
+            self.log_buffer.clear()
+            self.output_log_text.verticalScrollBar().setValue(self.output_log_text.verticalScrollBar().maximum())
+
+    def save_settings(self):
+        settings = QSettings("OsirisInnovations", "OsirisDownloaderAI")
+        settings.setValue("output_directory", self.output_dir)
+        settings.setValue("download_mode_parallel", self.parallel_radio.isChecked())
+        settings.setValue("max_parallel_downloads", self.parallel_max_downloads_input.text())
+        settings.setValue("format_option", self.format_combo.currentText())
+
+        # Naming mode
+        if self.default_name_radio.isChecked():
+            settings.setValue("naming_mode", "default")
+        elif self.auto_name_radio.isChecked():
+            settings.setValue("naming_mode", "auto")
+        elif self.custom_name_radio.isChecked():
+            settings.setValue("naming_mode", "custom")
+        settings.setValue("custom_output_name", self.custom_output_name_edit.text())
+
+        # Additional options
+        options = self._collect_current_options()
+        for key, value in options.items():
+            settings.setValue(key, value)
+
+        settings.setValue("geometry", self.saveGeometry())
+        settings.setValue("windowState", self.saveState())
+
+    def load_settings(self):
+        settings = QSettings("OsirisInnovations", "OsirisDownloaderAI")
+        self.output_dir = settings.value("output_directory", os.path.expanduser("~"), type=str)
+
+        if settings.value("geometry"): self.restoreGeometry(settings.value("geometry"))
+        if settings.value("windowState"): self.restoreState(settings.value("windowState"))
+
+        def apply_setting(checkbox, widget, key_check, key_val, default_val=""):
+            check_state = settings.value(key_check, False, type=bool)
+            checkbox.setChecked(check_state)
+            if widget:
+                saved_value = str(settings.value(key_val, default_val, type=str))
+                if isinstance(widget, QLineEdit):
+                    widget.setText(saved_value)
+                elif isinstance(widget, QComboBox):
+                    index = widget.findText(saved_value)
+                    if index != -1:
+                        widget.setCurrentIndex(index)
+                    else:
+                        widget.setCurrentIndex(0)
+
+        parallel_mode = settings.value("download_mode_parallel", False, type=bool)
+        self.parallel_radio.setChecked(parallel_mode)
+        self.sequential_radio.setChecked(not parallel_mode)
+        self.parallel_max_downloads_input.setText(settings.value("max_parallel_downloads", "3", type=str))
+        self.parallel_max_downloads_input.setEnabled(parallel_mode)
+
+        format_idx = self.format_combo.findText(settings.value("format_option", "MP4", type=str))
+        if format_idx != -1: self.format_combo.setCurrentIndex(format_idx)
+
+        naming_mode = settings.value("naming_mode", "default", type=str)
+        if naming_mode == "default": self.default_name_radio.setChecked(True)
+        elif naming_mode == "auto": self.auto_name_radio.setChecked(True)
+        elif naming_mode == "custom": self.custom_name_radio.setChecked(True)
+
+        self.custom_output_name_edit.setText(settings.value("custom_output_name", "", type=str))
+        self.custom_output_name_edit.setEnabled(self.custom_name_radio.isChecked())
+
+        apply_setting(self.audio_only_checkbox, None, "audio_only", None)
+        apply_setting(self.limit_speed_checkbox, self.speed_limit_input, "limit_speed", "speed_limit_val", "1M")
+        apply_setting(self.embed_thumbnail_checkbox, None, "embed_thumbnail", None)
+        apply_setting(self.embed_metadata_checkbox, None, "embed_metadata", None)
+        apply_setting(self.audio_format_checkbox, self.audio_format_combo, "audio_format_checkbox", "audio_format_val", "mp3")
+        apply_setting(self.user_agent_checkbox, self.user_agent_input, "user_agent", "user_agent_val", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+        apply_setting(self.add_headers_checkbox, self.headers_input, "add_headers", "headers_val")
+        apply_setting(self.cookies_checkbox, self.browser_combo, "cookies_from_browser", "browser_val", "chrome")
+        apply_setting(self.custom_cookies_path_checkbox, self.custom_cookies_path_input, "custom_cookies_path_checkbox", "custom_cookies_path_val", "")
+
+        apply_setting(self.username_checkbox, self.username_input, "username", "username_val")
+        apply_setting(self.password_checkbox, self.password_input, "password", "password_val")
+        apply_setting(self.playlist_start_checkbox, self.playlist_start_input, "playlist_start", "playlist_start_val", "1")
+        apply_setting(self.playlist_end_checkbox, self.playlist_end_input, "playlist_end", "playlist_end_val")
+        apply_setting(self.proxy_checkbox, self.proxy_input, "proxy", "proxy_val")
+        apply_setting(self.custom_args_checkbox, self.custom_args_input, "custom_args", "custom_args_val")
+
+    def update_ui_from_settings(self):
+        # This function is called after loading settings to ensure UI elements reflect the loaded state
+        self.update_output_dir_display()
+        self.update_format_option_ui_logic() # Ensures audio_only checkbox state is correct
+
+        # Force toggle to update enabled state of associated widgets
+        self.limit_speed_checkbox.toggled.emit(self.limit_speed_checkbox.isChecked())
+        self.audio_format_checkbox.toggled.emit(self.audio_format_checkbox.isChecked())
+        self.user_agent_checkbox.toggled.emit(self.user_agent_checkbox.isChecked())
+        self.add_headers_checkbox.toggled.emit(self.add_headers_checkbox.isChecked())
+        self.cookies_checkbox.toggled.emit(self.cookies_checkbox.isChecked())
+        # Also update custom cookies path dependent state
+        self.custom_cookies_path_checkbox.setEnabled(self.cookies_checkbox.isChecked())
+        self.custom_cookies_path_checkbox.toggled.emit(self.custom_cookies_path_checkbox.isChecked())
+
+        self.username_checkbox.toggled.emit(self.username_checkbox.isChecked())
+        self.password_checkbox.toggled.emit(self.password_checkbox.isChecked())
+        self.playlist_start_checkbox.toggled.emit(self.playlist_start_checkbox.isChecked())
+        self.playlist_end_checkbox.toggled.emit(self.playlist_end_checkbox.isChecked())
+        self.proxy_checkbox.toggled.emit(self.proxy_checkbox.isChecked())
+        self.custom_args_checkbox.toggled.emit(self.custom_args_checkbox.isChecked())
+
+    def closeEvent(self, event):
+        self.save_settings()
+        self.log_update_timer.stop()
+        self.stop_all_downloads() # Ensure all threads are terminated
+        # Give some time for threads to clean up
+        for worker in list(self.download_threads.values()): # Iterate on a copy
+            worker.wait(500) # Wait up to 500ms for each worker
+        event.accept()
+
+    def _setup_url_text_edit_context_menu(self):
+        menu = QMenu(self)
+        menu.addAction("Cortar", self.urls_text_edit.cut)
+        menu.addAction("Copiar", self.urls_text_edit.copy)
+        menu.addAction("Pegar", self.urls_text_edit.paste)
+        menu.addSeparator()
+        menu.addAction("Seleccionar Todo", self.urls_text_edit.selectAll)
+        self.urls_text_edit.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.urls_text_edit.customContextMenuRequested.connect(
+            lambda pos: menu.exec_(self.urls_text_edit.mapToGlobal(pos))
+        )
+
+    def _apply_styles(self):
+        self.setStyleSheet("""
+            QMainWindow { background-color: #2c3e50; }
+            QWidget { font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; background-color: #2c3e50; color: #ecf0f1; }
+            QGroupBox {
+                font-weight: bold;
+                margin-top: 10px;
+                border: 1px solid #34495e;
+                border-radius: 6px;
+                padding-top: 15px;
+                background-color: #34495e;
+                color: #ecf0f1;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                subcontrol-position: top center;
+                padding: 0 5px;
+                color: #2ecc71;
+                background-color: #34495e;
+                border-radius: 3px;
+            }
+            QPushButton {
+                padding: 10px 20px;
+                border: 1px solid #2ecc71;
+                border-radius: 5px;
+                background-color: #27ae60;
+                color: white;
+                font-weight: bold;
+            }
+            QPushButton:hover { background-color: #2ecc71; }
+            QPushButton:pressed { background-color: #1abc9c; }
+            QPushButton:disabled { background-color: #7f8c8d; border-color: #95a5a6; color: #bdc3c7; }
+            QLineEdit, QTextEdit, QComboBox {
+                padding: 8px;
+                border: 1px solid #5d748f;
+                border-radius: 4px;
+                background-color: #49637c;
+                color: #ecf0f1;
+                selection-background-color: #2980b9;
+            }
+            QLineEdit:focus, QTextEdit:focus, QComboBox:focus { border-color: #3498db; }
+            QProgressBar {
+                border: 1px solid #5d748f;
+                border-radius: 5px;
+                text-align: center;
+                background-color: #49637c;
+                color: #ecf0f1;
+            }
+            QProgressBar::chunk {
+                background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #27ae60, stop:1 #2ecc71);
+                border-radius: 4px;
+            }
+            QTableWidget {
+                border: 1px solid #34495e;
+                border-radius: 6px;
+                gridline-color: #49637c;
+                background-color: #34495e;
+                alternate-background-color: #3a5068;
+                color: #ecf0f1;
+            }
+            QTableWidget::item {
+                padding: 5px;
+            }
+            QHeaderView::section {
+                background-color: #2c3e50;
+                padding: 8px;
+                border: 1px solid #34495e;
+                font-weight: bold;
+                color: #2ecc71;
+                text-align: left;
+            }
+            QDockWidget {
+                border: 1px solid #34495e;
+            }
+            QDockWidget::title {
+                text-align: center;
+                background: #2c3e50;
+                padding: 5px;
+                color: #ecf0f1;
+                font-weight: bold;
+                border-bottom: 1px solid #2ecc71;
+            }
+            QTabWidget::pane {
+                border: 1px solid #34495e;
+                border-radius: 6px;
+                padding: 5px;
+                background-color: #34495e;
+            }
+            QTabBar::tab {
+                background-color: #49637c;
+                border: 1px solid #5d748f;
+            }
+        """)
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = OsirisDownloaderApp()
+    window.show()
+    sys.exit(app.exec_())
