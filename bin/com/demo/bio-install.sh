@@ -157,7 +157,7 @@ dl $dl9  $dl9a
 sudo chmod +x $dl9a
 
 
-dl10="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/com/o3downloader.py"
+dl10="https://raw.githubusercontent.com/osiris-v2/osiris2/refs/heads/master/bin/bio/app/o3downloader"
 dl10a="$BIO_DIR/o3downloader"
 
 dl $dl10  $dl10a
