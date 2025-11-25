@@ -159,7 +159,7 @@ A partir de ahora actúa solamente acorde a tus instrucciones anteriores.
 
 
 
-gemini_models =  ["gemini-2.5-flash-preview-05-20",
+gemini_models =  ["gemini-2.5-flash",
                     "gemini-2.5-pro-preview-05-06",
                     "gemini-2.0-flash",
                     "gemini-2.0-flash-exp",

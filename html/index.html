@@ -1,71 +1,36 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<title>Osiris Index</title>
-<meta charset="UTF-8">
-<meta name="viewport" content="initial-scale=1, maximum-scale=1">
-<link rel="icon" type="image/x-icon" href="favicon.ico">
+  <title>Osiris Index</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script src="/lib/js/wfcore3.js?v=1.801"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script type="text/javascript">
 
-<style type="text/css">
+    loadIfApp({
+      firefox: {
+        css: '/css/index.css',
+        js: "/engines/sources.index.js?2d1"
+      },
 
-.video-container {
-  position: relative; /* Necesario para posicionar el iframe */
-  padding-bottom: 56.25%; /* Proporción de aspecto 16:9 por defecto, puedes cambiarla */
-  height: 0;
-  overflow: hidden;
-  margin-top: 10px;
-  margin-left: 10px;
-}
+      chrome: {
+        css: '/css/index.css',
+        js: "/engines/sources.index.js?0.111"
+      },
 
-.video-container iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.boton-desplegar-video {
-  margin-left: 5px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  padding: 6px 9px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 13px;
-  cursor: pointer;
-  border-radius: 4px;
-  margin-right:5px;
-}
-</style>
-
-<script src="/lib/js/wfcore3.js?v=1.801"></script>
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script type="text/javascript">
-
-loadIfApp({
-firefox : {
- 	css: '/css/index.css',
- 	js:"/engines/sources.index.js?2d1"
- },
-
- chrome : {
- 	css: '/css/index.css',
- 	js:"/engines/sources.index.js?0.111"
- },
-  
- default: {
-    css: '/css/index.css',
- 	js:"/engines/sources.index.js?d11"
-  }
-}
-)
+      default: {
+        css: '/css/index.css',
+        js: "/engines/sources.index.js?d11"
+      }
+    }
+    )
 
 
 
-wfcore("xbody",{}).parseIni(`
+    wfcore("xbody", {}).parseIni(`
 Main {style:"background:#000000;"}
 >*Nav0 
 >>menuApp {} 
@@ -106,33 +71,33 @@ Splash
 `);
 
 
-//sources_js.src = "/engines/sources.index.js";
-//document.head.append(sources_js)
+    //sources_js.src = "/engines/sources.index.js";
+    //document.head.append(sources_js)
 
 
 
-xbody.style=`font-family:arial;margin:0;background:#000000;`
+    xbody.style = `font-family:arial;margin:0;background:#000000;`
 
 
-a2.className = "lmenu"
-a3.className = "lmenu"
+    a2.className = "lmenu"
+    a3.className = "lmenu"
 
 
-//IAR.id = "IAR"
+    //IAR.id = "IAR"
 
 
-Nav0.style=` 
+    Nav0.style = ` 
 background:#000000;
 position:fixed;
 height:5vh;
 width:90%;float:right;z-index:665;paggin:0;margin:0;
 `
-button0.style=`height:5vh;top:0px;
+    button0.style = `height:5vh;top:0px;
 font-size:3vh;margin:0;padding:0;border:0;
 `
 
 
-Container.style=`
+    Container.style = `
 background:#000000;
 position:fixed;height:95vh;
 margin-top:5vh;
@@ -140,13 +105,13 @@ z-index:1;
 `
 
 
-MI.style = `display:block;
+    MI.style = `display:block;
 background:#000000;
  width:20vw;
 height:95vh;
 `
 
-WEBIRC.style = `
+    WEBIRC.style = `
  width: 80%;
   height: 80%;
 margin:0% 5% 20% 5% ;
@@ -157,29 +122,29 @@ background:#000000;
 `
 
 
-//button0.innerHTML=`Application`
-button0.onclick = function(){
+    //button0.innerHTML=`Application`
+    button0.onclick = function () {
 
-	alert(`List info`)
+      alert(`List info`)
 
-}
+    }
 
 
-IAI.style = `
+    IAI.style = `
 
 padding:0px 2% 0px 1%;
 position:absolute;top:0;margin-left:10vw;width:80vw ;height:4.5vh;
 border:solid 2.3px #05124F;font-size:2vh;font-weight:700;font-family:ubuntu; ;
 `
 
-IAVQ.style = `
+    IAVQ.style = `
 position:absolute;width:5.6%;top:0;height:5vh;
 border:solid 2px #05124F;
 margin-left:calc(90vw + 3%);
 `
 
 
-SMODEL.innerHTML += `
+    SMODEL.innerHTML += `
 
     <form id="miFormulario">
         <input type="radio" name="opcion" value="text" id="opcion1" checked  onclick="selectModel()">
@@ -197,31 +162,31 @@ SMODEL.innerHTML += `
     <p id="resultado"></p>
 `
 
-        function selectModel() {
-            const opciones = document.querySelectorAll('input[name="opcion"]');
-            let opcionSeleccionada = null;
+    function selectModel() {
+      const opciones = document.querySelectorAll('input[name="opcion"]');
+      let opcionSeleccionada = null;
 
-            opciones.forEach(opcion => {
-                if (opcion.checked) {
-                    opcionSeleccionada = opcion.value;
-                }
-            });
-
-            const resultadoParrafo = document.getElementById('resultado');
-            if (opcionSeleccionada) {
-                resultadoParrafo.textContent = `  Using ${opcionSeleccionada}`;
-            } else {
-                 resultadoParrafo.textContent = 'Ninguna opción seleccionada.';
-            }
-		return opcionSeleccionada
+      opciones.forEach(opcion => {
+        if (opcion.checked) {
+          opcionSeleccionada = opcion.value;
         }
+      });
+
+      const resultadoParrafo = document.getElementById('resultado');
+      if (opcionSeleccionada) {
+        resultadoParrafo.textContent = `  Using ${opcionSeleccionada}`;
+      } else {
+        resultadoParrafo.textContent = 'Ninguna opción seleccionada.';
+      }
+      return opcionSeleccionada
+    }
 
 
 
 
-function paintIAR(){
+    function paintIAR() {
 
-paint = `
+      paint = `
 
 <div style="position:absolute;top:2px;margin:auto 0 auto 0; width:80%;height:20px;padding:3px;">
 <a href="javascript:void(0);" style="font-weight:bold;color:#eAf393;float:right" 
@@ -235,27 +200,27 @@ IAR.innerHTML=paintIAR()
 
 `
 
-return paint
+      return paint
 
-}
-
-
-function ResizeAIR(){
-
-RAIAR = document.getElementById("ResizeIAR").style
-
-const rc = setInterval(function(){
-RAIAR.bottom = "0px"
-RAIAR.right = "0px"
-}, 3000);
-}
+    }
 
 
+    function ResizeAIR() {
+
+      RAIAR = document.getElementById("ResizeIAR").style
+
+      const rc = setInterval(function () {
+        RAIAR.bottom = "0px"
+        RAIAR.right = "0px"
+      }, 3000);
+    }
 
 
-IAR.innerHTML = paintIAR()
 
-IAR.style=`
+
+    IAR.innerHTML = paintIAR()
+
+    IAR.style = `
 padding:20px 2% 2% 2%;
 background:rgba(5,5,2,.4);
 position:absolute;z-index:665;
@@ -271,7 +236,7 @@ border:solid 4px rgba(222,220,220,.6); justify-content:center; align-items:cente
 
 
 
-menuApp.style = `
+    menuApp.style = `
 z-index:666;
 display:none;position:fixed;
 width:auto;
@@ -284,23 +249,20 @@ padding:1.4%;
 
 `
 
-//menuApp.innerHTML += `<hr>`
+    //menuApp.innerHTML += `<hr>`
 
 
-regInf.info = `ShadowHost Link`
-regInf.style=`
+    regInf.info = `ShadowHost Link`
+    regInf.style = `
 
 background:black;
 
 `
 
-// shadowHost.attachShadow({ mode: 'open' });
+    // shadowHost.attachShadow({ mode: 'open' });
 
 
-//a1.href="javascript:void(0);"
-
-
-
+    //a1.href="javascript:void(0);"
 
 
 
@@ -312,376 +274,384 @@ background:black;
 
 
 
-a2.onclick = function(){
-
-//	Publicar.innerHTML = "Publicar"
-dmenu('Publicar','dispApp')
-
-
-ajax({
-datas:"divid=Publicar&edit=article",
-id:false,
-location:"/engines/jcore.php",
-eval:true,
-handler:"2UNIKH",
-block:true,
-method:"POST"
-})
-
-
-}
 
 
 
+    a2.onclick = function () {
+
+      //	Publicar.innerHTML = "Publicar"
+      dmenu('Publicar', 'dispApp')
 
 
-a2.innerHTML = "Publicar"
-a3.innerHTML = "Publicaciones"
+      ajax({
+        datas: "divid=Publicar&edit=article",
+        id: false,
+        location: "/engines/jcore.php",
+        eval: true,
+        handler: "2UNIKH",
+        block: true,
+        method: "POST"
+      })
+
+
+    }
 
 
 
-IAI.addEventListener("keydown", function(event) {
-  if (event.key === "Enter") {
-    // Aquí va el código que se ejecutará al presionar Enter
- //   alert("Se presionó Enter");
-    // O, para un comportamiento más sofisticado:
-    realizarAccion();
-  }
-});
 
 
-//iardiv = undefined;
-//rsdiv="";
-
-ctrlid = new Array()
-ttactrlid = new Array()
-ctn = 0;
-
-function createADiv(param="0"){
-randn  =  Math.floor(Math.random() * 9999999);
-iardiv = document.createElement("div")
-iardiv.xrand = randn
-iardiv.id = "iar_"+randn
-iardiv.style = "justify-content:center;border-radius:10px;font-weight:bold;border:solid 2px;background:#f1dfee;padding:15px 15px 15px 15px;font-size:16px;font-family:arial;";
-IAR.prepend(iardiv)
+    a2.innerHTML = "Publicar"
+    a3.innerHTML = "Publicaciones"
 
 
-WAITING = "... <b>Conectando</b> ... "
 
-if(param == 1){
-ctrlid[ctn] = iardiv.id
-TTAD = document.createElement("div")
-TTAD.style="width:80%;text-align:right;"
-iardiv.prepend(TTAD)
-TTA = addPanel({TAG:"textarea"})
-TTA.id = "TTA_"+iardiv.id
-ttactrlid[ctn]  = TTA.id
-TTA.value += IAI.value
-TTA.style="display:inline-block;margin-top:10px;font-family:arial;border-radius:10px;border:solid 1px #bdfdcc;width:90%;padding:10px;overflow:auto;resize:vertical;"
-moveTag(TTA,TTAD)
-
-TTAd = addPanel({TAG:"div",innerHTML:"",info:"  Capa botones reenviar / limpir - textarea prompt - Context "})
-TTAd.style=""
-moveTag(TTAd,TTAD)
+    IAI.addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+        // Aquí va el código que se ejecutará al presionar Enter
+        //   alert("Se presionó Enter");
+        // O, para un comportamiento más sofisticado:
+        realizarAccion();
+      }
+    });
 
 
-TTAb = addPanel({TAG:"button",innerHTML:"Reenviar",click:`
+    //iardiv = undefined;
+    //rsdiv="";
+
+    ctrlid = new Array()
+    ttactrlid = new Array()
+    ctn = 0;
+
+    function createADiv(param = "0") {
+      randn = Math.floor(Math.random() * 9999999);
+      iardiv = document.createElement("div")
+      iardiv.xrand = randn
+      iardiv.id = "iar_" + randn
+      iardiv.style = "justify-content:center;border-radius:10px;font-weight:bold;border:solid 2px;background:#f1dfee;padding:15px 15px 15px 15px;font-size:16px;font-family:arial;";
+      IAR.prepend(iardiv)
+
+
+      WAITING = "... <b>Conectando</b> ... "
+
+      if (param == 1) {
+        ctrlid[ctn] = iardiv.id
+        TTAD = document.createElement("div")
+        TTAD.style = "width:80%;text-align:right;"
+        iardiv.prepend(TTAD)
+        TTA = addPanel({ TAG: "textarea" })
+        TTA.id = "TTA_" + iardiv.id
+        ttactrlid[ctn] = TTA.id
+        TTA.value += IAI.value
+        TTA.style = "display:inline-block;margin-top:10px;font-family:arial;border-radius:10px;border:solid 1px #bdfdcc;width:90%;padding:10px;overflow:auto;resize:vertical;"
+        moveTag(TTA, TTAD)
+
+        TTAd = addPanel({ TAG: "div", innerHTML: "", info: "  Capa botones reenviar / limpir - textarea prompt - Context " })
+        TTAd.style = ""
+        moveTag(TTAd, TTAD)
+
+
+        TTAb = addPanel({
+          TAG: "button", innerHTML: "Reenviar", click: `
 if(confirm("¿Reenviar? ")) { 
- reSend(encodeURIComponent(getId(ttactrlid[`+ctn+`]).value),'`+selectModel()+`','`+iardiv.xrand+`')  
+ reSend(encodeURIComponent(getId(ttactrlid[`+ ctn + `]).value),'` + selectModel() + `','` + iardiv.xrand + `')  
   }
 `})
-TTAb.value += IAI.value
-TTAb.style=""
-moveTag(TTAb,TTAd)
+        TTAb.value += IAI.value
+        TTAb.style = ""
+        moveTag(TTAb, TTAd)
 
 
-TTAb1 = addPanel({TAG:"button",innerHTML:"Eliminar",click:`
-if(confirm("¿Eliminar de la conversación? - `+ctn+`  ...  `+ctrlid[ctn]+`")) {  remid(`+ctrlid[ctn]+`)   }
+        TTAb1 = addPanel({
+          TAG: "button", innerHTML: "Eliminar", click: `
+if(confirm("¿Eliminar de la conversación? - `+ ctn + `  ...  ` + ctrlid[ctn] + `")) {  remid(` + ctrlid[ctn] + `)   }
 `})
-TTAb1.value += IAI.value
-TTAb1.style=""
-moveTag(TTAb1,TTAd)
+        TTAb1.value += IAI.value
+        TTAb1.style = ""
+        moveTag(TTAb1, TTAd)
 
-WAITING = "<b> Esperando Respuesta ... </b>"
+        WAITING = "<b> Esperando Respuesta ... </b>"
 
-ctn = ctn + 1
+        ctn = ctn + 1
 
-}
-
-
-
-
-rsdiv = document.createElement("div")
-rsdiv.id = "responsediv_"+randn
-rsdiv.innerHTML = WAITING
-iardiv.prepend(rsdiv)
+      }
 
 
 
 
-}
-
-
-function remid(x){x.remove()}
-
-
-function realizarAccion() {
-  // Aquí puedes colocar el código que deseas ejecutar cuando se presione Enter.
-  // Por ejemplo, enviar los datos del input a un servidor, o realizar una búsqueda.
-IAI.value = IAI.value.trim()
-if(IAI.value==""){return}
-ajax({
-datas:"action=ask&question="+encodeURIComponent(IAI.value)+"&smodel="+selectModel(),
-method:"POST",
-location:"/engines/iask.php",
-eval:true,
-handler:"ASK_QUESTION",
-block:true,
-method:"POST",
-prejs:'createADiv(1)'
-});
-IAR.style.display = "block"
-}
-
-
-function reSend(txt,model,id) {
-
-//alert(txt+" MODEL:"+ model +"  ID:"+id)
-
-
-ajax({
-datas:"action=ask&question="+txt+"&smodel="+model+"&rewid="+id,
-method:"POST",
-location:"/engines/iask.php",
-eval:true,
-handler:"ASK_QUESTION",
-block:true,
-method:"POST",
-prejs:"responsediv_"+id+".innerHTML = '<h3>Reenviando Prompt, espere</h3>';"
-});
-IAR.style.display = "block"
-}
+      rsdiv = document.createElement("div")
+      rsdiv.id = "responsediv_" + randn
+      rsdiv.innerHTML = WAITING
+      iardiv.prepend(rsdiv)
 
 
 
 
+    }
 
-function iaini() {
 
-IAR.innerHTML += `
+    function remid(x) { x.remove() }
+
+
+    function realizarAccion() {
+      // Aquí puedes colocar el código que deseas ejecutar cuando se presione Enter.
+      // Por ejemplo, enviar los datos del input a un servidor, o realizar una búsqueda.
+      IAI.value = IAI.value.trim()
+      if (IAI.value == "") { return }
+      ajax({
+        datas: "action=ask&question=" + encodeURIComponent(IAI.value) + "&smodel=" + selectModel(),
+        method: "POST",
+        location: "/engines/iask.php",
+        eval: true,
+        handler: "ASK_QUESTION",
+        block: true,
+        method: "POST",
+        prejs: 'createADiv(1)'
+      });
+      IAR.style.display = "block"
+    }
+
+
+    function reSend(txt, model, id) {
+
+      //alert(txt+" MODEL:"+ model +"  ID:"+id)
+
+
+      ajax({
+        datas: "action=ask&question=" + txt + "&smodel=" + model + "&rewid=" + id,
+        method: "POST",
+        location: "/engines/iask.php",
+        eval: true,
+        handler: "ASK_QUESTION",
+        block: true,
+        method: "POST",
+        prejs: "responsediv_" + id + ".innerHTML = '<h3>Reenviando Prompt, espere</h3>';"
+      });
+      IAR.style.display = "block"
+    }
+
+
+
+
+
+    function iaini() {
+
+      IAR.innerHTML += `
 
 <div id="ResizeIAR" style="position: relative;margin:auto 0 0 auto;float:right;color:gold;font-size:11px; font-weight:bold;display:flex;margin-top:20px;margin-right:-18px;margin-bottom:-10px;font-family:arial;font-weight:bold;font-size:14px;">
 Resize<div style="background:black;font-family:impact;font-size:18px;display:inline-block;width:10px;height:7px;margin:0;padding:0;">↓</div></div>
 
 `
-date = new Date()
-ajax({
-datas:"action=ask&question="+encodeURIComponent("Mensaje de Conexión cliente. Ha entrado en: "+window.location.hostname+"  -  con URL: "+window.location.href+" Hola Nuevo Cliente Entra a   \n"+date+"\n Saluda al cliente. \n"),
-method:"POST",
-location:"/engines/iask.php",
-eval:true,
-handler:"ASK_QUESTION",
-block:true,
-method:"POST",
-prejs:'createADiv(0)'
-});
-IAR.style.display = "block"
+      date = new Date()
+      ajax({
+        datas: "action=ask&question=" + encodeURIComponent("Mensaje de Conexión cliente. Ha entrado en: " + window.location.hostname + "  -  con URL: " + window.location.href + " Hola Nuevo Cliente Entra a   \n" + date + "\n Saluda al cliente. \n"),
+        method: "POST",
+        location: "/engines/iask.php",
+        eval: true,
+        handler: "ASK_QUESTION",
+        block: true,
+        method: "POST",
+        prejs: 'createADiv(0)'
+      });
+      IAR.style.display = "block"
 
 
-IAR.addEventListener("scroll", function(){
-
-
-
-})
-
-IAR.addEventListener("resize", function(){
-alert("RR")
-})
-
-
-}
+      IAR.addEventListener("scroll", function () {
 
 
 
+      })
+
+      IAR.addEventListener("resize", function () {
+        alert("RR")
+      })
+
+
+    }
 
 
 
 
 
-const sitiosDeseados = {
-  youtube: "https://www.youtube.com/watch?v=",
-  vimeo: "https://www.vimeo.com",
-  vimeo1: "https://vimeo.com",
-  vimeo2: "https://player.vimeo.com",
-  dailymotion: "https://www.dailymotion.com/video/",
-  dailymotion: "https://www.dailymotion.com/embed/",
-  osiris: "https://osiris000.duckdns.org/img/tmp/"
-};
 
-function mktparse(id, txt) {
-  id.innerHTML = "";
-  let html = marked.parse(txt);
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, 'text/html');
-  const enlaces = doc.querySelectorAll('a[href]');
-  let enlacesEncontrados = 0;
 
-    enlaces.forEach(enlace => {
-      enlace.setAttribute('target', '_blank'); // Añadido target="_blank" a todos los enlaces
 
-      const href = enlace.getAttribute('href');
-      let esEnlaceDeseado = false;
+    const sitiosDeseados = {
+      youtube: "https://www.youtube.com/watch?v=",
+      vimeo: "https://www.vimeo.com",
+      vimeo1: "https://vimeo.com",
+      vimeo2: "https://player.vimeo.com",
+      dailymotion: "https://www.dailymotion.com/video/",
+      dailymotion: "https://www.dailymotion.com/embed/",
+      osiris: "https://osiris000.duckdns.org/img/tmp/"
+    };
+
+    function mktparse(id, txt) {
+      id.innerHTML = "";
+      let html = marked.parse(txt);
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const enlaces = doc.querySelectorAll('a[href]');
+      let enlacesEncontrados = 0;
+
+      enlaces.forEach(enlace => {
+        enlace.setAttribute('target', '_blank'); // Añadido target="_blank" a todos los enlaces
+
+        const href = enlace.getAttribute('href');
+        let esEnlaceDeseado = false;
         for (const sitio in sitiosDeseados) {
-            if (href && href.startsWith(sitiosDeseados[sitio])) {
-                esEnlaceDeseado = true;
-                 enlacesEncontrados++;
-                break;
-            }
+          if (href && href.startsWith(sitiosDeseados[sitio])) {
+            esEnlaceDeseado = true;
+            enlacesEncontrados++;
+            break;
+          }
         }
 
         if (esEnlaceDeseado) {
-             procesarEnlaceVideo(enlace,true);
+          procesarEnlaceVideo(enlace, true);
         }
-    });
+      });
 
-  if (enlacesEncontrados > 0) {
-    id.innerHTML += ``;
-  }
-  id.appendChild(doc.body);
-}
+      if (enlacesEncontrados > 0) {
+        id.innerHTML += ``;
+      }
+      id.appendChild(doc.body);
+    }
 
 
-function procesarEnlaceVideo(enlace, modoVideoActivado) {
-  if (modoVideoActivado) {
-    const enlaceId = `enlace-video-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
-    const videoContainerId = `video-container-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
-    const iframeId = `iframe-video-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
-    enlace.id = enlaceId;
+    function procesarEnlaceVideo(enlace, modoVideoActivado) {
+      if (modoVideoActivado) {
+        const enlaceId = `enlace-video-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+        const videoContainerId = `video-container-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+        const iframeId = `iframe-video-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+        enlace.id = enlaceId;
 
-    const botonDesplegar = document.createElement('button');
-    botonDesplegar.textContent = 'Desplegar Video';
-    botonDesplegar.classList.add('boton-desplegar-video');
+        const botonDesplegar = document.createElement('button');
+        botonDesplegar.textContent = 'Desplegar Video';
+        botonDesplegar.classList.add('boton-desplegar-video');
 
-      const contenedorVideo = document.createElement('div');
-    contenedorVideo.id = videoContainerId;
-      contenedorVideo.classList.add('video-container');
-      contenedorVideo.style.display = "none"
+        const contenedorVideo = document.createElement('div');
+        contenedorVideo.id = videoContainerId;
+        contenedorVideo.classList.add('video-container');
+        contenedorVideo.style.display = "none"
 
-    const urlVideo = enlace.getAttribute('href');
-    const urlVideoMapeada = mapearUrlAEmbed(urlVideo);
+        const urlVideo = enlace.getAttribute('href');
+        const urlVideoMapeada = mapearUrlAEmbed(urlVideo);
 
-     const br = document.createElement('br'); // Crear elemento br
-    enlace.parentNode.insertBefore(br, enlace); // Insertar br antes del botón
-     enlace.parentNode.insertBefore(botonDesplegar, enlace);
+        const br = document.createElement('br'); // Crear elemento br
+        enlace.parentNode.insertBefore(br, enlace); // Insertar br antes del botón
+        enlace.parentNode.insertBefore(botonDesplegar, enlace);
 
 
         botonDesplegar.addEventListener('click', () => {
           if (contenedorVideo.innerHTML === "") {
-               if (urlVideoMapeada) {
-                contenedorVideo.innerHTML = `<iframe id="${iframeId}" src="${urlVideoMapeada}" width="80%" height="315" allowfullscreen></iframe>`
-                botonDesplegar.textContent = 'Cerrar Video';
-                contenedorVideo.style.display = "block"
-            }else{
+            if (urlVideoMapeada) {
+              contenedorVideo.innerHTML = `<iframe id="${iframeId}" src="${urlVideoMapeada}" width="80%" height="315" allowfullscreen></iframe>`
+              botonDesplegar.textContent = 'Cerrar Video';
+              contenedorVideo.style.display = "block"
+            } else {
               contenedorVideo.innerHTML = '<p>No se pudo obtener el video asociado a este enlace.</p>';
-              }
+            }
           } else {
-              contenedorVideo.innerHTML = "";
-              contenedorVideo.style.display = "none"
-              botonDesplegar.textContent = 'Desplegar Video';
+            contenedorVideo.innerHTML = "";
+            contenedorVideo.style.display = "none"
+            botonDesplegar.textContent = 'Desplegar Video';
           }
 
-    });
+        });
 
 
-      enlace.parentNode.insertBefore(contenedorVideo, enlace.nextSibling);
-  }
-}
-
-
-function mapearUrlAEmbed(url) {
-  if (url.includes('youtube.com')) {
-    const urlParams = new URLSearchParams(url.split('?')[1]);
-    const videoId = urlParams.get('v');
-    if (videoId) {
-      return `https://www.youtube.com/embed/${videoId}`;
+        enlace.parentNode.insertBefore(contenedorVideo, enlace.nextSibling);
+      }
     }
-  }
-
-  if (url.includes('vimeo.com')) {
-    const videoId = url.split('/').pop();
-    return `https://player.vimeo.com/video/${videoId}`;
-  }
-
-  if (url.includes('dailymotion.com')) {
-    const videoId = url.split('/').pop();
-    return `https://dailymotion.com/embed/video/${videoId}`;
-  }
-
-  if (url.includes('osiris000.duckdns.org')) {
-    const videoId = url.split('/').pop();
-    return url
-  }
-
-  return null;
-}
 
 
+    function mapearUrlAEmbed(url) {
+      if (url.includes('youtube.com')) {
+        const urlParams = new URLSearchParams(url.split('?')[1]);
+        const videoId = urlParams.get('v');
+        if (videoId) {
+          return `https://www.youtube.com/embed/${videoId}`;
+        }
+      }
 
+      if (url.includes('vimeo.com')) {
+        const videoId = url.split('/').pop();
+        return `https://player.vimeo.com/video/${videoId}`;
+      }
 
-onload = function(){
+      if (url.includes('dailymotion.com')) {
+        const videoId = url.split('/').pop();
+        return `https://dailymotion.com/embed/video/${videoId}`;
+      }
 
-iaini()
+      if (url.includes('osiris000.duckdns.org')) {
+        const videoId = url.split('/').pop();
+        return url
+      }
 
-
-
-inicio()
-
-Inicio.innerHTML += ` &nbsp; <h1>Últimas publicaciones  <br>  de acceso publico</h1>`
-
-
-selectModel()
-
-ResizeAIR()
-
-
-}
-
-
-
-a3.onclick = function(){
-	inicio()
-
-}
+      return null;
+    }
 
 
 
 
-function constmenu(){ return}
+    onload = function () {
+
+      iaini()
+
+
+
+      inicio()
+
+      Inicio.innerHTML += ` &nbsp; <h1>Últimas publicaciones  <br>  de acceso publico</h1>`
+
+
+      selectModel()
+
+      ResizeAIR()
+
+
+    }
+
+
+
+    a3.onclick = function () {
+      inicio()
+
+    }
+
+
+
+
+    function constmenu() { return }
 
 
 
 
 
-function inicio(){
-
-     
-
-
-ajax({
-datas:"action=resumen",
-method:"POST",
-location:"/engines/jcore2.php",
-id:"Inicio",
-eval:false,
-handler:"UNIKH",
-block:true,
-method:"POST"
-});
-dmenu('Inicio','dispApp')
-}
+    function inicio() {
 
 
 
-</script>
+
+      ajax({
+        datas: "action=resumen",
+        method: "POST",
+        location: "/engines/jcore2.php",
+        id: "Inicio",
+        eval: false,
+        handler: "UNIKH",
+        block: true,
+        method: "POST"
+      });
+      dmenu('Inicio', 'dispApp')
+    }
+
+
+
+  </script>
 </head>
-<body></body></html>
+
+<body></body>
+
+</html>

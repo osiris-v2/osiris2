@@ -4,7 +4,7 @@ import random
 import string
 import os
 import subprocess
-import osiris2
+import time
 
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QTextEdit, QPushButton,
@@ -137,10 +137,10 @@ class ResizableRectangle(QMainWindow):
                 "-frames:v", "1",
                 image_path
             ]
-
+            time.sleep(0.5)
             # Run the ffmpeg command and capture the output
             result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
+            time.sleep(0.5)
             # Check if the command was successful
             if result.returncode == 0:
                 hecho += f"ImagePath: {image_path}\n"

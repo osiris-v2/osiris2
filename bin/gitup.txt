@@ -126,8 +126,9 @@ bin/lib/gemini/audio_parser.py
 bin/lib/gemini/cro_definitions.py
 bin/lib/gemini/dyncontext.py
 bin/lib/gemini/load_osiris_context.py
-bin/lib/aluminium_1.py
 bin/lib/gemini/widgets.py
+bin/lib/gemini/sftp.py
+bin/lib/aluminium_1.py
 bin/lib/osiris2/multiprocess.py
 bin/lib/osiris2/__init__.py
 bin/lib/acero.py
@@ -226,6 +227,7 @@ bin/com/scanip.py
 bin/com/blockchain.py
 bin/com/selecttv.py
 bin/com/gemini.py
+bin/com/gemini2.py
 bin/com/gemini-web.py
 bin/com/desktop.py
 bin/com/screenshot.py

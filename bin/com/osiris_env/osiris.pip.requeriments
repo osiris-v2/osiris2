@@ -1,7 +1,9 @@
+beautifulsoup4
 toml
 pyyaml
 Pillow
 datetime
+paramiko
 psutil
 requests
 cryptography

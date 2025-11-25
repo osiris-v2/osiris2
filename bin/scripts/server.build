@@ -24,7 +24,13 @@ serversPath=$OSIRIS000_BIN/server/chat_server
 
 cd $serversPath
 
-sudo $cargo build --release --verbose
+#>/tmp/build.txt
+
+#chmod 0777 /tmp/build.txt
+
+sudo $cargo build --release --verbose 
+
+#cat /tmp/build.txt
 
 cd $serversPath/target/release
 #clear
@@ -36,7 +42,9 @@ cd $serversPath/target/release
 #cd server
 #echo "SERVER START"
 cd /var/osiris2/bin/scripts
-./server.run
-echo "SERVER EXIT"
+#./server.run
+echo "SERVER BUILD EXIT"
+cd $PWD
+echo "ejecute ./server.run para iniciar el servidor"
 
 

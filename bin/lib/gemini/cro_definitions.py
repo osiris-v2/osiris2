@@ -77,7 +77,7 @@ cro_definitions = {
         "SEARCH_IN": {
             "GOOGLE": {
                 "DESCRIPTION": "Busca información en Google.",
-                "URL_TEMPLATE": "https://www.google.com/search?q={QUERY}&tbm={TYPE}",
+                "URL_TEMPLATE": "https://www.googleapis.com/customsearch/v1?key=%%API_KEY%%&cx=%%CX_CODE%%",
                 "ACTION_TYPE": "URL_SEARCH",
                 "PARAMETERS": {
                     "QUERY": { "TYPE": "string", "REQUIRED": True, "DYNAMIC": True, "DEFAULT": "" },

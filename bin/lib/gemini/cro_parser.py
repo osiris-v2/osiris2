@@ -5,6 +5,7 @@ import time
 import shlex
 import subprocess
 from .cro_definitions import cro_definitions # <--- IMPORTACION DE DEFINICIONES
+import lib.core as core
 
 INFO = """
 Module Cro Parser Info
@@ -12,89 +13,6 @@ Osiris internal python library
 """
 
 import urllib.parse
-# Asumiendo que 'requests' y un módulo de base de datos interna de Osiris están disponibles
-# import requests
-# import osiris_internal_db
-
-def execute_search_action(payload):
-    print("-----------=========?¿")
-    print(str(payload))
-    mode = payload.get("mode")
-    command_type = payload.get("command_type")
-    action_details = payload.get("action_details", {}) # Diccionario con los detalles específicos de la acción
-
-    print(f"DEBUG: Ejecutando acción de búsqueda para el modo: {mode}, tipo: {command_type}")
-
-    if command_type == "URL_SEARCH":
-        # Manejo de búsquedas en Google o Bing
-        url_template = action_details.get("URL_TEMPLATE")
-        query = action_details.get("QUERY")
-        search_type = action_details.get("TYPE") # Puede ser una lista si ALLOW_MULTIPLE es True
-
-        if not url_template or not query:
-            print("ERROR: Parámetros URL_TEMPLATE o QUERY faltantes para URL_SEARCH.")
-            return "Error en la ejecución de búsqueda URL."
-
-        # Asegurarse de que search_type sea una lista para iterar
-        if isinstance(search_type, str):
-            search_type = [search_type]
-
-        results = []
-        for s_type in search_type:
-            # Codificar la consulta para URL
-            encoded_query = urllib.parse.quote_plus(query)
-            # Reemplazar marcadores de posición en la plantilla URL
-            final_url = url_template.replace("{QUERY}", encoded_query).replace("{TYPE}", s_type)
-
-            print(f"Simulando búsqueda en URL: {final_url}")
-
-            # Aquí iría el código real para hacer la petición HTTP
-            # try:
-            #     response = requests.get(final_url)
-            #     response.raise_for_status() # Lanza un error para códigos de estado HTTP erróneos
-            #     results.append(f"Resultado de {s_type} de {final_url}: (contenido simulado o resumido)")
-            #     # Procesar el contenido de la respuesta aquí
-            # except requests.exceptions.RequestException as e:
-            #     results.append(f"Error al conectar con {final_url}: {e}")
-            results.append(f"Simulación exitosa para tipo '{s_type}' en {final_url}. Se procesaría la respuesta web.")
-
-        return "\n".join(results)
-
-    elif command_type == "DB_SEARCH":
-        # Manejo de búsquedas en la base de conocimiento interna de Osiris
-        db_query_template = action_details.get("DB_QUERY_TEMPLATE")
-        query = action_details.get("QUERY")
-        tags = action_details.get("TAGS", "")
-
-        if not db_query_template or not query:
-            print("ERROR: Parámetros DB_QUERY_TEMPLATE o QUERY faltantes para DB_SEARCH.")
-            return "Error en la ejecución de búsqueda DB interna."
-
-        # Construir la consulta SQL
-        final_db_query = db_query_template.replace("{QUERY}", query).replace("{TAGS}", tags)
-
-        print(f"Simulando búsqueda en base de datos interna con consulta: '{final_db_query}'")
-        # Aquí iría el código real para interactuar con la base de datos interna de Osiris
-        # try:
-        #     db_connection = osiris_internal_db.connect()
-        #     cursor = db_connection.cursor()
-        #     cursor.execute(final_db_query)
-        #     db_results = cursor.fetchall()
-        #     db_connection.close()
-        #     if db_results:
-        #         return f"Resultados de la base de datos interna: {db_results}"
-        #     else:
-        #         return "No se encontraron resultados en la base de datos interna."
-        # except Exception as e:
-        #     return f"Error al consultar la base de datos interna: {e}"
-        return f"Simulación exitosa para búsqueda en base de datos interna. Se ejecutaría: '{final_db_query}' y se devolverían los resultados."
-
-    else:
-        return f"Tipo de comando de búsqueda desconocido: {command_type}"
-
-
-
-
 
 
 class CROParser:
@@ -412,6 +330,11 @@ class CROParser:
         return self.parsed_actions
 
 
+
+
+
+
+
 class CROTranslator:
     def __init__(self, global_mode: str, require_confirmation_for_dangerous_actions: bool = True):
         # Accede a las definiciones de cro_definitions importadas directamente
@@ -441,15 +364,16 @@ class CROTranslator:
             params = action["parameters"]
             action_type = action["action_type"]
             member = action["member"]
-
+            group = action["group_name"]
+            template = action["template"]
             # Accede a self.cro_definitions para las definiciones de PROTO_DEFINITIONS
             proto_def = self.cro_definitions["PROTO_DEFINITIONS"][action["group_name"]][member]
-
+#            print("<------>",action_type)
             if action_type == "URL_SEARCH":
+#                print("proto def: ",proto_def)
                 if self.global_mode in ["CLI", "DESKTOP"]:
-                    url = action["template"]
-                    quoted_url = shlex.quote(url)
-                    translated_output["executable_command"] = f"curl -sL {quoted_url}"
+                    query = urllib.parse.quote_plus(params['QUERY'])
+                    translated_output["executable_command"] = f"curl '{template}&q={query}'"
                     translated_output["message"] = f"Se realizará una búsqueda web en {action['group_name']} y se recuperará el contenido."
                     translated_output["post_processing_hint"] = "El contenido recuperado (HTML) puede requerir limpieza/parsing para extraer información."
                 elif self.global_mode == "WEB":
@@ -646,6 +570,7 @@ def stdout_to_context():
 
 
 
+
 # --- FUNCIÓN MAIN MODIFICADA PARA EJECUCIÓN SUPERVISADA ---
 def main(ai_response_text: str, global_mode: str = "CLI"):
 
@@ -673,7 +598,9 @@ def main(ai_response_text: str, global_mode: str = "CLI"):
             print(f"  - {warn}")
     
     if not parsed_actions:
+        print(ai_response_text)
         print("➡️ No se encontraron acciones CRO válidas para procesar.")
+#        return {"Response AI":ai_response_text}
         return {} #Devuelve un diccionario vacío
 
 #    print("\n--- Acciones CRO Válidas Encontradas ---")
@@ -793,12 +720,35 @@ def main(ai_response_text: str, global_mode: str = "CLI"):
         else: # No necesita confirmación o no es un comando de shell (ej. dict para WEB mode fetch)
             print(f"  Comando/Directriz a Ejecutar:")
             if isinstance(command_to_execute, dict):
-                print(f"    {json.dumps(command_to_execute, indent=2)}")
+                print(f"  --1-->  {json.dumps(command_to_execute, indent=2)}")
             else:
-                print(f"    `{command_to_execute}`")
-            
+                print(f"  --2-->  `{command_to_execute}`")
+
             if action['action_type'] == "URL_SEARCH":
                 print(f"  (Simulando apertura de URL en el navegador o curl silencioso...)")
+                if  f"{action['group']}_{action['member']}" == "SEARCH_IN_GOOGLE":
+                    API_KEY = "YOUR API KEY"
+                    CX_CODE = "YOUR CX CODE"
+                    reemplazos_keys = [("%%API_KEY%%",API_KEY),("%%CX_CODE%%",CX_CODE)]
+                    parse_command_url = command_to_execute
+                    for var, valor in reemplazos_keys:
+                        parse_command_url = parse_command_url.replace(var, valor)
+                    result = subprocess.run(
+                        parse_command_url, 
+                        shell=True, 
+                        capture_output=True, 
+                        text=True, 
+                        check=False 
+                        )        
+                    command_output = result.stdout.strip()
+                    command_error = result.stderr.strip()
+                    if result.returncode == 0:
+                        parse_json_search = extract_data(command_output)
+                        #print(f"OSIRIS_CONTEXT_UPDATE: ",str(parse_json_search))
+                        system_execution_context[f"output_{action['group']}_{action['member']}_{int(time.time())}"] =  f" Resultado Busqueda en Google: \n {parse_json_search}"
+                        action['post_processing_hint'] = " \nLa búsqueda ha sido procesada\n "
+                    else :
+                        system_execution_context[f"error_output_{action['group']}_{action['member']}_{int(time.time())}"] = f" Busqueda en google Error: \n {command_error}"
             elif action['action_type'] == "DB_SEARCH":
                 print(f"  (Simulando búsqueda en la base de datos interna...)")
             elif action['action_type'] == "SYSTEM_LOG":
@@ -849,3 +799,62 @@ def main(ai_response_text: str, global_mode: str = "CLI"):
     #print(json.dumps(system_execution_context, indent=2))
     print("\n--- Proceso CRO Finalizado ---")
     return system_execution_context
+
+
+
+def search_in_google(pas):
+
+    return pas['scom']
+
+
+
+
+def extract_data(context):
+    try:
+        data = json.loads(context)
+        items = data.get("items", [])
+        results = []
+
+        for item in items:
+            title = item.get("title", "")
+            link = item.get("link", "")
+            snippet = item.get("snippet", "")
+            pagemap = item.get("pagemap", {})
+            
+            # Check if metatags exist and are a list
+            metatags_list = pagemap.get("metatags", [])
+            if isinstance(metatags_list, list) and len(metatags_list) > 0:
+                metatags = metatags_list[0]  # Take the first element
+            else:
+                metatags = {}  # Default to empty dictionary if not a list or empty
+
+            og_title = metatags.get("og:title", None)
+            og_description = metatags.get("og:description", None)
+            twitter_title = metatags.get("twitter:title", None)
+            twitter_description = metatags.get("twitter:description", None)
+            
+            source_title = None
+            source_description = None
+
+            if og_title or og_description:
+                source_title = og_title
+                source_description = og_description
+            elif twitter_title or twitter_description:
+                source_title = twitter_title
+                source_description = twitter_description
+
+            result_str = f"T: {title}\nL: {link}\nS: {snippet}"
+            if source_title:
+                result_str += f"\nST: {source_title}"
+            if source_description:
+                result_str += f"nSD: {source_description}"
+
+            results.append(result_str)
+
+        return "\n---\n".join(results)
+    except (json.JSONDecodeError, TypeError) as e:
+        return f"Error processing context: {e}"
+
+#output = extract_data(osiris_context)
+#print(f"OSIRIS_CONTEXT_UPDATE:{output}")
+

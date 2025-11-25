@@ -127,17 +127,14 @@ async fn handle_connection(stream: tokio::net::TcpStream) {
 async fn handle_command(command: &str) -> Result<String, String> {
     match command {
         "/date" => Ok(chrono::Local::now().to_rfc3339()),
-
         "/hello" => Ok("Hola, cliente! 👋".to_string()),
-
-        "/help" => Ok(
-            "/date - Obtiene la fecha y hora actual.\n\
+        "/way" => Ok("Sistema ODyN en desarrollo \n https://github.com/osiris-v2/osiris2 \n Sistema de servidores dinámicos para osiris2 \n Seed server ".to_string()),
+        "/help" => Ok("\n\
+            /date - Obtiene la fecha y hora actual.\n\
              /hello - Saludo de bienvenida.\n\
-             /servers - Lista de servidores disponibles.".to_string()
-        ), 
-
+             /servers - Lista de servidores disponibles.\n\
+             /way - Who Are You?. \n Información sobre la organización o persona que corre el servidor".to_string()), 
         "/servers" => list_servers(), // Lee el archivo de servidores
-
         "" => Ok("".to_string()),
 
         _ => Err(format!("Comando no reconocido: {} 🤔", command)),

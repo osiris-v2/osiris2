@@ -45,7 +45,7 @@ def flags_r(param):
 
 def flagw():
     global file
-    print(file)
+#    print(file)
     with open(file,"w+") as z:
         timex = time.time()
         z.write("last_request.mp3 - "+str(timex)) 
@@ -83,18 +83,18 @@ def text_to_speech(text: str, lang: str = 'es', save_path: str = None) -> str | 
     text = pt_audio(text) #Limpia texto para audio
 #    print("AUDIO TEXT:",text)
 
-    print(f"Osiris-TTS: Iniciando conversión de texto a voz para: '{text[:50]}...' (Idioma: {lang})")
+    print(f"Osiris-TTS: Iniciando conversión de texto a voz para: '{text[:1]}...' (Idioma: {lang})")
 
     # Intentar crear objeto gTTS
     try:
         tts = gTTS(text=text, lang=lang)
-        print("Osiris-TTS: Objeto gTTS creado con éxito.")
+#        print("Osiris-TTS: Objeto gTTS creado con éxito.")
         if chflag == True:
             time.sleep(1)
             flagw()
             cgflag = False
     except Exception as e:
-        print(f"Osiris-TTS ERROR: Fallo al crear el objeto gTTS: {e}", file=sys.stderr)
+#        print(f"Osiris-TTS ERROR: Fallo al crear el objeto gTTS: {e}", file=sys.stderr)
         return None
 
     # Definir ruta donde se guardará el audio
@@ -108,10 +108,9 @@ def text_to_speech(text: str, lang: str = 'es', save_path: str = None) -> str | 
     # Guardar el archivo de audio
     try:
         tts.save(audio_path)
-        print(f"Osiris-TTS: Audio guardado con éxito en: {audio_path}")
-
+#        print(f"Osiris-TTS: Audio guardado con éxito en: {audio_path}")
     except Exception as e:
-        print(f"Osiris-TTS ERROR: No se pudo guardar el audio: {e}", file=sys.stderr)
+#        print(f"Osiris-TTS ERROR: No se pudo guardar el audio: {e}", file=sys.stderr)
         return None
 
     # Comprobar si el archivo fue creado correctamente
@@ -122,7 +121,7 @@ def text_to_speech(text: str, lang: str = 'es', save_path: str = None) -> str | 
         return None
 #    os.remove(audio_path)
 
-    print(f"Osiris-TTS: Reproduciendo archivo de audio ({os.path.getsize(audio_path)} bytes)...")
+#    print(f"Osiris-TTS: Reproduciendo archivo de audio ({os.path.getsize(audio_path)} bytes)...")
 
     # Reproducir audio con ffplay
     player_command = ["ffplay", "-nodisp", "-autoexit", audio_path]
@@ -137,12 +136,14 @@ def text_to_speech(text: str, lang: str = 'es', save_path: str = None) -> str | 
         )
         stdout, stderr = process.communicate(timeout=15)
 
-        print(f"Osiris-TTS: ffplay finalizó")
+#        print(f"Osiris-TTS: ffplay finalizó")
         if stdout:
             stdout_ok="ESTADO 0"
-            print(f"Osiris-TTS STDOUT:\n{stdout_ok}")
+            _stdout_ok = " _stdout_ok "
+#            print(f"Osiris-TTS STDOUT:\n{_stdout_ok}")
         if stderr:
-            print(f"Osiris-TTS STDERR:\n{stderr}", file=sys.stderr)
+            print("....audio....")
+#            print(f"Osiris-TTS STDERR:\n{stderr}", file=sys.stderr)
 
         if process.returncode != 0:
             print(f"Osiris-TTS ERROR: ffplay falló con código {process.returncode}", file=sys.stderr)
@@ -161,5 +162,5 @@ def text_to_speech(text: str, lang: str = 'es', save_path: str = None) -> str | 
         if not save_path and os.path.exists(audio_path):
             print(f"Osiris-TTS: Eliminando archivo temporal: {audio_path}")
 #            os.remove(audio_path)
-    print("Osiris-TTS: Proceso finalizado *correctamente.")
+#    print("Osiris-TTS: Proceso finalizado *correctamente.")
     return audio_path
