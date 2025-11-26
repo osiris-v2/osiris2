@@ -40,7 +40,7 @@ try: #importaciones dinámicas
     commands_map = ComMap.commands_map
     core.dynmodule("lib.gemini.sftp","SSHC")
     SSHC = core.SSHC 
-    core.dynmodule("lib.link","fftv")
+    core.dynmodule("lib.fftv","fftv")
     FFTV = core.fftv
 
 except Exception as E :
@@ -52,7 +52,7 @@ DYN_CONTEXT = {
   "info":"Mantiene  una copia del contexto \
 dividido en segmetos (preguntas/respuestas) \
 serializado por claves de distinto significado \
-| timestamp | relevancia | funcion | glyph ...  \
+| timestamp | relevancia | funcion | glyph | CRO | ...  \
 Reconstruye el contexto en función a distintas métricas\
     "
 }
@@ -928,7 +928,7 @@ def main(args):
                         apa(response_d)
 #                        aap()
                         whileCROreturn = croparser.main(response_d)
-                        print(whileCROreturn)
+#                        print(whileCROreturn)
                         global_context_mode = "UNDEFINED"
                         if global_context_mode == "UNDEFINED":
                             conversation_context += str(whileCROreturn)
