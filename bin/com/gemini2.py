@@ -24,6 +24,39 @@ from pathlib import Path
 import lib.gemini.str_c as strimp
 
 
+try: #importaciones dinámicas
+    core.dynmodule("lib.gemini.utils","win")
+    win = core.win
+    core.dynmodule("lib.gemini.cro_parser","CROPARSER")
+    croparser = core.CROPARSER
+    core.dynmodule("lib.gemini.audio_parser","AP")
+    audioparser = core.AP
+    core.dynmodule("lib.cuarzo","aceroK")
+    acero = core.aceroK
+    core.dynmodule("lib.gemini.load_osiris_context","LOC")
+    LOC = core.LOC
+    core.dynmodule("lib.gemini.command_map","ComMap")
+    ComMap = core.ComMap
+    commands_map = ComMap.commands_map
+    core.dynmodule("lib.gemini.sftp","SSHC")
+    SSHC = core.SSHC 
+    core.dynmodule("lib.link","fftv")
+    FFTV = core.fftv
+
+except Exception as E :
+    print("ERDyM:",E)
+
+
+
+DYN_CONTEXT = {
+  "info":"Mantiene  una copia del contexto \
+dividido en segmetos (preguntas/respuestas) \
+serializado por claves de distinto significado \
+| timestamp | relevancia | funcion | glyph ...  \
+Reconstruye el contexto en función a distintas métricas\
+    "
+}
+
 sessname = "Def_ses_name"
 
 def sessid():
@@ -43,34 +76,10 @@ script_dir = Path(__file__).resolve().parent
 #print(script_dir)
 
 log_file = "com/datas/conversation_log_"+sessname+"_.txt"
-
 def_audio_dir="com/datas/ai/audio/"
 def_audio_lrequest=def_audio_dir+"last_request.mp3"
 def_audio_flag=def_audio_dir+"readmp3.flag"
-
 sftp_global_connector = None
-
-try: #importaciones dinámicas
-    core.dynmodule("lib.gemini.utils","win")
-    win = core.win
-    core.dynmodule("lib.gemini.cro_parser","CROPARSER")
-    croparser = core.CROPARSER
-    core.dynmodule("lib.gemini.audio_parser","AP")
-    audioparser = core.AP
-    core.dynmodule("lib.cuarzo","aceroK")
-    acero = core.aceroK
-    core.dynmodule("lib.gemini.load_osiris_context","LOC")
-    LOC = core.LOC
-    core.dynmodule("lib.gemini.command_map","ComMap")
-    ComMap = core.ComMap
-    commands_map = ComMap.commands_map
-    core.dynmodule("lib.gemini.sftp","SFTP")
-    SFTP = core.SFTP    
-except Exception as E :
-    print("ERDyM:",E)
-
-
-
 
 
 def apf():  #alib
@@ -80,6 +89,12 @@ def apf():  #alib
 def apr():  #alib
     global def_audio_flag
     audioparser.flags_r([def_audio_flag])
+
+
+def apa(text):  #alib
+    global def_audio_flag
+    audioparser.text_to_speech(text,"es",def_audio_lrequest)
+#    apr()
 
 
 def pt_audio(text):
@@ -204,9 +219,10 @@ Instrucciones: ¡Bienvenido a Osiris!  Usa emojis para dinamizar la conversació
 ## MODELOS #
 ###########
 gemini_models = ["gemini-2.5-flash",
-"gemini-2.5-flash-preview-05-20",
+                "gemini-2.5-pro",
+                "gemini-2.0-flash",
+                "gemini-2.5-flash-preview-05-20",
                     "gemini-2.5-pro-preview-05-06",
-                    "gemini-2.0-flash",
                     "veo-2.0-generate-001",
                     "gemini-2.0-flash-lite",
                     "imagen-3.0-generate-002",
@@ -316,7 +332,7 @@ def read_file(filepath):
         with open(filepath, 'r', encoding='utf-8') as f:
             return f.read()
     except Exception as e:
-        messagebox.showerror("Error", f"Error leyendo el archivo {filepath}: {e}")
+        print("Error", f"Error leyendo el archivo {filepath}: {e}")
         return None
 
 def save_file(filepath, content):
@@ -328,7 +344,7 @@ def save_file(filepath, content):
         os.chmod(filepath, 0o755)  # Da permisos ejecutables al archivo
         print(f"Contenido guardado en {filepath}")
     except Exception as e:
-        messagebox.showerror("Error", f"Error guardando el archivo {filepath}: {e}")
+        print("Error", f"Error guardando el archivo {filepath}: {e}")
 
 
 def decode_img(base64_data):
@@ -679,7 +695,7 @@ def generate_with_image(image_path,ask):
 
 
 context_mode = "fast"
-def generate_response(user_input):
+def generate_response(user_input,mode=""):
     """Genera una respuesta del modelo basada en la entrada del usuario."""
     global conversation_context, last_response,context_mode
     conversation_context += "\nUser: "+user_input+"\n"
@@ -688,12 +704,17 @@ def generate_response(user_input):
         response_text = response.text
         if context_mode == "fast":
             conversation_context += ""+ response_text+"\n"
-        last_response = response_text  # Guarda la última respuesta
-        return response_text
+
+        if mode != "nolastresponse":
+            last_response = response_text  # Guarda la última respuesta
+            return response_text
+        else:
+            print("LAST_OFF")
+            return "EXIT_LR"
     except Exception as e:
         if e.code == 400:
             print("ERROR 400")
-        #messagebox.showerror("Error", f"Error generando contenido con el modelo: {e}")
+        #print("Error", f"Error generando contenido con el modelo: {e}")
         print("Error", f"Error generando contenido con el modelo: {e}")
         return None
 
@@ -761,7 +782,7 @@ def load_config(config_file):
         print("Configuración cargada.")
         return config
     except Exception as e:
-        messagebox.showerror("Error", f"Error cargando el archivo de configuración: {e}")
+        print("Error", f"Error cargando el archivo de configuración: {e}")
         return {}
 
 # Nuevo: Guardar logs de conversación
@@ -773,7 +794,7 @@ def log_interaction(user_input, response_text):
             log.write(f"{datetime.now()} - User: {user_input}\n {response_text}\n\n")
 #        print("Interacción registrada en el log.")
     except Exception as e:
-        messagebox.showerror("Error", f"Error guardando el log de la conversación: {e}")
+        print("Error", f"Error guardando el log de la conversación: {e}")
 
 # Nuevo: Argumentos dinámicos para el modelo
 def set_model_params(params):
@@ -787,7 +808,7 @@ def set_model_params(params):
         model.configure(**model_params)
         print("Parámetros de--sgml modelo actualizados:", model_params)
     except Exception as e:
-        messagebox.showerror("Error", f"Error configurando parámetros del modelo: {e}")
+        print("Error", f"Error configurando parámetros del modelo: {e}")
 
 # Nuevo: Personalizar autosave
 def toggle_autosave(enable=True):
@@ -822,50 +843,30 @@ LIMIT_WHILE_ARGS = 10
 
 #commands_map = {}
 
+MODE_CRO_GLOBAL_ACTIVE=False
 
-# Mapeo de comandos cortos
-DISABLED_commands_map = {
-            "--arw":["--auto_response_window", "Abre respuestas en ventana (on/off)"],
-            "--cm":["--cromode", "Activa modo CRO (on/off) Carga develop.info"],
-            "--load": "--l",   # lee y carga el texto de un archivo en memoria
-            "--addload": "--al", #add load  añade el texto último cargado en memoria
-            "--showload": "--sl", #show load  muestra contenido cargado en memoria
-            "--li": ["--loadimage", "Carga una imagen que envia a la IA desde una url, formato --li LINK texto propmt."],
-            "--sw": ["--showwin", " Muestra todo el contexto en una ventana"],
-            "--saveload": "--sav",
-            "--saverequest": "--sr",
-            "--saveanswer": "--sa",
-            "--savecontext": "--sc",
-            "--autosave": "--as",
-            "--newquestions": "--nq",
-            "--send": "--s",
-            "--listfiles": "--ls",
-            "--cc":["--clearcontext","Borra el contexto en uso. Expórtese con --exp Nombre antes si quiere conservarlo."],
-            "--loadselect": "--lsel",
-            "--loadmultiple": "--lm",
-            "--info": "--i",
-            "--exp": ["--export","Exporta un contexto y lo guarda en disco que puede ser recuperado con --import nombreArchivo "],
-            "--imp": ["--import","Importa un contexto previamente guardado con --export nombreArchivo "],
-            "--search": "--s",
-            "--settopic": "--st",
-            "--reset": "--r",
-            "--loadconfig": "--lc",  # Nuevo: Cargar configuración
-            "--log": "--log",        # Nuevo: Registrar interacciones en el log
-            "--setparams": "--sp",   # Nuevo: Configurar parámetros del modelo
-            "--toggleautosave": "--ta",  # Nuevo: Activar/desactivar autosave
-            "--listmodels":"--lms", #Lista los modelos genai
-            "--selectgenailmodel":"--sgm",
-            "--aap": ["--audio-auto-parse", "Activa el reproductor de audio automático para cada respuesta  "],
-            "--ap":["--audio-parse","Genera el audio de la última respuesta y lo reproduce"],
-            "--apr":["--audio-parse-repeat","Reproduce el último audio generado"],
-            "--sla":["--show-last-answer","Muestra la última respuesta en una ventana asistente"],
-            "--tvl":["--translate-video-link","subtitula video, debe usar semillas (seems @) @ (@subtitulos @fbold @color @creative etc... consultar documentación.) para activar esta funcionalidad explícita"],
-            "--li":"--load-image",
-            "--asla":"--audio-save-last-answer", #Copia la última respuesta procesada por audio a un nombre pasado como parámetro guardándolo en com/datas.
-            "--cmc":"--cromode-commute", #cambia el estado de auto cromode a true / false
-            "--ctm":"--context-mode", #Modos de Contexto
-            "--loc":"--load-osiris-context" #cargas multiples e instrucciones desde json
-        }
+def croreturn(CROreturn):
+    CROreturn_text = ""
+    for key, value in CROreturn.items():
+        if key.startswith("output_"): # Si es una salida exitosa
+            print(f"\n--- Salida del Sistema ({key.split('_')[1]} {key.split('_')[2]}) ---")
+            print(value) # 'value' ya es la cadena limpia (si el subprocess.run la capturó como texto=True)
+            CROreturn_text += f"\n--- Salida del Sistema ({key.split('_')[1]} {key.split('_')[2]}) ---"
+            CROreturn_text += value # 'value' ya es la cadena limpia (si el subprocess.run la capturó como texto=True)
+        elif key.startswith("error_output_"): # Si es una salida de error
+            print(f"\n--- Error del Sistema ({key.split('_')[1]} {key.split('_')[2]}) ---")
+            print(f"Stdout: {value['stdout']}")
+            print(f"Stderr: {value['stderr']}")
+            print(f"Return Code: {value['returncode']}")
+            CROreturn_text += f"\n--- Error del Sistema ({key.split('_')[1]} {key.split('_')[2]}) ---"
+            CROreturn_text += f"Stdout: {value['stdout']}"
+            CROreturn_text += f"Stderr: {value['stderr']}"
+            CROreturn_text += f"Return Code: {value['returncode']}"
+# Y luego, si necesitas loggear el diccionario completo:
+# log_interaction(user_input, json.dumps(response_text, indent=2))
+        return json.dumps(CROreturn_text, indent=2) 
+
+
 
 
 # Función para manejar los argumentos
@@ -876,88 +877,65 @@ def main(args):
     global LIMIT_WHILE_ARGS
     global commands_map
     global context_mode
+    global MODE_CRO_GLOBAL_ACTIVE
+    MODE_CRO_GLOBAL_ACTIVE=False
 
-
-#    rmain = False
-    #Si es un bucle de argumentos
-#    if len(args) < LIMIT_WHILE_ARGS + 1:
-#        arg_n = 0
-#        sem = args
-#        for i in range(len(sem)):
-#            if sem[i].startswith("--"):
-#                arg_n = arg_n + 1
-#                if arg_n == len(sem):
-#                    rmain = True
-#        if rmain == True :
-#            while_args(sem)
-#            return
-            #FIN BLOKE "WHILE" # """"
 
 # Si no se envían comandos, se asume que se envía una pregunta de texto.
-    if not args[0].startswith("--"):
+    if not args[0].startswith("--") and MODE_CRO_GLOBAL_ACTIVE==False:
         user_input = " ".join(args)
-        response_text = generate_response(user_input)
         if auto_cromode == False:
             print(" \n→", response_text)
         elif auto_cromode == True:
 #            print("----------")
-            CROreturn = croparser.main(response_text)
-            print("CRO:auto")
             CRO = None
+            response_text = generate_response(user_input)
+            apa(response_text)
+            CROreturn = croparser.main(response_text) # CRO RETURN CRO PARSER
+            print(" *^* \n **CROParser ON** ")
+            CRO = True
             if not CROreturn :
                 print("NOT CRO RESULTS")
             else:
-                CRO = True
-                response = "True CRO"
-                CROreturn_text = "Resultados parseado CRO"
-                for key, value in CROreturn.items():
-                    if key.startswith("output_"): # Si es una salida exitosa
-                        print(f"\n--- Salida del Sistema ({key.split('_')[1]} {key.split('_')[2]}) ---")
-                        print(value) # 'value' ya es la cadena limpia (si el subprocess.run la capturó como texto=True)
-                        CROreturn_text += f"\n--- Salida del Sistema ({key.split('_')[1]} {key.split('_')[2]}) ---"
-                        CROreturn_text += value # 'value' ya es la cadena limpia (si el subprocess.run la capturó como texto=True)
-                    elif key.startswith("error_output_"): # Si es una salida de error
-                        print(f"\n--- Error del Sistema ({key.split('_')[1]} {key.split('_')[2]}) ---")
-                        print(f"Stdout: {value['stdout']}")
-                        print(f"Stderr: {value['stderr']}")
-                        print(f"Return Code: {value['returncode']}")
-                        CROreturn_text += f"\n--- Error del Sistema ({key.split('_')[1]} {key.split('_')[2]}) ---"
-                        CROreturn_text += f"Stdout: {value['stdout']}"
-                        CROreturn_text += f"Stderr: {value['stderr']}"
-                        CROreturn_text += f"Return Code: {value['returncode']}"
-# Y luego, si necesitas loggear el diccionario completo:
-# log_interaction(user_input, json.dumps(response_text, indent=2))
-                conversation_context += str(CROreturn_text)
-                response = generate_response("RETROALIMENTACION Resultados añadido al contexto. Analiza. Se Procesará CRO si está Activo")
-                if CRO == True :
-                    if response:
-                        CROreturn2 = croparser.main(response)
-                        if CROreturn2:
-                            print(">>>>>>CROreturn2")
-                            conversation_context += str(CROreturn2)
-                            r_input = input("""
-                                Menú de Retro Alimentación:
-                                """)
-                            if r_input:
-                                ri2 = """
-                                Usuario Retroalimenta Añadido por el supervisor Dice:
-                                Resume los resultados de la última ejecución CRO:
-                                """+r_input+"""
-                                """
-                                rad = ri2
-#                                print(rad)
-                                response_3 = generate_response(rad)                
-#                                CROreturn3 = croparser.main(response_3)
-                                conversation_context += str(response_3)
-                                print(">>>>>>CROreturn3")
-                            else:
-                                r_input=""
-                        else:
-                            print("No-CROReturn2")
+                print("CRO:auto")
+                print("Entrando en Consola CRO")
+
+                response = ""
+                CROreturn_text = ""
+                CRT = croreturn(CROreturn)
+                conversation_context += str(CRT)
+
+                while True:
+
+                    r_input = input("""
+    WCRo StarT - [Exit wCRO writting --exit]
+    
+    Cro>> """)
+
+                    if r_input == "--exit":
+                        print("WCroParser END")
+                        generate_response("Se ha salido de la consola CRO pero sigue activo","nolastresponse")
+                        break
                     else:
-                        print("No+Response.")
-        aap()
-        arw()
+#                        print("FILTER RESPONSE\n")
+                        if r_input.startswith("--"):
+                            main(r_input.strip().split())
+                            MODE_CRO_GLOBAL_ACTIVE = True
+                            r_input = ""
+                            continue
+
+                        response_d = generate_response(r_input)
+                        apa(response_d)
+#                        aap()
+                        whileCROreturn = croparser.main(response_d)
+                        print(whileCROreturn)
+                        global_context_mode = "UNDEFINED"
+                        if global_context_mode == "UNDEFINED":
+                            conversation_context += str(whileCROreturn)
+                            whileCROreturn = ""
+
+#        aap()
+#        arw()
         log_interaction(user_input, response_text)  # Nuevo: Registrar interacción
         return
     try:
@@ -1016,12 +994,11 @@ def main(args):
                 conversation_context += "\n ~~~INTERNAL MSG: AUTOCROMODE FUE PUESTO A OFF~~~ \n"
             print("AUTO_cromode:",auto_cromode)
             return
-        if command == "--sftpc" or command == "--sftp--connection":
+        if command == "--sshc" or command == "--ssh--connection":
             global sftp_global_connector # Necesitamos una instancia global o persistente
             if sftp_global_connector is None:
-                sftp_global_connector = SFTP.SSHConnector()
-
-            print("Intentando establecer conexión SFTP...")
+                sftp_global_connector = SSHC.SSHConnector()
+            print("Intentando establecer conexiones SSH y SFTP...")
             import asyncio
             # Ejecutar la función asíncrona connect()
             try:
@@ -1172,19 +1149,19 @@ def main(args):
                 # Reconfigurar API si se carga una nueva clave
                 genai.configure(api_key=API_KEY)
             else:
-                messagebox.showerror("Error", "Archivo de configuración no encontrado o no especificado.")
+                print("Error", "Archivo de configuración no encontrado o no especificado.")
             return
         elif command == "--log":
             if len(args) > 1:
                 log_interaction(" ".join(args[1:]), last_response)
             else:
-                messagebox.showerror("Error", "No se especificó la interacción a registrar.")
+                print("Error", "No se especificó la interacción a registrar.")
             return
         elif command == "--sp" or command == "--setparams":
             if len(args) > 1:
                 set_model_params(args[1:])
             else:
-                messagebox.showerror("Error", "No se especificaron parámetros.")
+                print("Error", "No se especificaron parámetros.")
             return
         elif command == "--lms" or command == "--listmodels":
             print("\nModelos Genai disponibles:\n")
@@ -1202,7 +1179,7 @@ def main(args):
                 load = read_file(args[1])
                 print(f"Contenido cargado desde {args[1]}")
             else:
-                messagebox.showerror("Error", "Archivo no encontrado o no especificado.")
+                print("Error", "Archivo no encontrado o no especificado.")
             return
         elif command == "--al" or command == "--addload":
             args.pop(0)  # Remover '--addload' de los argumentos
@@ -1251,9 +1228,9 @@ def main(args):
                         conversation_context += f"{textWithImage} : {generated_text}\n"
                         print(" \n→", generated_text)
                 else:
-                    messagebox.showerror("Error", "Imagen no encontrada o no especificada.")
+                    print("Error", "Imagen no encontrada o no especificada.")
             else:
-                messagebox.showerror("Error", "No se especificó una ruta de imagen.")
+                print("Error", "No se especificó una ruta de imagen.")
         elif command == "--sw" or command == "--showwin":
             if conversation_context:
                 show_text_window(conversation_context)
@@ -1281,7 +1258,7 @@ def main(args):
                 user_input = " ".join(args[1:])
                 save_request(user_input)
             else:
-                messagebox.showerror("Error", "No se especificó solicitud a guardar.")
+                print("Error", "No se especificó solicitud a guardar.")
             return
         elif command == "--sa" or command == "--saveanswer":
             if len(args) > 1:
@@ -1303,7 +1280,7 @@ def main(args):
                 for q in questions:
                     print(" -", q)
             else:
-                messagebox.showerror("Error", "No se especificó una pregunta base.")
+                print("Error", "No se especificó una pregunta base.")
             return
         elif command == "--sd" or command == "--send":
             if len(args) > 1:
@@ -1311,7 +1288,7 @@ def main(args):
                 response_text = generate_response(user_input)
                 print(" \n→", response_text)
             else:
-                messagebox.showerror("Error", "No se especificó pregunta a enviar.")
+                print("Error", "No se especificó pregunta a enviar.")
             return
         elif command == "--ls" or command == "--listfiles":
             if len(args) < 2:
@@ -1330,7 +1307,7 @@ def main(args):
                 conversation_context += selected_context + "\n"
                 print("Contexto seleccionado cargado.")
             else:
-                messagebox.showerror("Error", "Archivo no encontrado o no especificado.")
+                print("Error", "Archivo no encontrado o no especificado.")
             return
         elif command == "--lm" or command == "--loadmultiple":
             for filename in args[1:]:
@@ -1339,7 +1316,7 @@ def main(args):
                     conversation_context += selected_context + "\n"
                     print(f"Contexto de {filename} cargado.")
                 else:
-                    messagebox.showerror("Error", f"Archivo {filename} no encontrado.")
+                    print("Error", f"Archivo {filename} no encontrado.")
             return
         elif command == "--i" or command == "--info":
             print("Información del modelo:")
@@ -1350,13 +1327,16 @@ def main(args):
             if len(args) > 1:
                 win.export_context(args[1],conversation_context)
             else:
-                messagebox.showerror("Error", "No se especificó nombre para exportar.")
+                print("Error", "No se especificó nombre para exportar.")
             return
         elif command == "--imp" or command == "--import":
             if len(args) > 1:
                conversation_context = win.import_context(args[1])
+               conversation_context += """
+               Context Imported with """+str(args)+"""
+               """
             else:
-                messagebox.showerror("Error", "No se especificó nombre para importar.")
+                print("Error", "No se especificó nombre para importar.")
             return
         elif command == "--s" or command == "--search":
             load_context = False
@@ -1372,14 +1352,14 @@ def main(args):
             if term:
                 results = search_context(term, load_context)
             else:
-                messagebox.showerror("Error", "No se especificó término de búsqueda.")
+                print("Error", "No se especificó término de búsqueda.")
             return
         elif command == "--st" or command == "--settopic":
             if len(args) > 1:
                 topic = " ".join(args[1:])
                 print(f"Tema establecido: {topic}")
             else:
-                messagebox.showerror("Error", "No se especificó tema a establecer.")
+                print("Error", "No se especificó tema a establecer.")
             return
         elif command == "--dialog" or command == "--ask"  :
             #Abre una ventana de dialogo para enviar una pregunta al modelo de IA seleccionado

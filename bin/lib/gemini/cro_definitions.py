@@ -27,9 +27,13 @@ cro_definitions = {
         "DEFINE_VAR": ["USER_QUERY_SUMMARY", "TEMP_DATA"],
         "EXECUTE_SYSTEM_ACTION": ["REBOOT", "SHUTDOWN", "RUN_COMMAND"],
         "LOCAL_FS": ["LIST_DIRECTORY", "READ_FILE", "WRITE_FILE"],
-        "WEB_MODE": ["JS"]
+        "WEB_MODE": ["JS"],
+        "REMOTE_FS":["SFTP_LS"]
     },
     "PROTO_DEFINITIONS": {
+        "REMOTE_FS":{
+            "SFTP_LS":"filepath"
+        },
         "WEB_MODE": {
             "JS": {
                 "DESCRIPTION": "Ejecuta comandos JavaScript en el entorno web del navegador.",

@@ -121,7 +121,10 @@ bin/lib/multiprocess.py
 bin/lib/processstart.py
 bin/lib/osiris/common.py
 bin/lib/gemini/utils.py
-bin/lib/gemini/cro_parser.py
+#...
+#Contienes claves [desabilitado upload temporal]
+#bin/lib/gemini/cro_parser.py
+#...
 bin/lib/gemini/audio_parser.py
 bin/lib/gemini/cro_definitions.py
 bin/lib/gemini/dyncontext.py
