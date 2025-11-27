@@ -123,7 +123,7 @@ bin/lib/osiris/common.py
 bin/lib/gemini/utils.py
 #...
 #Contienes claves [desabilitado upload temporal]
-bin/lib/gemini/cro_parser.py
+#bin/lib/gemini/cro_parser.py
 #...
 bin/lib/gemini/audio_parser.py
 bin/lib/gemini/cro_definitions.py
@@ -235,6 +235,8 @@ bin/com/gemini-web.py
 bin/com/desktop.py
 bin/com/screenshot.py
 bin/com/audio.py
+bin/com/client.py
+bin/com/youtube_player.py
 
 #TV
 bin/com/otvkill
