@@ -1,0 +1,43 @@
+===========================================================
+  ██╗  ██╗███████╗██╗     ██╗     ███████╗████████╗███████╗
+  ██║  ██║██╔════╝██║     ██║     ██╔════╝╚══██╔══╝██╔════╝
+  ███████║█████╗  ██║     ██║     █████╗     ██║   ███████╗
+  ██╔══██║██╔══╝  ██║     ██║     ██╔══╝     ██║   ╚════██║
+  ██║  ██║███████╗███████╗███████╗███████╗   ██║   ███████║
+  ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝╚══════╝   ╚═╝   ╚══════╝
+===========================================================
+   CLIENTE WEBSOCKET OSIRIS (com/client.py) v1.0
+-----------------------------------------------------------
+
+OBJETIVO:
+  Enviar comandos secuencialmente a un servidor WebSocket
+  (ws://127.0.0.69:8081) manteniendo una única conexión.
+
+USO BÁSICO:
+  python3 com/client.py <comando1> [<comando2> ...]
+
+	EJEMPLO:
+		python3 com/client.py /hello /date /way
+
+PARAMETROS:
+  <comando1> <comando2> ...
+		Cada argumento es un comando. Se envían en el orden
+		proporcionado.
+
+  --help
+		Muestra esta guía de ayuda.
+
+REQUISITOS:
+  * Python 3 instalado.
+  * Módulo 'websocket-client' de Python:
+		pip install websocket-client
+
+NOTAS:
+  * El script abre una conexión, envía todos los comandos,
+	espera breves respuestas, y luego cierra la conexión.
+  * Si el servidor no responde o está inactivo, se mostrará
+	un mensaje de error.
+
+-----------------------------------------------------------
+  ✨ ¡Conectando el futuro, comando a comando! ✨
+===========================================================

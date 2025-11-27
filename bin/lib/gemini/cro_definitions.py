@@ -181,7 +181,14 @@ cro_definitions = {
                 "DESCRIPTION": "Ejecuta un comando arbitrario en la terminal del sistema (ej. Bash).",
                 "ACTION_TYPE": "SYSTEM_COMMAND_DYNAMIC",
                 "PARAMETERS": {
-                    "COMMAND": { "TYPE": "string", "REQUIRED": True, "DYNAMIC": True }
+                    "COMMAND": { "TYPE": "string", "REQUIRED": True, "DYNAMIC": True },
+                        "INTERACTIVE": {
+                            "TYPE": "boolean",
+                            "REQUIRED": False,
+                            "DYNAMIC": True,
+                            "DEFAULT": "False",
+                            "DESCRIPTION": "Si \'\'True\'\', permite interacción directa con la terminal (no captura salida)."
+                        }
                 }
             }
         },

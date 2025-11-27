@@ -709,7 +709,7 @@ def generate_response(user_input,mode=""):
             last_response = response_text  # Guarda la última respuesta
             return response_text
         else:
-            print("LAST_OFF")
+#            print("LAST_OFF")
             return "EXIT_LR"
     except Exception as e:
         if e.code == 400:
@@ -864,7 +864,7 @@ def croreturn(CROreturn):
             CROreturn_text += f"Return Code: {value['returncode']}"
 # Y luego, si necesitas loggear el diccionario completo:
 # log_interaction(user_input, json.dumps(response_text, indent=2))
-        return json.dumps(CROreturn_text, indent=2) 
+        return CROreturn_text 
 
 
 
@@ -903,17 +903,17 @@ def main(args):
                 response = ""
                 CROreturn_text = ""
                 CRT = croreturn(CROreturn)
-                conversation_context += str(CRT)
+                conversation_context += CRT
 
                 while True:
 
                     r_input = input("""
-    WCRo StarT - [Exit wCRO writting --exit]
+    WCRo StarT - [Exit wCRO writting --exit]    
     
-    Cro>> """)
+    Ai2Cro>> """)
 
                     if r_input == "--exit":
-                        print("WCroParser END")
+                        print(" \n  Exiting WCroParser \n")
                         generate_response("Se ha salido de la consola CRO pero sigue activo","nolastresponse")
                         break
                     else:
@@ -928,7 +928,7 @@ def main(args):
                         apa(response_d)
 #                        aap()
                         whileCROreturn = croparser.main(response_d)
-#                        print(whileCROreturn)
+                        print("-----> WR: ",whileCROreturn)
                         global_context_mode = "UNDEFINED"
                         if global_context_mode == "UNDEFINED":
                             conversation_context += str(whileCROreturn)
@@ -994,27 +994,40 @@ def main(args):
                 conversation_context += "\n ~~~INTERNAL MSG: AUTOCROMODE FUE PUESTO A OFF~~~ \n"
             print("AUTO_cromode:",auto_cromode)
             return
+        
+        
+       
         if command == "--sshc" or command == "--ssh--connection":
             global sftp_global_connector # Necesitamos una instancia global o persistente
+            import asyncio
             if sftp_global_connector is None:
                 sftp_global_connector = SSHC.SSHConnector()
-            print("Intentando establecer conexiones SSH y SFTP...")
-            import asyncio
+                croparser.set_sftp_connector(sftp_global_connector)
+                print("Intentando establecer conexiones SSH y SFTP...")
             # Ejecutar la función asíncrona connect()
-            try:
+                try:
                 # Se necesita un bucle de eventos para ejecutar funciones asíncronas.
                 # Esta es una forma simple para un comando único en un contexto síncrono.
-                loop = asyncio.get_event_loop_policy().new_event_loop()
-                asyncio.set_event_loop(loop)
-                connected = loop.run_until_complete(sftp_global_connector.connect())
-            finally:
-                loop.close() # Es importante cerrar el loop cuando ya no se necesita
-
-            if connected:
-                print("¡Conexión SSH y SFTP establecida con éxito! 🎉")
+                    loop = asyncio.get_event_loop_policy().new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    connected = loop.run_until_complete(sftp_global_connector.connect())
+                finally:
+                    loop.close() # Es importante cerrar el loop cuando ya no se necesita
+#            if connected:
+#                print("¡Conexión SSH y SFTP establecida con éxito! 🎉")
+#                print("CRO Parser TEST")
+#                asyncio.run(croparser.test())
                 # Aquí podríamos entrar en un modo interactivo SFTP o esperar más comandos.
             else:
-                print("Conexión SFTP fallida. 😞 Por favor, revisa los detalles o intenta de nuevo.")
+                print("Conexión Global Operativa")
+                print("TEST PWD: ")                
+                if len(args) > 1:
+                    sftpcom = " ".join(args[1:])
+                else:
+                    print("Escriba un comando para ejecutar. Running in test mode, default: pwd")
+                    sftpcom="pwd"
+                asyncio.run(croparser.test(sftpcom))
+#                print("Conexión SFTP fallida. 😞 Por favor, revisa los detalles o intenta de nuevo.")
             return
 
         if command == "--aap" or  command == "--auto-audio-parser":
@@ -1293,10 +1306,19 @@ def main(args):
         elif command == "--ls" or command == "--listfiles":
             if len(args) < 2:
                 args.append(".")
-            print("Listando archivos en com/datas/"+str(args[1]))
-            for filename in os.listdir("com/datas/"+str(args[1])):
-                print(" -", filename)
+            target_dir = os.path.join("com/datas/", str(args[1]))
+            print(f"Listando archivos en {target_dir} (antiguo a nuevo):")
+            try:
+                # Ejecutamos 'ls -ltr' y procesamos la salida con awk para mostrar solo nombre y tamaño.
+                command_string = f"ls -ltr \"{target_dir}\" | awk '{{print $9, $5}}'"
+                result = subprocess.run(command_string, shell=True, check=True, capture_output=True, text=True)
+                print(result.stdout)
+            except FileNotFoundError:
+                print(f"Error: El directorio '{target_dir}' no fue encontrado.")
+            except subprocess.CalledProcessError as e:
+                print(f"Error al listar el directorio: {e.stderr}")
             return
+#            return
         elif command == "--cc" or command == "--clearcontext":
             conversation_context = ""
             print("Contexto de conversación limpiado.")
