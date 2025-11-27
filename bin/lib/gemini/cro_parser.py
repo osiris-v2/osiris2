@@ -6,13 +6,48 @@ import shlex
 import subprocess
 from .cro_definitions import cro_definitions # <--- IMPORTACION DE DEFINICIONES
 import lib.core as core
+import urllib.parse
+import asyncio 
 
 INFO = """
 Module Cro Parser Info
 Osiris internal python library
 """
 
-import urllib.parse
+# Variable interna para almacenar la instancia del conector SSH/SFTP
+_sftp_connector_global = None
+
+def set_sftp_connector(connector_instance):  
+    """
+    Establece la instancia global del conector SSH/SFTP para que el parser CRO la use
+    en comandos remotos (por ejemplo, para operaciones SFTP).
+    """
+    global _sftp_connector_global
+    _sftp_connector_global = connector_instance
+    print("INSTANCIA SFTP EN CRO_PARSER: Conector SSH/SFTP establecido con éxito.")
+
+
+async def test(command="pwd"):
+    global _sftp_connector_global
+    print("SSH HANDLER OBJECT: ", _sftp_connector_global)
+    if _sftp_connector_global and _sftp_connector_global.connected:
+        print("CONNECTION HANDLER :", _sftp_connector_global.connected)
+        print(f"Attempting '{command}' on SFTP connection...")
+        try:
+            output, error, status = await _sftp_connector_global.execute_command(command)
+            if status == 0:
+                print(f"--- Salida del comando '{command}' ---")
+                print(output)
+            else:
+                print(f"--- El comando '{command}' falló con código {status} ---")
+                print(f"Error: {error}")
+        except Exception as e:
+            print(f"Error al ejecutar comando SFTP: {e}")
+    else:
+        print("SFTP connector not initialized or not connected. Cannot perform ''.")
+# MODIFIED TEST FUNCTION END
+
+
 
 
 class CROParser:
@@ -727,8 +762,8 @@ def main(ai_response_text: str, global_mode: str = "CLI"):
             if action['action_type'] == "URL_SEARCH":
                 print(f"  (Simulando apertura de URL en el navegador o curl silencioso...)")
                 if  f"{action['group']}_{action['member']}" == "SEARCH_IN_GOOGLE":
-                    API_KEY = "YOUR API KEY"
-                    CX_CODE = "YOUR CX CODE"
+                    API_KEY = "YOUR_KEY"
+                    CX_CODE = "YOUR_CODE"
                     reemplazos_keys = [("%%API_KEY%%",API_KEY),("%%CX_CODE%%",CX_CODE)]
                     parse_command_url = command_to_execute
                     for var, valor in reemplazos_keys:
