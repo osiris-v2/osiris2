@@ -795,7 +795,7 @@ def main(args):
      ]
 
     
-    yt_codecs_start =  ["-loglevel","warning"] +  yt_default_preset + yt_default_screen + yt_default_abr + yt_default_vbr +  yt_default_buffer_size
+    yt_codecs_start =  ["-loglevel","quiet"] +  yt_default_preset + yt_default_screen + yt_default_abr + yt_default_vbr +  yt_default_buffer_size
 
     yt_codecs_rates = yt_default_audio_filter + [
     "-pix_fmt",
@@ -863,39 +863,102 @@ def main(args):
                             print("Error Input:",args[2])
                             return
                         yt_args = yt_start + ["-i",args[2]] + yt_codecs + yt_output
-            elif args[1] == "kill":
-                if estado_proceso == True:
-                    detener_proceso()
-                    return
+            if args[1] == "kill":
+                print(pid_proceso,estado_proceso)
+                print("Comando 'yt kill' recibido. Deteniendo cualquier proceso activo...")
+                detener_proceso() # Llama a la función que ahora limpia los globales consistentemente
+                return # Salir de main después de manejar 'kill'
+            # --- LÓGICA UNIFICADA PARA INICIAR O INTERCAMBIAR UN STREAM ---
+            # Todos los demás comandos 'yt' (ej. "yt -i URL", "yt intro", "yt -i URL -c")
+            # deben pasar por esta lógica.
+
+            print("Preparando el lanzamiento del stream.")
+            # 1. Antes de iniciar un nuevo stream, SIEMPRE intentar detener el actual si existe.
+            #    `detener_proceso()` se encarga de matar el proceso y limpiar `pid_proceso`/`estado_proceso`.
+            #    Esto resuelve la duplicación y asegura un estado limpio.
+            if estado_proceso: # Si el script *cree* que hay un proceso activo
+                print("Detectado proceso anterior activo (PID:", pid_proceso, "). Deteniéndolo antes de iniciar el nuevo...")
+                detener_proceso() # Esto establecerá pid_proceso=None y estado_proceso=False
+
+            # Ahora, `pid_proceso` debería ser `None` y `estado_proceso` debería ser `False` (estado limpio).
+            # Proceder a iniciar el nuevo proceso.
+            print("Iniciando nuevo stream...")
+            try:
+                # `funcion_proceso` devuelve el nuevo PID o None si falló.
+                new_pid = funcion_proceso(yt_args) 
+                
+                #global pid_proceso, estado_proceso # Declarar globales para asignación explícita
+                if new_pid is not None:
+                    pid_proceso = new_pid       # Asignar el PID del nuevo proceso
+                    estado_proceso = True       # Marcar como activo
+                    print(f"Stream iniciado con PID: {pid_proceso}. Estado: {estado_proceso}")
                 else:
-                    print("No hay proceso activo")
-                    return
-            else:
-                print("Opción no disponible")
-                return
-
+                    # Si funcion_proceso devuelve None, significa que el nuevo proceso no pudo iniciarse.
+                    print("Falló el inicio del stream. Asegurando estado no activo.")
+                    pid_proceso = None          # Asegurar que es None
+                    estado_proceso = False      # Asegurar que es False
+            except Exception as e:
+                # Capturar cualquier excepción inesperada durante la llamada a funcion_proceso
+                print(f"Error crítico al intentar iniciar el stream: {e}")
+                #global pid_proceso, estado_proceso
+                pid_proceso = None
+                estado_proceso = False
+            return # <--- IMPORTANTE: SIEMPRE retornar después de este bloque unificado.
             yt_last_args = yt_args
-
-
-#            print(yt_args)
             print(" ".join(yt_args))
-
-            if  estado_proceso == False:
+            if  estado_proceso == False: # Si no hay proceso activo
                 print(yt_args)
-                #return
                 print("starting process")
                 try:
-                    funcion_proceso(yt_args)
+                    new_pid = funcion_proceso(yt_args) # <--- Obtener el PID del nuevo proceso
+                    if new_pid is not None:
+                        pid_proceso = new_pid # <--- Asignar a la global
+                        estado_proceso = True  # <--- Actualizar estado a True
+                    else:
+                        print("Falló el inicio del proceso. estado_proceso = False")
+                        pid_proceso = None # Asegurar que es None
+                        estado_proceso = False # Asegurar que es False
                 except Exception as e:
-                	print("Error:",e)
-                	print(yt_args)
-                	return
-            elif len(args) > 2 and "-c" in args:
-                estado_proceso == True
-                kill_l = pid_proceso
-                print("Intercambio stream")
-                interchange2(yt_args,kill_l)
+                    print("Error en el inicio del proceso principal:",e)
+                    print(yt_args)
+                pid_proceso = None # En caso de excepción, limpiar
+                estado_proceso = False # En caso de excepción, limpiar
                 return
+
+           # Bloque para el intercambio (`elif len(args) > 2 and "-c" in args`):
+            elif len(args) > 2 and "-c" in args: # Si se pide intercambio
+                # 1. Intentar detener cualquier proceso activo ANTES de intentar el nuevo.
+                # Esto asegura que si el estado global está desincronizado, se intenta corregir.
+                if estado_proceso:
+                    print("Detectado proceso anterior activo (PID:", pid_proceso, "). Deteniéndolo para limpieza...")
+                    detener_proceso() # Esta función se encarga de matar el proceso y limpiar los globales.
+
+            # 2. Ahora que el estado global está limpio, intentar iniciar el nuevo stream.
+                print("Iniciando nuevo stream...")
+                try:
+                    new_pid = funcion_proceso(yt_args) # funcion_proceso devuelve el PID o None
+                
+#                    global pid_proceso, estado_proceso # Declarar globales para asignación explícita
+                    if new_pid is not None:
+                        pid_proceso = new_pid       # Asignar el PID del nuevo proceso
+                        estado_proceso = True       # Marcar como activo
+                        print(f"Stream iniciado con PID: {pid_proceso}")
+                    else:
+                        # Si funcion_proceso devuelve None, significa que no se pudo iniciar.
+                        print("Falló el inicio del stream. Asegurando estado no activo.")
+                        pid_proceso = None          # Asegurar que es None
+                        estado_proceso = False      # Asegurar que es False
+                except Exception as e:
+                    # Capturar cualquier excepción inesperada durante la llamada a funcion_proceso
+                    print(f"Error crítico al intentar iniciar el stream: {e}")
+#                    global pid_proceso, estado_proceso
+                    pid_proceso = None
+                    estado_proceso = False
+                return # <--- IMPORTANTE: SIEMPRE retornar después de este bloque unificado.
+ 
+
+
+
 #                detener_proceso()
 
         elif args[0] == "status":
@@ -983,55 +1046,10 @@ def main(args):
     except Exception as e:
         print("Se ha producido un error:",e)
 
-
 def defaults():
     prueba = "in function"
     return prueba
 
-
-
-
-
-itc_time = 5
-
-
-def interchange(yt_args,kill_l):
-    global itc_time
-    d = 0
-    global pid_proceso
-    funcion_proceso(yt_args)
-    while d <= itc_time:
-        print(".",d+1)
-        d = d +1
-        if d == itc_time:
-            try:
-                os.kill(kill_l, signal.SIGKILL)
-#uso os kill en vez de subprocess                            subprocess.call(["kill",str(kill_l)],shell=True)
-#                print("KILL:",kill_l)
-                break
-            except Exception as e:
-                print("CH PID WARN",e)
-                break
-        time.sleep(1)
-    print("New:",pid_proceso)
-    return
-
-
-def interchange2(yt_args,kill_l):
-    global itc_time
-    d = 0
-    global pid_proceso
-#    input("Pulse Enter para matar el proceso anterior:"+str(kill_l))
-    try:
-        os.kill(kill_l, signal.SIGKILL)
-#uso os kill en vez de subprocess                            subprocess.call(["kill",str(kill_l)],shell=True)
-        #print("KILL:",kill_l)
-    except Exception as e:
-        print("CH PID WARN",e)
- #   print("KILL:",kill_l)
-    funcion_proceso(yt_args)
- #   print("New Proceso iniciado:",pid_proceso)
-    return
 
 
 
@@ -1086,16 +1104,6 @@ class ConcatenadorFFmpeg:
             print("No se encontraron archivos con la extensión especificada.")
 
 
-
-
-
-def list_files_DEPRECTAED(directory):
-    files = os.listdir(directory)
-    files.sort()
-    numbered_files = []
-    for index, file in enumerate(files, start=1):
-        numbered_files.append(f"{file}")
-    return numbered_files
 
 
 def list_files(directory, extensions=None):
@@ -1183,46 +1191,87 @@ def thread():
 
 
 def funcion_proceso(args):
-    global estado_proceso
+    child_proc = None # La instancia de multiprocessing.Process
+    new_ffmpeg_pid = None # El PID real del proceso ffmpeg
     try:
-        #subprocess.call(["sudo","-u","osiris","bash","com/otvkill"])
-        proceso = multiprocessing.Process(target=_funcion_interna,args=(args,))
-        proceso.start()
-        global pid_proceso
-        pid_proceso = pid_queue.get()  # Obtenemos el PID del proceso hijo desde la cola
-        proceso.join()  # Esperamos a que el proceso hijo se inicie completamente
-        print("Iniciado proceso PID:", pid_proceso)  # Esto debería imprimir el valor actualizado
+        child_proc = multiprocessing.Process(target=_funcion_interna, args=(args,))
+        child_proc.start()
+        try:
+               # Intentar obtener el PID del proceso hijo con un timeout
+            new_ffmpeg_pid = pid_queue.get(timeout=5) # <--- Obtener el PID de la cola
+            if new_ffmpeg_pid is None: # Si _funcion_interna reportó un fallo al iniciar ffmpeg
+                print("Error: ffmpeg no se inició correctamente dentro del subproceso.")
+                if child_proc.is_alive(): child_proc.terminate() # Asegurarse de limpiar el proceso Python
+                return None # Indicar fallo
+            child_proc.join(timeout=2) # Esperar un corto tiempo a que el subproceso Python termine
+            if child_proc.is_alive(): # Si el subproceso Python aún está vivo (colgado)
+                child_proc.terminate() # Forzar su terminación
+            print("Subproceso Python iniciado (PID de ffmpeg):", new_ffmpeg_pid)
+           # --- Restaurar el terminal después de que ffmpeg termine (el reset que ya añadiste) ---
+            try:
+                subprocess.run(["reset"], check=False, shell=False, 
+                                  stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                print("Terminal reseteado después de la finalización del subproceso de ffmpeg.")
+            except Exception as tty_e:
+                print(f"Advertencia: No se pudo resetear el terminal de forma explícita: {tty_e}")
+               # --- FIN de la restauración del terminal ---
+            return new_ffmpeg_pid # <--- Devuelve el PID del nuevo ffmpeg
+        except multiprocessing.queues.Empty:
+            print("Error: El subproceso no reportó el PID de ffmpeg a tiempo.")
+            if child_proc.is_alive(): child_proc.terminate()
+            return None
     except Exception as e:
-        print("Error al iniciar el proceso:", e)
-    finally:
-        estado_proceso = True
+        print(f"Error al iniciar el proceso padre de ffmpeg: {e}")
+        if child_proc and child_proc.is_alive(): child_proc.terminate()
+        return None
+
 
 def _funcion_interna(args):
     try:
         proceso = subprocess.Popen(args,bufsize=0,close_fds=True,restore_signals=True,shell=False,stdin=None,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-        pid_proceso = proceso.pid
-        pid_queue.put(pid_proceso)  # Pasamos el PID del proceso hijo a la cola
-        print("Iniciado Hilo", pid_proceso)
+        pid = proceso.pid # Usamos una variable local para el PID aquí
+        pid_queue.put(pid)
+        print("Iniciado Hilo (ffmpeg PID):", pid)
     except Exception as e:
-        print("Error Popen:", e)
-        return
+        print("Error Popen en _funcion_interna:", e)
+        pid_queue.put(None) # <--- IMPORTANTE: Si falla, enviar None a la cola
+        # No necesitas 'return' aquí, el subproceso Python simplemente terminará.
 
 
 
 def detener_proceso():
-    global estado_proceso
-    global pid_proceso
-    if estado_proceso:
-        try:
-            if pid_proceso is not None:
-                os.kill(pid_proceso, signal.SIGKILL)
-                estado_proceso = False
-                print("Detenido proceso PID:", pid_proceso)
-                pid_proceso = None
-        except Exception as e:
-            print("Error al detener el proceso:", e)
-    else:
-        print("No existe proceso abierto")
+    global estado_proceso, pid_proceso
+
+       # Caso 1: No hay PID registrado. Simplemente limpiar el estado si está inconsistente.
+    if pid_proceso is None:
+        if estado_proceso: # Si estado_proceso es True pero PID es None, es inconsistente.
+            print("Advertencia: Estado inconsistente detectado (PID es None, pero estado_proceso es True). Limpiando estado.")
+            subprocess.run(["reset"], check=False, shell=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        else: # Si ambos son None/False, no hay nada que hacer.
+            print("No existe proceso activo para detener.")
+           # En ambos subcasos, asegurar que el estado es limpio y salir.
+        pid_proceso = None
+        estado_proceso = False
+        return
+
+       # Caso 2: Hay un PID registrado. Intentar matarlo.
+    try:
+        os.kill(pid_proceso, signal.SIGTERM) 
+        time.sleep(1) 
+        if os.path.exists(f"/proc/{pid_proceso}"): # Si el proceso aún existe, forzar
+            os.kill(pid_proceso, signal.SIGKILL)
+           
+        subprocess.run(["reset"], check=False, shell=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        print(f"Detenido proceso PID: {pid_proceso} y terminal reseteado.")
+    except ProcessLookupError: # Captura si el PID ya no existe cuando se intenta matar
+        print(f"Advertencia: El proceso PID {pid_proceso} no se encontró (ya estaba muerto?). Reset terminal.")
+        subprocess.run(["reset"], check=False, shell=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except Exception as e: # Captura cualquier otro error genérico durante el kill/reset
+        print(f"Error inesperado al detener el proceso {pid_proceso}: {e}. Reset terminal.")
+        subprocess.run(["reset"], check=False, shell=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    finally: # Este bloque es CRUCIAL y asegura que los globales siempre se reinicien.
+        pid_proceso = None
+        estado_proceso = False
 
 
 

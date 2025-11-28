@@ -9,9 +9,15 @@ import time
 import signal
 
 usuario = os.getlogin()
+
+
+verified = "/o2iris/"
+
 r_def_mode = def_exec_mode = "bg"
 apps = ["dsk1", "dsk2", "dsk3", "dsk4", "dsk5", 
-        "dsk6", "dsk7", "makedochtml", "ipinfo", "localnet", "gemini"]
+        "", "dsk7", "makedochtml", "ipinfo", "localnet", "gemini","log_viewer_pro"]
+
+o2iris = ["o3launcher"]
 
 # Variable global para almacenar el PID del proceso en modo fixed
 fixed_process_pid = None
@@ -204,6 +210,7 @@ def get_mode_from_args(args):
 def main(args):
     global usuario, def_exec_mode, r_def_mode
     scom = None
+    global verified
     
     args_p = args[1:]
     mode = get_mode_from_args(args_p)
@@ -243,19 +250,19 @@ def main(args):
         elif args[0] in apps:
             args_0 = args[0]
             args.pop(0)
-            lcom = " ".join(args)
 #            if scom != None:
 #                lcom = scom
             obj = {
                 "mode": def_exec_mode,  # Cambia a "fixed" si deseas el comportamiento por defecto
                 "name": None,  # Se generará automáticamente si es None
-                "com": ["python3", "com/dsk/"+args_0+".py"] + args,  # Asegúrate de que este comando sea válido
+                "com": ["python3", "/"+verified+"/lpy "+args_0+".py"] + args,  # Asegúrate de que este comando sea válido
                 "metadata": {"user": usuario,
                             "time_start":timestamp,
 			    "command":args_0 +" "+lcom
                             }
             }
             iniciar_multiprocess(obj)
+            return
         elif args[0] == "com":
             args.pop(0) 
 
@@ -289,6 +296,30 @@ def main(args):
         elif args[0] == "show_handlers":
             print("Contenido de process_handlers:")
             print(osiris2.process_manager.get_all_handlers())
+        elif args[0] == "dsks":
+
+
+            args.pop(0) 
+            argsz = str("".join(args))
+            if scom != None:
+                lcom = scom
+            else :
+                lcom = args
+                lcom = verified+argsz
+
+
+            obj = {
+                "mode": def_exec_mode,  # Cambia a "fixed" si deseas el comportamiento por defecto
+                "name": None,  # Se generará automáticamente si es None
+                "com": lcom,  # Asegúrate de que este comando sea válido
+                "metadata": {"user": usuario,
+                            "time_start":timestamp,
+                            "command":lcom
+                            }
+            }
+
+            iniciar_multiprocess(obj)
+        return
 
     except Exception as e:
         print("Se ha producido un error:", e)

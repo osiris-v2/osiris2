@@ -29,7 +29,6 @@ tcptrack			apt install tcptrack
 nodejs   			apt install nodejs
 certbot 			apt install certbot
 tor 				apt install tor
-
 port-audio     			apt install portaudio19-dev 
 
 QtCppLib                        apt install qtbase5-dev g++ qtdeclarative5-dev

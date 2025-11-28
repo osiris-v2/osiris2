@@ -14,12 +14,14 @@ import lib.core  as core
 import lib.aluminium_1 as win2
 
 
+
+
+
+
+
 #print("UTILS")
 
 def_image_editor = "mtpaint"
-
-
-
 
 
 def dynmodule(nombre_modulo):

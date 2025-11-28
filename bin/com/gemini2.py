@@ -50,8 +50,8 @@ except Exception as E :
 
 DYN_CONTEXT = {
   "info":"Mantiene  una copia del contexto \
-dividido en segmetos (preguntas/respuestas) \
-serializado por claves de distinto significado \
+dividido en segmentos (preguntas/respuestas) \
+serializado por claves con distinto significado \
 | timestamp | relevancia | funcion | glyph | CRO | ...  \
 Reconstruye el contexto en función a distintas métricas\
     "
@@ -516,7 +516,7 @@ def video_translate(video_file_name="",prompt="",args=None):
         obj = {
         "mode":mode,
         "name":None,
-        "com":["/usr/local/ffmpeg/bin/ffmpeg","-y","-loglevel","error","-i",video_file_name,
+        "com":["/var/osiris2/bin/com/osiris_env/ffmpeg/bin/ffmpeg","-y","-loglevel","error","-i",video_file_name,
         "-af","aresample=async=1,loudnorm=I=-16:TP=-1.5:LRA=11",
         "-vf","scale=-2:720,subtitles="+vtranslate+":force_style='"+force_style_sub+"'",
     "-pix_fmt","yuv420p",
@@ -1022,7 +1022,11 @@ def main(args):
                 print("Conexión Global Operativa")
                 print("TEST PWD: ")                
                 if len(args) > 1:
-                    sftpcom = " ".join(args[1:])
+                    if args[1] == "--":
+                        print("Conex options menú")
+                        asyncio.run(croparser._prompt_for_connection_details())
+                    else:    
+                        sftpcom = " ".join(args[1:])
                 else:
                     print("Escriba un comando para ejecutar. Running in test mode, default: pwd")
                     sftpcom="pwd"
