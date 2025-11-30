@@ -208,6 +208,7 @@ def get_mode_from_args(args):
 
 
 def main(args):
+
     global usuario, def_exec_mode, r_def_mode
     scom = None
     global verified
@@ -248,20 +249,24 @@ def main(args):
         elif len(args) == 2 and args[0] == "output":
             osiris2.process_manager.monitor_process_output(args[1])
         elif args[0] in apps:
-            args_0 = args[0]
+#            args_0 = args[0]
             args.pop(0)
-#            if scom != None:
-#                lcom = scom
+            lcom="xterm"
+            if scom != None:
+                lcom = "date"
+            else:
+               lcom=""
             obj = {
                 "mode": def_exec_mode,  # Cambia a "fixed" si deseas el comportamiento por defecto
                 "name": None,  # Se generará automáticamente si es None
-                "com": ["python3", "/"+verified+"/lpy "+args_0+".py"] + args,  # Asegúrate de que este comando sea válido
+                "com":["python3","dsk/com/"+lcom+".py"],  # Asegúrate de que este comando sea válido
                 "metadata": {"user": usuario,
                             "time_start":timestamp,
-			    "command":args_0 +" "+lcom
+			    "command":lcom
                             }
             }
             iniciar_multiprocess(obj)
+            print("END PRIVATE USER LIST")
             return
         elif args[0] == "com":
             args.pop(0) 
@@ -285,7 +290,8 @@ def main(args):
             print(obj)
             def_exec_mode = r_def_mode
             iniciar_multiprocess(obj)
-
+            print("END COM LIST")
+            return
             #subprocess.call(["python3", "com/dsk/dsk2.py"])
             print("FREE ARG")
         elif args[0] == "XARG":
@@ -311,7 +317,7 @@ def main(args):
             obj = {
                 "mode": def_exec_mode,  # Cambia a "fixed" si deseas el comportamiento por defecto
                 "name": None,  # Se generará automáticamente si es None
-                "com": lcom,  # Asegúrate de que este comando sea válido
+                "com": ["python3","/"+verified+"/lpy", args],  # Asegúrate de que este comando sea válido
                 "metadata": {"user": usuario,
                             "time_start":timestamp,
                             "command":lcom
@@ -319,6 +325,7 @@ def main(args):
             }
 
             iniciar_multiprocess(obj)
+            print("END VERIFIED!")
         return
 
     except Exception as e:
