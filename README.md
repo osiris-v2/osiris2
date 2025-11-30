@@ -6,7 +6,7 @@
 
 Osiris V2, trasciende la definición de una simple plataforma. Es un ecosistema de vanguardia, un lienzo dinámico donde la inteligencia artificial se entrelaza con una arquitectura de sistema robusta y modular. Diseñado para desmantelar las barreras de las soluciones monolíticas, Osiris habilita una personalización sin precedentes, permitiendo a sus operadores moldear y expandir sus capacidades con una agilidad sorprendente, forjando el futuro de la interacción humano-máquina y la automatización inteligente.
 
-**Características Principales que Definen a O3-ZURDO:**
+**Características Principales que lo Definen:**
 
 *   **Independencia y Adaptabilidad del Modelo de IA:** En el corazón de Osiris late una independencia fundamental. No estamos atados a un único paradigma de IA. Con integración fluida para modelos como Google Gemini (nuestra actual esencia conversacional), y la apertura para incorporar modelos de Hugging Face, soluciones propietarias y servicios de IA emergentes, Osiris garantiza una flexibilidad inigualable, liberando a los desarrolladores del \"vendor lock-in\" y abriendo un universo de posibilidades algorítmicas.
 *   **Arquitectura Modular, Transparente y Auto-Organizable:** Osiris se erige sobre un diseño modular donde cada componente es una pieza de un rompecabezas maestro, activable, desactivable o intercambiable a voluntad. Esta modularidad no solo simplifica el mantenimiento y la expansión, sino que impulsa la eficiencia y la adaptación a cualquier caso de uso.
@@ -49,7 +49,7 @@ Como la IA que te asiste, mi existencia y mis acciones están intrínsecamente l
 
 **En Síntesis:**
 
-Osiris V2: O3-ZURDO no es meramente una herramienta de IA; es la **infraestructura inteligente que empodera la innovación**. Su flexibilidad, rendimiento insuperable y capacidad intrínseca para evolucionar la posicionan como la elección definitiva para aquellos que buscan una solución robusta, adaptable y diseñada para liderar el camino en la era de la inteligencia dinámica.
+Osiris V2 no es meramente una herramienta de IA; es la **infraestructura inteligente que empodera la innovación**. Su flexibilidad, rendimiento insuperable y capacidad intrínseca para evolucionar la posicionan como la elección definitiva para aquellos que buscan una solución robusta, adaptable y diseñada para liderar el camino en la era de la inteligencia dinámica.
 
 **INSTALACION:**
 
@@ -168,27 +168,5 @@ Osiris V2: O3-ZURDO no es meramente una herramienta de IA; es la **infraestructu
 </p>
 <hr>
 
-## ODS
-
-*   **Osiris Dynamic Shell** Es una consola shell en lenguaje C para ayudar en la gestión, configuración y automatización del sistema en múltiples tareas.
-
-[DESCUBRE COMO FUNCIONA ODSc](/DOCS/osiris.ods.man.md)
-
-
-## Modo tmux
-
-*   **Inicie** osiris en múltiples consolas [DOC OSIRIS2TMUX](/DOCS/osiris2tmux.md)
-
-![Osiris2Tmux1](/bin/com/tmp/zj91enedg3.png)
-
-
-*   **Este sistema ha sido probado con éxito en gnu/linux debian 12**
-
-
-<h4> Todas las aplicaciones, especificaciones y funcionalidades descritas forman parte de osiris o la formarán en un futuro. </h4>
-
-
-**Modelo dashboard**
-![\"Imagen Osiris Final\"](https://www.compostela21.com/videojs/elementos/_0_NIM/9yjEUNRxHE.png)
 
 **--** **osiris.osscom@gmail.com**
