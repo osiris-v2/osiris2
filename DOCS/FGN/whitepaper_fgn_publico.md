@@ -284,54 +284,65 @@ Esto sitúa la FGN como un mecanismo formal de **control del infinito por medio 
 
 ##Modelo matemático
 
-* 1. Entrada:  
-   Dado un entero N >= 1.
 
-2. Factorizacion prima:  
-   Escribir N como:  
-      N = PRODUCTA_{i=1..t} (p_i^(a_i))
-   donde:  
-      - p_i son primos distintos  
-      - a_i >= 1  
-      - t es el numero de factores primos distintos  
-   (Si N = 1 entonces t = 0 y no hay factores.)  
-  
-3. Definicion del producto radical:  
-      Rad(N) = PRODUCTA_{i=1..t} (p_i)  
+## Modelo Matemático
 
-4. Definicion del producto de potencias excedentes:  
-      Pow(N) = PRODUCTA_{i=1..t} (p_i^(a_i - 1))  
+1.  **Entrada:**
+    Dado un entero `N >= 1`.
 
-5. Definicion de la cardinalidad genetica:  
-      k_card(N) = t + 1  
+2.  **Factorización prima:**
+    Escribir `N` como:
+    ```
+    N = Π_{i=1..t} (p_i^{a_i})
+    ```
+    donde:
+    - `p_i` son primos distintos
+    - `a_i >= 1`
+    - `t` es el número de factores primos distintos
+    (Si `N = 1` entonces `t = 0` y no hay factores.)
 
-6. Definicion final de MFG:  
-      MFG(N) = Rad(N) * Pow(N) * k_card(N)  
+3.  **Definición del producto radical:**
+    ```
+    Rad(N) = Π_{i=1..t} (p_i)
+    ```
 
-7. Forma completamente expandida:  
-      MFG(N) =  
-         (PRODUCTA_{i=1..t} (p_i))  
-         *  
-         (PRODUCTA_{i=1..t} (p_i^(a_i - 1)))  
-         *  
-         (t + 1)  
+4.  **Definición del producto de potencias excedentes:**
+    ```
+    Pow(N) = Π_{i=1..t} (p_i^{a_i - 1})
+    ```
 
-8. Forma completamente expandida en un unico producto:  
-      MFG(N) =  
-         \(PRODUCTA_{i=1..t} (p_i^(1 + (a_i - 1))))   
-         \*
-         \\(t + 1)
+5.  **Definición de la cardinalidad genética:**
+    ```
+    k_card(N) = t + 1
+    ```
 
-   Observacion:  
-      1 + (a_i - 1) = a_i  
-   Por tanto:  
+6.  **Definición final de MFG:**
+    ```
+    MFG(N) = Rad(N) * Pow(N) * k_card(N)
+    ```
 
-9. Forma colapsada total:  
-      MFG(N) = (PRODUCTA_{i=1..t} (p_i^(a_i))) * (t + 1)  
+7.  **Forma completamente expandida:**
+    ```
+    MFG(N) = (Π_{i=1..t} (p_i)) * (Π_{i=1..t} (p_i^{a_i - 1})) * (t + 1)
+    ```
 
-10. Sustituyendo N:  
-      MFG(N) = N * (t + 1)  
+8.  **Forma completamente expandida en un único producto:**
+    ```
+    MFG(N) = (Π_{i=1..t} (p_i^{1 + (a_i - 1)})) * (t + 1)
+    ```
+    > **Observación:** `1 + (a_i - 1) = a_i`
+    >
+    > Por tanto:
 
+9.  **Forma colapsada total:**
+    ```
+    MFG(N) = (Π_{i=1..t} (p_i^{a_i})) * (t + 1)
+    ```
+
+10. **Sustituyendo N:**
+    ```
+    MFG(N) = N * (t + 1)
+    ```
 
 **Fin del documento público FGN.**
 
