@@ -282,10 +282,7 @@ Esto sitúa la FGN como un mecanismo formal de **control del infinito por medio 
 
 ---
 
-##Modelo matemático
-
-
-## Modelo Matemático
+## Modelo Matemático Simplificado
 
 1.  **Entrada:**
     Dado un entero `N >= 1`.
