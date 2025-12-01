@@ -24,17 +24,17 @@ La **Firma Genética Numérica (FGN)** revela esa estructura y la convierte en u
 # **2. Fundamento Matemático: MFG y Triple Capa**
 Cada número natural \( N \) puede describirse mediante tres componentes estructurales que se multiplican para formar su fuerza genética:
 
-## **Capa 1 — Producto Radical (\\( \prod p \\))**
-Es el producto de los factores primos únicos de \(N\). Captura su esqueleto irreducible.
+## **Capa 1 — Producto Radical (prod p)**
+Es el producto de los factores primos únicos de (N) . Captura su esqueleto irreducible.
 
-## **Capa 2 — Producto de Potencia (\\( \prod c \\))**
+## **Capa 2 — Producto de Potencia (prod c)**
 Define el aporte proveniente de los exponentes en la factorización. Describe la energía interna contenida en los niveles de potencia.
 
-## **Capa 3 — Cardinalidad Genética (\\( k_{card} \\))**
+## **Capa 3 — Cardinalidad Genética (k_card)**
 Es la métrica de diversidad genética: el número de factores primos únicos más la unidad axiomática.
 
 ## **Fórmula General de la Fuerza Genética (MFG)**
-$$ \text{MFG}(N) = (\prod p) \cdot (\prod c) \cdot k_{card} $$
+MFG(N) = (∏ p) * (∏ c) * k_card
 La MFG es **inyectiva**, **canónica** y **estable**, lo que la habilita como identificador estructural.
 
 ---
@@ -280,5 +280,58 @@ Esto sitúa la FGN como un mecanismo formal de **control del infinito por medio 
 - Optimización de búsqueda en espacios no acotados.
 
 ---
+
+
+
+1. Entrada:
+   Dado un entero N >= 1.
+
+2. Factorizacion prima:
+   Escribir N como:
+      N = PRODUCTA_{i=1..t} (p_i^(a_i))
+   donde:
+      - p_i son primos distintos
+      - a_i >= 1
+      - t es el numero de factores primos distintos
+   (Si N = 1 entonces t = 0 y no hay factores.)
+
+3. Definicion del producto radical:
+      Rad(N) = PRODUCTA_{i=1..t} (p_i)
+
+4. Definicion del producto de potencias excedentes:
+      Pow(N) = PRODUCTA_{i=1..t} (p_i^(a_i - 1))
+
+5. Definicion de la cardinalidad genetica:
+      k_card(N) = t + 1
+
+6. Definicion final de MFG:
+      MFG(N) = Rad(N) * Pow(N) * k_card(N)
+
+7. Forma completamente expandida:
+      MFG(N) =
+         (PRODUCTA_{i=1..t} (p_i))
+         *
+         (PRODUCTA_{i=1..t} (p_i^(a_i - 1)))
+         *
+         (t + 1)
+
+8. Forma completamente expandida en un unico producto:
+      MFG(N) =
+         (PRODUCTA_{i=1..t} (p_i^(1 + (a_i - 1))))
+         *
+         (t + 1)
+
+   Observacion:
+      1 + (a_i - 1) = a_i
+   Por tanto:
+
+9. Forma colapsada total:
+      MFG(N) = (PRODUCTA_{i=1..t} (p_i^(a_i))) * (t + 1)
+
+10. Sustituyendo N:
+      MFG(N) = N * (t + 1)
+
+
+
 **Fin del documento público FGN.**
 
