@@ -391,7 +391,7 @@ Donde:
 
 #### **4. El Candado Genético o Factor de Densidad Genética (FDG)**
 
-Para una clasificación rápida y de primer nivel, definimos el **FDG** como la métrica principal. Basado en tu modelo `MFG(N) = N * (t+1)`, el factor que depende puramente de la estructura y no del valor de N es `(t+1)`. A esto lo llamaremos FDG.
+Para una clasificación rápida y de primer nivel, definimos el **FDG** como la métrica principal. Basado en este modelo `MFG(N) = N * (t+1)`, el factor que depende puramente de la estructura y no del valor de N es `(t+1)`. A esto lo llamaremos FDG.
 
 *   **Definición:** `FDG(N) := k' + 1 = ω(N) + 1`
 
