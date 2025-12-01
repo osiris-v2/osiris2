@@ -56,7 +56,7 @@ Osiris V2 no es meramente una herramienta de IA; es la **infraestructura intelig
 # IMPORTANTE
 ## Antes de la instalación.
 ## Este sistema se encuentra en fase de desarrollo, usted podría no saber como usarlo correctamente.
-### Si necesita sopoerte técnico o quiere formar parte del proyecto, contacte con el autor.
+### Si necesita soporte técnico o quiere formar parte del proyecto, contacte con el autor.
 
 *   Instalar Osiris es fácil usando el **Instalador General**. En la carpeta [DEBIAN](DEBIAN/) de este repositorio tienes un archivo .deb, al momento de escribir este manual es **[osiris2.deb](/DEBIAN/osiris2.deb)** si bien podrá haber otros más adelante. Solo tienes que descargarlo para empezar la instalación.
 
@@ -91,6 +91,12 @@ Osiris V2 no es meramente una herramienta de IA; es la **infraestructura intelig
     La instalación en modo desarrollo puede contener archivos que se encuentren en distintas fases de implementación y podría no ser óptimo para un sistema en producción. Además, su instalador en distintos momentos podría no estar enfocado a la seguridad absoluta.
 
     En el futuro habrá distintas orientaciones y opciones de instalación y actualización basándose en archivos de listados. Podrá usar instaladores dedicados o seleccionarlas en el previsto instalador general.
+
+   **Instalador BIO**
+    El instalador **bio.deb** es la versión desktop de osiris. 
+    Se encuentra en fase de imprementación.
+    
+
 
 **Herramientas**
 
