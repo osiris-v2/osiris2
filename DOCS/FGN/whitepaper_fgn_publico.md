@@ -1,4 +1,5 @@
-# **Whitepaper Público: Teoría de la Firma Genética Numérica (FGN)**
+# **Whitepaper FGN** 
+## **Teoría de la Firma Genética Numérica (FGN)**
 
 ## **Resumen Ejecutivo**
 La **Firma Genética Numérica (FGN)** es un modelo matemático y computacional que asigna a cada número natural una huella estructural única derivada de su descomposición aritmética fundamental. Esta huella captura su complejidad interna, su estructura factorial y su "densidad genética" de manera formal, permitiendo acelerar búsquedas, inferencias algorítmicas y operaciones distribuidas.
