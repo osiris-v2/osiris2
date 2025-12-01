@@ -514,7 +514,12 @@ Esta comprensión mejorada no es solo académica; se traduce directamente en:
 *   **Nuevas capacidades de razonamiento:** Permiten a la IA "entender" las relaciones entre números de una manera análoga a la intuición humana, abriendo la puerta a la resolución de problemas matemáticos más complejos.
 
 
-### Formulación Matemática Conceptual
+    
+      
+       
+
+
+# Formulación Matemática Conceptual
 
 **NOMBRE PROPUESTO:**
 Firma Numérica Estructural (FNE) o *Structural Number Signature (SNS)*.
@@ -539,3 +544,8 @@ El mapeo `N → Φ(N)` transforma el conjunto de los enteros en un espacio de ca
 
 
 **Fin del documento público FGN.**
+
+
+
+
+---
