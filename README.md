@@ -81,6 +81,10 @@ Osiris V2 no es meramente una herramienta de IA; es la **infraestructura intelig
     y ejecute para acceder al **Instalador Interno** `./osiris` o directamente `./install.sh`.
 
 
+## NOTA
+### El instalador osiris2.deb ha sido removido, de ahora en adelante se usará osiris2release.deb
+
+
     **Nueva Política de Instalación:** Los pasos anteriores están enfocados a una instalación de desarrollo (menos estricta).
 
 *   Para instalar una versión más estable y estrica use el instalador [RELEASE](/osiris2release.deb).
@@ -95,7 +99,7 @@ Osiris V2 no es meramente una herramienta de IA; es la **infraestructura intelig
    **Instalador BIO**
     El instalador **bio.deb** es la versión desktop de osiris. 
     Se encuentra en fase de imprementación.
-    
+
 
 
 **Herramientas**
