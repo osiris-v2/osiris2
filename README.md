@@ -96,9 +96,11 @@ Osiris V2 no es meramente una herramienta de IA; es la **infraestructura intelig
 
     En el futuro habrá distintas orientaciones y opciones de instalación y actualización basándose en archivos de listados. Podrá usar instaladores dedicados o seleccionarlas en el previsto instalador general.
 
-   **Instalador BIO**
-    El instalador **bio.deb** es la versión desktop de osiris. 
-    Se encuentra en fase de imprementación.
+
+## Instalador BIO
+
+*    El instalador **bio.deb** es la versión desktop de osiris. 
+*    Si bien es funcional, se encuentra en fase de desarrollo e implementación.
 
 
 
