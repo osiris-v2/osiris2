@@ -82,10 +82,10 @@ Osiris V2 no es meramente una herramienta de IA; es la **infraestructura intelig
 
 
 ## NOTA
-### El instalador osiris2.deb ha sido removido, de ahora en adelante se usará osiris2release.deb
+### El instalador osiris2.deb ha sido removido, de ahora en adelante se usará osiris2release.deb  
 
 
-    **Nueva Política de Instalación:** Los pasos anteriores están enfocados a una instalación de desarrollo (menos estricta).
+*    **Nueva Política de Instalación:** Los pasos anteriores están enfocados a una instalación de desarrollo (menos estricta).
 
 *   Para instalar una versión más estable y estrica use el instalador [RELEASE](/osiris2release.deb).
 
