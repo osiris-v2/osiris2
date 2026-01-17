@@ -241,7 +241,9 @@ gemini_models = ["gemini-2.5-flash",
 
 
 # Define la clave API (si ya existe)
-API_KEY = os.getenv("GOOGLE_API_KEY")
+API_KEY = "AIzaSyDdQRdEjvqx37q4XPB8WNY9tHUZLb7s-2E" 
+API_KEY = "AIzaSyAx4Vz390BDngPagph1GIg-bc2I1WbTfW4"
+#os.getenv("GOOGLE_API_KEY")
 
 #Define modelo a usar
 gemini_model = gemini_models[0]
@@ -516,7 +518,7 @@ def video_translate(video_file_name="",prompt="",args=None):
         obj = {
         "mode":mode,
         "name":None,
-        "com":["/var/osiris2/bin/com/osiris_env/ffmpeg/bin/ffmpeg","-y","-loglevel","error","-i",video_file_name,
+        "com":["/usr/local/ffmpeg/bin/ffmpeg","-y","-loglevel","error","-i",video_file_name,
         "-af","aresample=async=1,loudnorm=I=-16:TP=-1.5:LRA=11",
         "-vf","scale=-2:720,subtitles="+vtranslate+":force_style='"+force_style_sub+"'",
     "-pix_fmt","yuv420p",
