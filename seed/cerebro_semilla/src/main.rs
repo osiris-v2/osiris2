@@ -12,6 +12,8 @@ use nix::sys::signal::{self, Signal};
 use nix::unistd::Pid;
 use indicatif::{ProgressBar, ProgressStyle};
 
+
+
 struct VideoState {
     current_seconds: i32,
     total_seconds: i32, // Duración estimada o total
@@ -93,7 +95,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
             
             let mut child = Command::new("ffmpeg")
                 .args([
-                    "-stream_loop","-1",
                     "-ss", &start_time.to_string(),
                     "-re", "-loglevel", "panic",
                     "-i", &url_clone,
@@ -129,6 +130,59 @@ async fn main() -> Result<(), Box<dyn Error>> {
             tokio::time::sleep(Duration::from_millis(200)).await;
         }
     });
+
+
+
+#[repr(C, packed)]
+pub struct PaqueteSoberano {
+    pub magic: u16,        // 0x256F
+    pub hash_verif: u32,
+    pub longitud: u64,
+    pub data: [u8; 4096],
+}
+
+
+
+// --- HILO DE ENLACE CON NODO MUSCULO (C) ---
+    let state_osiris = Arc::clone(&state);
+    let s_ctrl_osiris = Arc::clone(&s_ctrl);
+
+    tokio::spawn(async move {
+        let listener = TcpListener::bind("127.0.0.1:8080").await.unwrap();
+        
+        loop {
+            if let Ok((mut socket, _)) = listener.accept().await {
+                let mut buffer = [0u8; std::mem::size_of::<PaqueteSoberano>()];
+                
+                if socket.read_exact(&mut buffer).await.is_ok() {
+                    let pkg: PaqueteSoberano = unsafe { std::mem::transmute(buffer) };
+                    
+                    if pkg.magic == 0x256F {
+                        let orden = String::from_utf8_lossy(&pkg.data[..pkg.longitud as usize]);
+                        let mut st = state_osiris.lock().await;
+                        let mut sc = s_ctrl_osiris.lock().await;
+
+                        match orden.trim() {
+                            "PAUSE" => {
+                                st.is_paused = !st.is_paused;
+                                if let Some(pid) = st.child_pid {
+                                    let _ = signal::kill(pid, if st.is_paused { Signal::SIGSTOP } else { Signal::SIGCONT });
+                                    let _ = sc.write_all(&[10u8; 12]).await;
+                                }
+                            },
+                            "SKIP" => {
+                                st.current_seconds += 30;
+                                let _ = sc.write_all(&[15u8; 12]).await;
+                                if let Some(pid) = st.child_pid { let _ = signal::kill(pid, Signal::SIGKILL); }
+                            },
+                            _ => println!("\x1b[33m[OSIRIS] Rafaga no mapeada: {}\x1b[0m", orden),
+                        }
+                    }
+                }
+            }
+        }
+    });
+
 
     // --- BUCLE DE TECLADO ---
     let term = Term::stdout();

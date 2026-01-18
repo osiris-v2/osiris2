@@ -14,6 +14,7 @@ README.md
 LICENSE.md
 
 # SEMILLA
+seed/
 seed/README.md
 
 #Archivos instalación

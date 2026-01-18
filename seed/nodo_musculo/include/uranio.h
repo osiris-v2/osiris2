@@ -5,26 +5,26 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-// Estructura de Puntero Seguro (RB_SafePtr)
+#define URANIO_ALIGN 32
+#define URANIO_SIG   0x5552414E 
+
 typedef struct {
-    uint8_t *ptr_real;      // Direccion fisica de memoria
-    size_t tamanio;         // Limite maximo (Dureza 256)
-    size_t posicion;        // Cursor de lectura/escritura
-    uint32_t checksum;      // Verificacion de integridad
+    uint8_t *ptr_real;
+    size_t tamanio;
+    size_t posicion;
+    uint32_t firma;     // Asegurar que este campo existe aqui
+    uint32_t checksum;
 } RB_SafePtr;
 
-// Codigos de error de Uranio
 typedef enum {
     URANIO_OK = 0,
     URANIO_ERROR_OVERFLOW = 1,
     URANIO_ERROR_NULL = 2,
-    URANIO_ERROR_INTEGRIDAD = 3
+    URANIO_ERROR_INTEGRIDAD = 3,
+    URANIO_ERROR_ALIGN = 4
 } UranioStatus;
 
-// Prototipos de funciones seguras
-RB_SafePtr uranio_crear(size_t tam);
-UranioStatus uranio_escribir(RB_SafePtr *sptr, uint8_t *data, size_t tam);
-UranioStatus uranio_leer(RB_SafePtr *sptr, uint8_t *dest, size_t tam);
-void uranio_liberar(RB_SafePtr *sptr);
+// Nota el 'const' en data para coincidir con la implementacion
+UranioStatus uranio_escribir(RB_SafePtr *sptr, const uint8_t *data, size_t tam);
 
 #endif

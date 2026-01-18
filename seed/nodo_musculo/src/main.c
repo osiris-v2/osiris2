@@ -42,6 +42,7 @@ void close_display() {
 }
 
 void* control_logic(void* arg) {
+    (void)arg; // Silenciador de warning de Dureza
     uint8_t cmd_header[12];
     while(read(sock_ctrl, cmd_header, 12) > 0) {
         uint8_t opcode = cmd_header[0];
@@ -98,6 +99,9 @@ printf("RAM Total: %lu MB\n", (unsigned long)mi_hardware.ram_total_mb);
     
     // Llenamos la estructura con ceros por seguridad
     memset(&mi_hardware, 0, sizeof(OsirisHardwareMap));
+
+// Correccion de formato de bits
+printf("RAM Total:      %lu MB\n", (unsigned long)mi_hardware.ram_total_mb);
 
     // Ejecutamos los drivers de deteccion
     probe_sistema_base(&mi_hardware);    // CPU y RAM
