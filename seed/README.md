@@ -46,6 +46,7 @@ El sistema se divide en bloques funcionales aislados que operan en diferentes ni
 ```bash
 # Compilacion del Nodo C con drivers de red y video
 sudo make all
+```
 
 
 ------------
@@ -95,3 +96,4 @@ definir bloque_seguridad = uranio_init(256)
 si entropia(#red) > umbral_critico:
     ejecutar(@limpieza_total)
 fina_si
+```
