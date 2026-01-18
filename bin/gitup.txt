@@ -13,7 +13,7 @@ DOCS/
 README.md
 LICENSE.md
 
-seed/
+# SEMILLA seed/
 
 #Archivos instalación
 osiris.inst
