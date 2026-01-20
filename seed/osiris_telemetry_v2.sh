@@ -2,17 +2,20 @@
 # PROYECTO OSIRIS - MONITOR DE TELEMETRIA AVANZADA
 # VERSION: DUREZA 256 - REVISION: 2026-01-17
 # ASCII PURO - SIN ACENTOS
-
+clear;reset;clear
 while true; do
     clear
-    echo "========================================================================"
+    echo 
+    #"========================================================================"
     echo "          SISTEMA OSIRIS - CONSOLA DE INGENIERIA (DUREZA 256)           "
     echo "          REPORTE: $(date '+%Y-%m-%d %H:%M:%S')                         "
-    echo "========================================================================"
+    echo 
+    #"========================================================================"
     
     # 1. METRICAS DE PROCESOS CRITICOS (Nodo C, Cerebro Rust, Satelite Python)
     printf "%-12s %-8s %-8s %-8s %-12s %-12s\n" "PROCESO" "PID" "CPU(%)" "MEM(%)" "VIRT(MB)" "RES(MB)"
-    echo "------------------------------------------------------------------------"
+    echo 
+    #"------------------------------------------------------------------------"
     
     ps aux | grep -E "osiris_node|cerebro_semilla|audio_engine.py" | grep -v grep | awk '{
         # $5 es VSZ (Kbytes), $6 es RSS (Kbytes)
@@ -21,7 +24,8 @@ while true; do
         printf "%-12s %-8s %-8s %-8s %-12.2f %-12.2f\n", $11, $2, $3, $4, virt_mb, res_mb
     }'
 
-    echo "------------------------------------------------------------------------"
+    echo 
+    #"------------------------------------------------------------------------"
     
     # 2. ANALISIS DE MEMORIA URANIO (VIRTUAL VS RESIDENTE)
     # Calculamos la reserva de direccionamiento que mencionamos
@@ -35,7 +39,8 @@ while true; do
         echo " > Eficiencia de Mapeo: $(echo "scale=2; ($r_mem/$v_mem)*100" | bc)%"
     fi
 
-    echo "------------------------------------------------------------------------"
+    echo 
+    #"------------------------------------------------------------------------"
 
     # 3. METRICAS GLOBALES Y LATENCIA ESTIMADA
     # Reflejamos el consumo real que mencionaste (< 3GB neto)
@@ -48,9 +53,11 @@ while true; do
     load=$(uptime | awk -F'load average:' '{ print $2 }' | cut -d, -f1)
     echo "CARGA GLOBAL CPU: $load (Balanceo Multihilo activo)"
     
-    echo "========================================================================"
+    echo 
+    #"========================================================================"
     echo " ESTADO: TRANSMITIENDO VIDEO | PROTOCOLO: FGN | DUREZA: 256"
-    echo "========================================================================"
+    echo 
+    #"========================================================================"
 
     sleep 5
 done

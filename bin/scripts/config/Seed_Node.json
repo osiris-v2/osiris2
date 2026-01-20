@@ -1,0 +1,11 @@
+{
+  "panel0": "clear;reset;clear && cd ../../seed/ && sudo ./osiris_telemetry_v2.sh",
+  "panel1": "clear;reset;clear && cd ../../seed/nodo_musculo/bin && ./osiris_node",
+  "panel2": "clear;reset;clear && cd ../../seed/nodo_musculo/bin && ./ods_engine",
+  "panel3": "clear;clear;clear && cd ../../seed/ ; ls *.sh ",
+  "panel4": "echo 'FREEMEM Panel (Custom Config)' && free -h && sleep 10",
+  "panel5": "echo 'PILOTTV Panel (Custom Config)' && echo 'Custom pilot tv log' && sleep 10",
+  "panel6": "echo 'OPS Panel (Custom Config)' && echo 'Custom ops monitoring' && sleep 10",
+  "panel7": "echo 'PROGRESS_TV Panel (Custom Config)' && echo 'Showing custom TV progress' && sleep 10",
+  "panel8": "echo 'PROGRESS_HLS Panel (Custom Config)' && echo 'Showing custom HLS progress' && sleep 10"
+}

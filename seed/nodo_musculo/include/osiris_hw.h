@@ -5,6 +5,7 @@
 #include <stdbool.h>
 
 typedef struct {
+    uint16_t inicio;
     uint32_t cpu_nucleos;
     uint64_t ram_total_mb;
     uint16_t pantalla_ancho;

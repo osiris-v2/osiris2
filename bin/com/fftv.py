@@ -62,6 +62,7 @@ yt_last_args = False
 
 ffmpeg_exec="com/osiris_env/ffmpeg/bin/ffmpeg"
 ffprobe_exec="com/osiris_env/ffmpeg/bin/ffprobe"
+seed_exec="../seed/cerebro_semilla/target/release/cerebro_semilla"
 
 lineInput = None
 def_output = "rtmp://a.rtmp.youtube.com/live2/hypq-r4z9-9r8g-3phm-9py4"
@@ -267,7 +268,7 @@ def main(args):
     global lineInput, def_re, def_intro_file, def_output,def_progress_file,def_seek_start,def_audio_filter,def_preset,def_screen,def_fps,def_crf,def_ar
     global profiles, ffmpeg_exec, ffprobe_exec
     global yt_default_list_dir,def_fdir
-    global ls_extensions
+    global ls_extensions, seed_exec
 
     profile_name = def_profile
 
@@ -378,7 +379,18 @@ def main(args):
         return
     elif args[0] == "play":
         if len(args)>1:
-            if args[1] == "tv":
+            if args[1] == "seed":
+                if len(args)>2:
+                    if args[2] == "lasturl":
+                        print(seed_exec,last_url)
+                        subprocess.run([seed_exec,str(last_url)])
+                        print("END SEED EXEC")
+                else:
+                    print("COMANDO play seed _URL_")
+                print("END PLAY SEED")
+                return
+            
+            elif args[1] == "tv":
                 if len(args)>2:
                     if args[2] == "lasturl":
                         main(["yt","lasturl"])

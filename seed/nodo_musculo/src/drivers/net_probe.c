@@ -1,4 +1,4 @@
-#include "../include/osiris_hw.h"
+#include "osiris_hw.h"
 #include <stdio.h>
 #include <time.h>
 
@@ -11,6 +11,7 @@ void probe_red_estado(OsirisHardwareMap *map) {
     
     // Aqui iria el envio de un paquete de control vacio
     // Por ahora simulamos una red local rapida
+    map->inicio = inicio;
     map->latencia_ms = 12.5f; 
     map->ancho_banda_kbps = 50000; // 50 Mbps base
     

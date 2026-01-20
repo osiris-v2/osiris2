@@ -22,7 +22,7 @@ char* ods_entrada_obtener() {
      */
      
     // Por ahora, mantenemos la compatibilidad con el readline de ops.c
-    char *linea = readline("> ods>> ");
+    char *linea = readline("> <fgn>ods>> ");
     
     if (linea && *linea) {
         add_history(linea);

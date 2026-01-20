@@ -1,18 +1,31 @@
 #include <stdio.h>
+#include <math.h>
+#include "mem/rb_csp.h"
+#include "math/fgn_math.h"
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <signal.h>
 #include <pthread.h>
-#include "mem/rb_csp.h"
+#include "acero_interfaz.h"
 #include "../include/osiris_hw.h"
+#include "demo/fgn_monitor.c"
+
+
 
 #define PORT_DATA 2000
 #define PORT_CTRL 2001
 #define CEREBRO_IP "127.0.0.1"
 
 OsirisHardwareMap mi_hardware;
+OsirisVideoDriver driver_activo;
+
+// Declaraciones de los puntos de entrada del Bridge
+
+extern void inicializar_sistema_acero(void); 
+extern void inicializar_motor_osiris(void);
+extern void cerrar_motor_osiris(void);
 
 FILE *display_pipe = NULL;
 pid_t ffplay_pid = 0;
@@ -67,7 +80,7 @@ void* control_logic(void* arg) {
 void imprimir_reporte_hw() {
     printf("\n\x1b[1;36m=== REPORTE DE SISTEMA (FGN) ===\x1b[0m\n");
     printf("CPU Nucleos:    %u\n", mi_hardware.cpu_nucleos);
-    printf("RAM Total:      %llu MB\n", mi_hardware.ram_total_mb);
+    printf("RAM Total:      %lu MB\n", mi_hardware.ram_total_mb);
     printf("Pantalla:       %ux%u\n", mi_hardware.pantalla_ancho, mi_hardware.pantalla_alto);
     printf("Driver SDL2:    %s\n", mi_hardware.soporte_sdl2 ? "ACTIVO" : "NO DETECTADO");
     printf("Aceleracion 3D: %s\n", mi_hardware.soporte_opengl ? "DISPONIBLE" : "SOFTWARE");
@@ -77,6 +90,12 @@ void imprimir_reporte_hw() {
 
 
 int main() {
+    // 1. Hardware y Video
+    inicializar_sistema_acero(); 
+    #include "demo/fgn_math.c"
+    // 2. JS Engine (Mínima huella)
+    inicializar_motor_osiris(); 
+
     setvbuf(stdout, NULL, _IONBF, 0);
     signal(SIGPIPE, SIG_IGN);
 
@@ -92,7 +111,7 @@ uranio_safe = crear_bloque(tam_inicio, URANIO);
 
 //    uranio_safe = crear_bloque(1048576, URANIO);
 
-printf("RAM Total: %lu MB\n", (unsigned long)mi_hardware.ram_total_mb);
+printf("RAM Total: %llu MB\n", (unsigned int long long)mi_hardware.ram_total_mb);
 
 // --- FASE 1: PROBE (AUTODIAGNOSTICO) ---
     printf("\x1b[1m[INIT] Iniciando secuencia de sondas...\x1b[0m\n");
@@ -101,7 +120,7 @@ printf("RAM Total: %lu MB\n", (unsigned long)mi_hardware.ram_total_mb);
     memset(&mi_hardware, 0, sizeof(OsirisHardwareMap));
 
 // Correccion de formato de bits
-printf("RAM Total:      %lu MB\n", (unsigned long)mi_hardware.ram_total_mb);
+//printf("RAM Total:      %lu MB\n", (unsigned long)mi_hardware.ram_total_mb);
 
     // Ejecutamos los drivers de deteccion
     probe_sistema_base(&mi_hardware);    // CPU y RAM
@@ -111,7 +130,26 @@ printf("RAM Total:      %lu MB\n", (unsigned long)mi_hardware.ram_total_mb);
     // Mostramos que tenemos potencia para arrancar
     imprimir_reporte_hw();
 
+/* --- INYECCION DE MASA (FGN) --- */
+// Usamos 'resultado' que ya viene del include de fgn_math.c
+FirmaGeo f_alfa, f_beta; 
+// Reutilizamos la variable global 'resultado'
+FirmaGeo base = FGN_Forjar(20260120, URANIO); 
+FGN_SepararOnda(&base, &f_alfa, &f_beta); 
+FGN_Colapsar(&f_alfa, &f_beta, &resultado); // <--- Aqui se llena la global
 
+/* --- TEST DE EMERGENCIA --- */
+printf("\n[DEBUG] Intentando ejecutar Monitor de Fase...\n");
+fflush(stdout);
+
+if (resultado.bloques.data != NULL) {
+    FGN_Vigilar_GPU(&resultado);
+    fflush(stdout);
+} else {
+    printf("[ERROR] La particula sigue vacia tras el colapso.\n");
+    fflush(stdout);
+}
+/* -------------------------- */
 
 
     static void* dispatch_table[256] = { [0 ... 255] = &&unknown_op };
@@ -204,5 +242,7 @@ printf("RAM Total:      %lu MB\n", (unsigned long)mi_hardware.ram_total_mb);
         pthread_cancel(thread_ctrl);
         sleep(1);
     }
+ 
+    cerrar_motor_osiris();
     return 0;
 }
