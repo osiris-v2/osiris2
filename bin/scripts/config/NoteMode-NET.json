@@ -1,5 +1,5 @@
 {
-  "panel0": "clear && reset && clear && cd ../../ && bash ./osiris",
+  "panel0": "clear;reset;clear && cd ../../seed/nodo_musculo/bin && ./osiris_node",
   "panel1": "clear && reset && clear && ./server++.run",
   "panel2": "clear && reset && clear && ./client.run",
 

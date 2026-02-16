@@ -94,7 +94,7 @@ def start_ffmpeg(url,com):
     finput = [
     '-y',
     '-re',
-    '-loglevel', 'verbose',
+    '-loglevel', 'panic',
     '-f', 'lavfi', '-i', 'color=c=black:s=1280x720',
     '-stream_loop', '-1','-i', url,  # Aplicar stream_loop aquí
     '-f', 'lavfi', '-i', 'anullsrc=r=44100:cl=stereo',

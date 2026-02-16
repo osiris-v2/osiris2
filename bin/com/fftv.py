@@ -385,6 +385,14 @@ def main(args):
                         print(seed_exec,last_url)
                         subprocess.run([seed_exec,str(last_url)])
                         print("END SEED EXEC")
+                    else:
+                       intn = int(args[2])
+                       if  intn > 0:
+                            epath = yt_default_list_dir + "/" + play[int(intn) - 1]
+                            print("GOTO: ",epath)
+                            parse_input(epath)
+                            subprocess.run([seed_exec,epath])
+                            print("END SEED EXEC LIST:",epath)
                 else:
                     print("COMANDO play seed _URL_")
                 print("END PLAY SEED")

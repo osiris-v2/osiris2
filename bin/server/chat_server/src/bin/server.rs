@@ -7,7 +7,17 @@ use log::{info, error, warn};
 use uuid::Uuid;
 use rand::{Rng, thread_rng}; // Añadido para la generación de números aleatorios
 use std::io; // Añadido para io::ErrorKind
+use serde::Deserialize;
+use serde_json::json;
 
+// 2. Define la estructura que coincide con tu JSON
+#[derive(Deserialize)]
+struct TVChannel {
+    canal: String,
+    url: String,
+    // Los demás campos se pueden omitir si no los usas, 
+    // serde los ignorará automáticamente.
+}
 /* APP */
 
 #[tokio::main]
@@ -124,21 +134,83 @@ async fn handle_connection(stream: tokio::net::TcpStream) {
     }
 }
 
+
 async fn handle_command(command: &str) -> Result<String, String> {
     match command {
         "/date" => Ok(chrono::Local::now().to_rfc3339()),
         "/hello" => Ok("Hola, cliente! 👋".to_string()),
-        "/way" => Ok("Sistema ODyN en desarrollo \n https://github.com/osiris-v2/osiris2 \n Sistema de servidores dinámicos para osiris2 \n Seed server ".to_string()),
-        "/help" => Ok("\n\
-            /date - Obtiene la fecha y hora actual.\n\
-             /hello - Saludo de bienvenida.\n\
-             /servers - Lista de servidores disponibles.\n\
-             /way - Who Are You?. \n Información sobre la organización o persona que corre el servidor".to_string()), 
-        "/servers" => list_servers(), // Lee el archivo de servidores
+        "/way" => Ok("Sistema ODyN en desarrollo... \n Goyim United Corporation.".to_string()),
+        "/listtv" => list_tv_channels(),
+        "/help" => Ok(r#"
+/date    - Obtiene la fecha y hora actual.
+/hello   - Saludo de bienvenida.
+/listtv  - Lista los canales de TV disponibles.
+/servers - Lista de servidores.
+/way     - Who Are You?
+Cualquier otro texto será procesado por Goycoin IA (Ollama)."#.to_string()),
+        "/servers" => list_servers(),
         "" => Ok("".to_string()),
-
-        _ => Err(format!("Comando no reconocido: {} 🤔", command)),
+        
+        // CUALQUIER OTRA COSA: Se lo preguntamos a Ollama
+        _ => {
+            info!("Comando desconocido. Consultando a Ollama: {}", command);
+            match preguntar_ollama(command).await {
+                Ok(respuesta) => Ok(format!("🤖 IA: {}", respuesta)),
+                Err(e) => Err(format!("Error al conectar con Ollama: {}", e)),
+            }
+        }
     }
+}
+
+async fn preguntar_ollama(prompt: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let client = reqwest::Client::new();
+    
+    // Configuramos el prompt de sistema para que sepa quién es
+    let full_prompt = format!(
+        "  \
+        : {}", 
+        prompt
+    );
+
+    let response = client.post("http://localhost:11434/api/generate")
+        .json(&json!({
+            "model": "llama3.2:1b",
+            "prompt": full_prompt,
+            "stream": false
+        }))
+        .send()
+        .await?
+        .json::<serde_json::Value>()
+        .await?;
+
+    let texto = response["response"].as_str().unwrap_or("No obtuve respuesta del modelo.");
+    Ok(texto.to_string())
+}
+
+// 4. Añade la función que lee y formatea el JSON
+fn list_tv_channels() -> Result<String, String> {
+    // Ajusta la ruta al archivo real
+    let path = "../../../../com/datas/ffmpeg/activos.json"; 
+    
+    let data = fs::read_to_string(path)
+        .map_err(|e| format!("Error al abrir archivo TV: {}", e))?;
+
+    let channels: Vec<TVChannel> = serde_json::from_str(&data)
+        .map_err(|e| format!("Error al procesar JSON de TV: {}", e))?;
+
+    let mut response = String::from("\n📺 LISTA DE CANALES 📺\n");
+
+    for channel in channels {
+        response.push_str("--------------------------------\n");
+response.push_str(&format!(
+    "**CANAL:** {}\n**URL:** <a href='https://osiris000.duckdns.org/app/mitv/tv/player2.php?chn={}' target='_blank' style='color: #ff00ff; font-weight: bold;'>[CLIC PARA VER]</a>\n", 
+    channel.canal, 
+    channel.url
+));
+    }
+    response.push_str("--------------------------------\n");
+
+    Ok(response)
 }
 
 fn list_servers() -> Result<String, String> {
@@ -147,3 +219,6 @@ fn list_servers() -> Result<String, String> {
         Err(e) => Err(format!("Error al leer el archivo de servidores: {}", e)),
     }
 }
+
+
+

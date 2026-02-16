@@ -8,6 +8,8 @@
 
             <style type="text/css">
     body{
+      position:fidex;width:100%;height:100%;
+      background:#000000;
         margin:0;padding:0;
         overflow:hidden;
     }
@@ -443,7 +445,7 @@ autoplay></video>
 
 
 
- <div id="m" style="height:28.7%;padding:1.3%;background:rgba(11,11,11,0.7);overflow:hidden;display:inline-block;width:90.7%;">
+ <div id="m" style="height:28.7%;padding:1.3%;background:rgba(1,1,1,1);overflow:hidden;display:inline-block;width:90.7%;">
  
 
   <div style="position:relative;z-index:666;transform:translate(1%,-5%);background-color:#fff;padding:0px;border-radius:1px;display:inline-block;padding:10px;overflow:hidden;">

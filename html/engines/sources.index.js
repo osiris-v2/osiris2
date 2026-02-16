@@ -130,6 +130,9 @@ a7.onclick = function () {
 }
 
 
+
+
+
 a8.innerHTML = "C21 Editor"
 a8.className = "lmenu"
 
@@ -183,6 +186,26 @@ n_menu({
 	innerHTML: "Documentación",
 	className: "lmenu"
 })
+
+
+
+
+a12.innerHTML = "GoyimZ"
+a12.className = "lmenu"
+a12.onclick = function () {
+	if (GOYIMZ.src == "about:blank") {
+		GOYIMZ.src = "https://" + window.location.hostname + "/app/goyimz/index.goy"
+	}
+	dmenu('GOYIMZ', 'dispApp')
+}
+
+
+
+
+
+
+
+
 
 
 
