@@ -16,6 +16,9 @@ LICENSE.md
 # SEMILLA
 #seed/
 seed/README.md
+seed/bottv-opt.sh
+seed/bottv2.sh
+
 
 #Archivos instalación
 osiris.inst
