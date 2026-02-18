@@ -80,6 +80,9 @@ bin/server/chat_server/src/bin/server.rs
 bin/net/rserver.nrl
 
 #archivos asistentes de instalacion en bin/install
+
+#instala y actualiza ollama y demonio ademin
+bin/install/ollama.sh
 #descarga, compila e instala ffmpeg (versión ligera)
 bin/install/ffmpeg_install.sh
 #descarga, compila e instala ffmpeg habilitando hls
@@ -106,6 +109,9 @@ bin/install/python_pack_install.sh
 #certificados ssl
 bin/install/lets-cert.sh
 bin/install/ssl-cert.sh
+#cert.sh menage
+bin/install/cert.sh
+
 #instala editor de escritorio Sublime Text
 bin/install/sublimeText_install.sh
 #Android studio
@@ -224,6 +230,7 @@ bin/com/_server2.py
 bin/com/processbck2.py
 bin/com/shell.py
 bin/com/create.py
+bin/com/streamAI.py
 bin/com/cert.py
 bin/com/install.py
 bin/com/fftv.py

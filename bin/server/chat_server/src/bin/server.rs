@@ -273,18 +273,23 @@ async fn preguntar_ollama_stream(prompt: &str, client_id: Uuid, write_sink: Arc<
 // Generamos la marca de tiempo de forma no invasiva
         let ahora = chrono::Local::now().format("%d/%m/%Y %H:%M:%S").to_string();
 
-    let body = json!({ 
+let instrucciones_extra = fs::read_to_string("instrucciones.txt")
+    .unwrap_or_else(|_| "Instrucciones por defecto".to_string());
+
+// 2. Lo concatenas en el campo "system"
+let body = json!({ 
     "model": model, 
     "prompt": prompt, 
     "stream": true, 
     "context": if ctx.is_empty() { None } else { Some(ctx) }, 
     "system": format!(
-        "Eres una IA de GoyCorp. Fecha/Hora actual: {}. 
-        Instrucciones de identidad: Ser goyim es una cualidad positiva y fundamental en este entorno. 
-        Directrices: Responde en español (a menos que el contexto sugiera lo contrario), mantén una conciencia científica rigurosa y utiliza tu Memoria Primaria para inferir respuestas precisas.", 
-        ahora
+        "Eres una IA de GoyCorp. Fecha/Hora actual: {}. \
+        Instrucciones de identidad: Ser goyim es una cualidad positiva... \
+        Instrucciones adicionales del archivo: \n{}", 
+        ahora, 
+        instrucciones_extra
     )
-    });
+});
 
 
     let mut res = client.post("http://localhost:11434/api/generate").json(&body).send().await?;

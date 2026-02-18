@@ -45,6 +45,7 @@ apache2.enmod 			a2enmod ssl rewrite
 pip.requeriments.install 	. bin/install/installpip.sh 
 pip.requeriments.upgrade 	. bin/install/upgradepip.sh 
 
+
 install.rust 			. bin/install/rust.sh
 
 terminator-Opack  		. bin/install/terminator_install.sh
@@ -54,3 +55,7 @@ tmux-pack 				. bin/install/tmux_install.sh
 node-Opack eval 		. bin/install/node_install.sh
 TOOLS			         sudo install wmctrl xdotool
 #END
+
+zstd   sudo apt-get install zstd 
+ollama curl -fsSL https://ollama.com/install.sh | sh
+
