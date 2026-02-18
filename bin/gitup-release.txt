@@ -25,7 +25,7 @@ seed/osiris_telemetry_v2.sh
 #Binarios Seed
 seed/nodo_musculo/bin/monitor
 seed/nodo_musculo/bin/osiris_node
-seed/nodo_musculo/bin/osiris_engine
+seed/nodo_musculo/bin/ods_engine
 seed/cerebro_semilla/target/release/cerebro_semilla
 
 
