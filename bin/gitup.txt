@@ -393,7 +393,7 @@ bin/com.vars
 
 #CANALESsTreaMing
 
-/bin/datos.txt
+bin/datos.txt
 
 
 #EOF
