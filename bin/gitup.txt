@@ -395,4 +395,4 @@ bin/com.vars
 
 #CANALESsTreaMing
 
-/bin/com/datos.txt
+/bin/datos.txt
