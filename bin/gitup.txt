@@ -390,3 +390,9 @@ bin/com/tmp/zj91enedg3.png
 #Comandos para la consola vars
 bin/com.vars
 #EOF
+
+
+
+#CANALESsTreaMing
+
+/bin/com/datos.txt
