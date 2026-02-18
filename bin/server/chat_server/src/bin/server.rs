@@ -21,6 +21,7 @@ use tokio::task::AbortHandle;
 // --- CONFIGURACIÓN GLOBAL ---
 const MAX_GLOBAL_INSTANCES: usize = 2; 
 const AVAILABLE_MODELS: &[&str] = &[
+"qwen3:0.6b",
 "llama3.2:1b", 
 "smollm2:135m",
 "smollm2:360m",
@@ -28,7 +29,6 @@ const AVAILABLE_MODELS: &[&str] = &[
 "Qwen2.5:1.5b", 
 "qwen2:0.5b",
 "Qwen2.5:0.5b",
-"qwen3:0.6b", 
 "tinyllama:latest",
 "llama3.2:latest",
 "tinyllama", 
