@@ -50,7 +50,7 @@ function makecard($params = []) {
         #chat-box { background: #0a0a0a; border: 1px solid #333; height: 400px; overflow-y: auto; padding: 10px; margin-bottom: 10px; text-align: left; border-radius: 5px; }
         
         .msg { margin-bottom: 8px; border-bottom: 1px dashed #111; padding-bottom: 4px; white-space: pre-wrap; word-wrap: break-word; }
-        .msg a { color: #ffff00; text-decoration: underline; font-weight: bold; } /* Color de enlaces */
+        .msg a { color: #ffff00; text-decoration: underline; font-weight: bold; }
         .msg a:hover { color: #fff; background: #444000; }
 
         .server { color: #0f0; }
@@ -68,6 +68,16 @@ function makecard($params = []) {
         #quick-commands button { background: #111; border: 1px solid #333; color: #0c0; font-size: 0.75em; padding: 4px 8px; cursor: pointer; }
         #quick-commands button:hover { background: #0f0; color: #000; }
         .show { display: flex !important; }
+
+        /* Estilos para la botonera de servidores parseados */
+        .server-line { display: flex; align-items: center; justify-content: space-between; background: #080808; padding: 5px; margin: 2px 0; border-left: 2px solid #0f0; }
+        .server-url { font-weight: bold; flex-grow: 1; }
+        .server-info { font-size: 0.7em; color: #555; margin-right: 10px; }
+        .server-actions { display: flex; gap: 5px; }
+        .srv-btn { background: #000; border: 1px solid #0f0; color: #0f0; font-size: 0.65em; padding: 2px 5px; cursor: pointer; border-radius: 2px; }
+        .srv-btn:hover { background: #0f0; color: #000; }
+        .srv-btn.ping-btn { border-color: #ffff00; color: #ffff00; }
+        .srv-btn.ping-btn:hover { background: #ffff00; color: #000; }
     </style>
 </head>
 <body>
@@ -105,13 +115,17 @@ function makecard($params = []) {
 <script type="text/javascript">
     let socket;
     let currentMode = 'text';
-    let history = []; // Historial para re-renderizar
+    let history = []; 
     const chatBox = document.getElementById('chat-box');
     const messageInput = document.getElementById('message-input');
+    
+    // VARIABLES DE ESTADO DE CONEXIÓN
+    let activeHost = window.location.hostname; // El host por defecto al iniciar
     let reconnectInterval = 3000;
-    let lastServerMsgDiv = null; // Para saber si estamos en medio de un streaming
+    let reconnectTimer = null;
+    let lastServerMsgDiv = null;
+    let lastCommandSent = ""; 
 
-    // Configuración de Marked para abrir enlaces en blanco
     marked.use({
         renderer: {
             link(href, title, text) {
@@ -127,7 +141,6 @@ function makecard($params = []) {
     function cmdRapido(cmd) {
         messageInput.value = cmd;
         enviarMensaje();
-        //toggleDrawer();
     }
 
     function setMode(mode, btn) {
@@ -142,8 +155,85 @@ function makecard($params = []) {
         history.forEach(m => renderToDOM(m.text, m.type));
     }
 
-function render(text, type = 'server') {
-        // Si es un comando o un mensaje de usuario, no es streaming
+    // --- LÓGICA DE SERVIDORES CORREGIDA ---
+    function isURL(str) {
+        // Regex mejorada para detectar dominios en la lista de /servers
+        const pattern = /[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}/;
+        return pattern.test(str.trim());
+    }
+
+    // El ping ahora es informativo, indica a qué host le estás hablando
+    function pingServer(url) {
+        if (url !== activeHost) {
+            render(`>>> AVISO: Estás conectado a ${activeHost}. Para pinguear ${url} primero pulsa LINK.`, "sys");
+            return;
+        }
+        render(`>>> PING ENVIADO A ${activeHost}...`, "sys");
+        socket.send(`/date`);
+        socket.send(`/way`);
+    }
+
+    function connectToServer(url) {
+        if (url === activeHost && socket && socket.readyState === WebSocket.OPEN) {
+            render(">>> YA ESTÁS CONECTADO A ESTE NODO", "sys");
+            return;
+        }
+        
+        // Actualizamos el Host Activo para que sea el nuevo predeterminado
+        activeHost = url; 
+        render(`>>> CAMBIANDO DESTINO PREDETERMINADO A: ${activeHost}`, "sys");
+        
+        // Cerramos la conexión actual; el evento onclose disparará conectar() con el nuevo activeHost
+        if (socket) {
+            socket.onclose = null; // Evitamos el disparo doble del reintento antiguo
+            socket.close();
+        }
+        conectar(activeHost);
+    }
+
+    function parseServers(text) {
+        const lines = text.split('\n');
+        let htmlResponse = "";
+        const originalHost = window.location.hostname;
+
+        lines.forEach(line => {
+            const cleanLine = line.trim();
+            // Buscamos si la línea contiene una URL
+            const match = cleanLine.match(/[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}/);
+            
+            if (match) {
+                const url = match[0];
+                const isCurrent = (url === activeHost);
+                const isHostOrigin = (url === originalHost);
+                
+                let label = isHostOrigin ? "[ORIGEN]" : "[REMOTO]";
+                if (isCurrent) label = "[ACTIVO]";
+
+                htmlResponse += `
+                <div class="server-line" style="${isCurrent ? 'border-left-color: #ffff00; background: #111;' : ''}">
+                    <span class="server-url">${url}</span>
+                    <span class="server-info" style="${isCurrent ? 'color: #0f0;' : ''}">${label}</span>
+                    <div class="server-actions">
+                        <button class="srv-btn ping-btn" onclick="pingServer('${url}')">PING</button>
+                        <button class="srv-btn" onclick="connectToServer('${url}')">${isCurrent ? 'RECONECTAR' : 'LINK'}</button>
+                    </div>
+                </div>`;
+            } else if (cleanLine !== "") {
+                htmlResponse += `<div>${line}</div>`;
+            }
+        });
+        return htmlResponse;
+    }
+
+    function render(text, type = 'server') {
+        if (type === 'server' && lastCommandSent === "/servers") {
+            const parsedHTML = parseServers(text);
+            history.push({text: parsedHTML, type: 'server_html'});
+            renderToDOM(parsedHTML, 'server_html');
+            lastCommandSent = ""; 
+            return;
+        }
+
         if (type !== 'server' || text.startsWith("/") || text.includes("📺") || text.includes(">>>")) {
             lastServerMsgDiv = null; 
             history.push({text, type});
@@ -151,34 +241,30 @@ function render(text, type = 'server') {
             return;
         }
 
-        // Si es streaming de la IA
         if (lastServerMsgDiv && type === 'server') {
-            // Buscamos el último objeto en el historial para actualizar su texto
             history[history.length - 1].text += text;
             updateDOM(lastServerMsgDiv, history[history.length - 1].text);
         } else {
-            // Es el primer token de una respuesta nueva
             history.push({text, type});
             lastServerMsgDiv = renderToDOM(text, type);
         }
 
-        // Si la IA manda un salto de línea final, cerramos el bloque de streaming
-        if (text.includes("\n")) {
-            lastServerMsgDiv = null;
-        }
+        if (text.includes("\n")) lastServerMsgDiv = null;
     }
 
     function renderToDOM(text, type) {
         const div = document.createElement('div');
-        div.className = 'msg ' + type;
+        div.className = 'msg ' + (type === 'server_html' ? 'server' : type);
         updateDOM(div, text, type);
         chatBox.appendChild(div);
         chatBox.scrollTop = chatBox.scrollHeight;
-        return div; // Devolvemos el div para poder seguir escribiendo en él
+        return div;
     }
 
     function updateDOM(div, text, type = 'server') {
-        if (type === 'server') {
+        if (type === 'server_html') {
+            div.innerHTML = text;
+        } else if (type === 'server') {
             if (currentMode === 'md') div.innerHTML = marked.parse(text);
             else if (currentMode === 'html') div.innerHTML = text;
             else div.textContent = text;
@@ -188,21 +274,38 @@ function render(text, type = 'server') {
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    function conectar() {
-        socket = new WebSocket('wss://'+window.location.hostname+'/ws/');
-        socket.onopen = () => { render(">>> ENLACE ESTABLECIDO", "sys"); };
-        socket.onmessage = (e) => { if (e.data.length > 0) render(e.data, "server"); };
-        socket.onclose = () => { 
-            render(">>> CONEXIÓN PERDIDA - REINTENTANDO", "sys");
-            setTimeout(conectar, reconnectInterval); 
+    function conectar(targetHost) {
+        // Si no se pasa host, usamos el activo (por defecto el de la URL)
+        const host = targetHost || activeHost;
+        
+        // Limpiamos cualquier timer de reconexión previo
+        if (reconnectTimer) clearTimeout(reconnectTimer);
+
+        socket = new WebSocket('wss://' + host + '/ws/');
+        
+        socket.onopen = () => { 
+            render(">>> ENLACE ESTABLECIDO CON: " + host, "sys"); 
         };
-        socket.onerror = () => { render(">>> ERROR DE NODO", "sys"); };
+
+        socket.onmessage = (e) => { 
+            if (e.data.length > 0) render(e.data, "server"); 
+        };
+
+        socket.onclose = () => { 
+            render(`>>> CONEXIÓN PERDIDA EN ${activeHost} - REINTENTANDO...`, "sys");
+            reconnectTimer = setTimeout(() => conectar(activeHost), reconnectInterval); 
+        };
+
+        socket.onerror = (err) => { 
+            render(">>> ERROR DE NODO EN " + host, "sys"); 
+        };
     }
 
     function enviarMensaje(e) {
         if(e) e.preventDefault();
         const msg = messageInput.value.trim();
         if (msg && socket && socket.readyState === WebSocket.OPEN) {
+            lastCommandSent = msg;
             socket.send(msg);
             render("TÚ: " + msg, "user");
             messageInput.value = "";
@@ -211,7 +314,8 @@ function render(text, type = 'server') {
     }
 
     render(">>> ESCRIBIR /help Para Ayuda", "sys");
-    conectar();
+    // Iniciamos la primera conexión con el host de la ventana
+    conectar(activeHost);
 </script>
 </body>
 </html>
