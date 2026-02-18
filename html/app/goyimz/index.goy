@@ -73,7 +73,7 @@ function makecard($params = []) {
 <body>
 
 <div id="wrapper">
-    <img src="img/goyimzh.png" style="max-width:100%;max-height:140px; margin-bottom:17px;">
+    <img src="img/goyimzh.png" style="max-width:100%;max-height:100px; margin-bottom:6px;">
     
     <div class="view-modes">
         <button class="mode-btn active" onclick="setMode('text', this)">TEXT</button>
