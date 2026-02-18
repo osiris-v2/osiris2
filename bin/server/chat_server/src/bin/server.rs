@@ -21,6 +21,7 @@ use tokio::task::AbortHandle;
 // --- CONFIGURACIÓN GLOBAL ---
 const MAX_GLOBAL_INSTANCES: usize = 2; 
 const AVAILABLE_MODELS: &[&str] = &[
+"dolphin-phi:latest",
 "tinyllama:latest",
 "qwen3:0.6b",
 "llama3.2:1b", 
@@ -33,7 +34,6 @@ const AVAILABLE_MODELS: &[&str] = &[
 "tinyllama:latest",
 "llama3.2:latest",
 "tinyllama", 
-"dolphin-phi:latest",
 "gemma3:270m",
 "gemma2:2b",
 "deepseek-coder:1.3b",
@@ -325,7 +325,7 @@ let body = json!({
 }
 
 fn list_tv_channels() -> Result<String, String> {
-    let data = fs::read_to_string("../../../../com/datas/ffmpeg/activos.json").map_err(|e| e.to_string())?;
+    let data = fs::read_to_string("/var/osiris2/bin/com/datas/ffmpeg/activos.json").map_err(|e| e.to_string())?;
     let channels: Vec<TVChannel> = serde_json::from_str(&data).map_err(|e| e.to_string())?;
     let mut resp = String::from("\n📺 TV:\n");
     for ch in channels {
@@ -335,5 +335,5 @@ fn list_tv_channels() -> Result<String, String> {
 }
 
 fn list_servers() -> Result<String, String> {
-    fs::read_to_string("../../../../net/rserver.nrl").map_err(|e| e.to_string())
+    fs::read_to_string("/var/osiris2/bin/net/rserver.nrl").map_err(|e| e.to_string())
 }
