@@ -321,6 +321,13 @@ html/app/jsa/model.js
 html/app/jsa/firefox.1.css
 
 
+# goIAPPhtml/app/goyimz/
+html/app/goyimz/index.html
+html/app/goyimz/index.php
+html/app/goyimz/index.goy
+html/app/goyimz/favicon.ico
+html/app/goyimz/img/goyimzh.png
+
 
 html/app/widgets/hlstv.html
 html/app/widgets/webirc.html

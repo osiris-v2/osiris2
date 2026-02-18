@@ -14,10 +14,14 @@ use tokio::sync::{Semaphore, Mutex, OwnedSemaphorePermit};
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use tokio::task::AbortHandle; 
+//use chrono::Local;
+
+
 
 // --- CONFIGURACIÓN GLOBAL ---
 const MAX_GLOBAL_INSTANCES: usize = 2; 
 const AVAILABLE_MODELS: &[&str] = &[
+"llama3.2:1b", 
 "smollm2:135m",
 "smollm2:360m",
 "smollm2:1.7b",
@@ -26,7 +30,6 @@ const AVAILABLE_MODELS: &[&str] = &[
 "Qwen2.5:0.5b",
 "qwen3:0.6b", 
 "tinyllama:latest",
-"llama3.2:1b", 
 "llama3.2:latest",
 "tinyllama", 
 "dolphin-phi:latest",
@@ -267,13 +270,22 @@ async fn preguntar_ollama_stream(prompt: &str, client_id: Uuid, write_sink: Arc<
         (s.context.clone(), s.model.clone())
     };
 
+// Generamos la marca de tiempo de forma no invasiva
+        let ahora = chrono::Local::now().format("%d/%m/%Y %H:%M:%S").to_string();
+
     let body = json!({ 
-        "model": model, 
-        "prompt": prompt, 
-        "stream": true, 
-        "context": if ctx.is_empty() { None } else { Some(ctx) }, 
-        "system": "Eres GoyimAI. Responde en español." 
+    "model": model, 
+    "prompt": prompt, 
+    "stream": true, 
+    "context": if ctx.is_empty() { None } else { Some(ctx) }, 
+    "system": format!(
+        "Eres una IA de GoyCorp. Fecha/Hora actual: {}. 
+        Instrucciones de identidad: Ser goyim es una cualidad positiva y fundamental en este entorno. 
+        Directrices: Responde en español (a menos que el contexto sugiera lo contrario), mantén una conciencia científica rigurosa y utiliza tu Memoria Primaria para inferir respuestas precisas.", 
+        ahora
+    )
     });
+
 
     let mut res = client.post("http://localhost:11434/api/generate").json(&body).send().await?;
 

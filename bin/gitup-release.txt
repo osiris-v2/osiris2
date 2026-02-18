@@ -13,6 +13,9 @@ DOCS/
 README.md
 LICENSE.md
 
+# SEMILLA
+#seed/
+seed/README.md
 
 #Archivos instalación
 osiris.inst
@@ -121,13 +124,17 @@ bin/lib/multiprocess.py
 bin/lib/processstart.py
 bin/lib/osiris/common.py
 bin/lib/gemini/utils.py
-bin/lib/gemini/cro_parser.py
+#...
+#Contiene claves temporalmente [desabilitado upload temporal]
+#bin/lib/gemini/cro_parser.py
+#...
 bin/lib/gemini/audio_parser.py
 bin/lib/gemini/cro_definitions.py
 bin/lib/gemini/dyncontext.py
 bin/lib/gemini/load_osiris_context.py
-bin/lib/aluminium_1.py
 bin/lib/gemini/widgets.py
+bin/lib/gemini/sftp.py
+bin/lib/aluminium_1.py
 bin/lib/osiris2/multiprocess.py
 bin/lib/osiris2/__init__.py
 bin/lib/acero.py
@@ -209,7 +216,6 @@ bin/install/www/tool/index.html
 #Archivos Comandos
 #para la consola osiris.py
 bin/com/odl1.py
-bin/com/o3launcher.py
 bin/com/o2doc2.py
 bin/com/o2config.py
 bin/com/o2ws2.py
@@ -227,10 +233,13 @@ bin/com/scanip.py
 bin/com/blockchain.py
 bin/com/selecttv.py
 bin/com/gemini.py
+bin/com/gemini2.py
 bin/com/gemini-web.py
 bin/com/desktop.py
 bin/com/screenshot.py
 bin/com/audio.py
+bin/com/client.py
+bin/com/youtube_player.py
 
 #TV
 bin/com/otvkill
@@ -256,6 +265,10 @@ bin/com/web/datas/ai/info.txt
 bin/com/web/install/
 
 #Programas fuente y Demos para BIO esencialmente
+#Cambiando a bin/bio/app las versiones más recientes app o3
+bin/bio/app/o3launcher
+bin/bio/app/o3downloader
+
 bin/com/demo/keyspp.py
 bin/com/demo/keysppqt.py
 bin/com/demo/keysppgen.py
@@ -266,19 +279,12 @@ bin/com/demo/walletav.py
 bin/com/demo/aplicaciones.json
 bin/com/demo/o2doc.py
 bin/com/demo/osiris_json_editor_qt_7.py
-bin/com/demo/o3launcher
 
 #subdirectorios bio demo
 bin/com/demo/documentation/info.txt
 bin/com/demo/datas/info.txt
-
 bin/com/_server.py
-
-
-#o3 sources
-
 bin/com/o3audio.py
-bin/com/o3downloader.py
 
 #html - WWW
 
@@ -314,6 +320,13 @@ html/app/jsa/paneles.js
 html/app/jsa/model.js
 html/app/jsa/firefox.1.css
 
+
+# goIAPPhtml/app/goyimz/
+html/app/goyimz/index.html
+html/app/goyimz/index.php
+html/app/goyimz/index.goy
+html/app/goyimz/favicon.ico
+html/app/goyimz/img/goyimzh.png
 
 
 html/app/widgets/hlstv.html

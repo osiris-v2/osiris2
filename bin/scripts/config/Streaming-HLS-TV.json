@@ -1,15 +1,11 @@
 {
-  "panel0": "clear;reset;clear && cd ../../seed/nodo_musculo/bin && ./osiris_node",
-  "panel1": "clear && reset && clear && ./server++.run",
-  "panel2": "clear && reset && clear && ./client.run",
-
-  "panel3": "clear && reset && clear && ./server++.run",
-  "panel4": "clear && reset && clear && ./server++.run",
-
-  "panel5": "clear && reset && clear && ./client.run",
-
-  "panel6": "cd /var/osiris2/bin  && clear && reset && clear && sudo ./OPS/ops",
-  "panel7": "clear && reset && clear && cd /var/osiris2/bin/scripts && ./server++.run",
-  "panel8": "clear && reset && clear && ./server++.run",
-  "panel9": "clear && reset && clear && ./server++.run"
+  "panel1": "clear;reset;clear && cd ../../seed/ && sudo ./osiris_telemetry_v2.sh",
+  "panel2": "clear;reset;clear && cd ../../seed/nodo_musculo/bin && ./osiris_node",
+  "panel0": "clear;reset;clear && cd ../../seed/nodo_musculo/bin && ./ods_engine",
+  "panel3": "clear;reset;clear && sudo com use fftv ",
+  "panel4": "clear;reset;clear && cd .. && sudo ./pilottv",
+  "panel5": "/o2iris/o2oneTv",
+  "panel6": "clear;reset;clear && cd ../../seed/cerebro_semilla/target/release && ./cerebro_semilla ../../../../bin/com/datas/ffmpeg/anon.mp4",
+  "panel7": "clear;reset;clear && cd .. && ./OPS/ops",
+  "panel8": "clear;reset;clear && ./progress_tv "
 }
