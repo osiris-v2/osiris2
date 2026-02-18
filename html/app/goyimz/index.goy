@@ -191,7 +191,7 @@ function render(text, type = 'server') {
     }
 
     function conectar() {
-        socket = new WebSocket('wss://goyimz.duckdns.org/ws/');
+        socket = new WebSocket('wss://'+window.location.hostname+'/ws/');
         socket.onopen = () => { render(">>> ENLACE ESTABLECIDO", "sys"); };
         socket.onmessage = (e) => { if (e.data.length > 0) render(e.data, "server"); };
         socket.onclose = () => { 
