@@ -9,10 +9,6 @@ echo "ND"
 
 source '/etc/environment'
 
-
-#sudo killall -9 -g 'server.run'
-#sudo killall -9 -g client
-
 echo $OSIRIS000_BIN
 
 cargo="/root/.cargo/bin/cargo"

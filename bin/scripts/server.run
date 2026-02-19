@@ -1,57 +1,48 @@
 #!/bin/bash
 clear
-reset
-clear
 
-my_pid=$$
+# --- CONFIGURACIÓN DE RUTAS ---
+source '/etc/environment'
+basePath="$OSIRIS000_BIN/server/chat_server/target"
 
+echo "--- LANZADOR DE SERVIDORES OSIRIS (Filtro Estricto) ---"
 
-pids=$(pgrep 'server.run')
+if [ ! -d "$basePath" ]; then
+    echo "❌ Error: No existe la carpeta target."
+    exit 1
+fi
 
+# 1. FILTRO DE PRECISIÓN QUIRÚRGICA:
+# - Buscamos archivos (-type f)
+# - Que sean ejecutables (-executable)
+# - Solo en carpetas que terminan exactamente en /release (sin entrar en deps)
+# - Máximo 3 niveles de profundidad para no leer basura
+mapfile -t rutas_completas < <(find "$basePath" -maxdepth 3 -mindepth 2 -type f -executable -path "*/release/*" ! -path "*/deps/*" ! -path "*/build/*" ! -name "*.d")
 
-# Iterar sobre los PIDs de 'server.run'
-for pid in $pids; do
-  # Comparar el PID actual con el PID del script
-  if [[ "$pid" -ne "$my_pid" ]]; then
-    # Matar el proceso 'server.run' si no es el script actual
-   sudo kill -9 "$pid" 2>/dev/null  # Redirigir stderr a /dev/null para suprimir errores si el proceso ya no existe
+if [ ${#rutas_completas[@]} -eq 0 ]; then
+    echo "⚠️ No se han encontrado binarios 'release' reales en $basePath"
+    echo "Intentando búsqueda desesperada..."
+    mapfile -t rutas_completas < <(find "$basePath" -name "server.run*" -type f -executable)
+fi
 
-#echo "DISABLED in++"
-
-  echo "++  PID $pid terminado."
-  else
-    echo "Conservando el proceso server.run padre con PID $pid"
-  fi
+echo "Selecciona el binario para tu Q8200:"
+for i in "${!rutas_completas[@]}"; do
+    # Sacamos el nombre del directorio padre (old, optimized, etc) y el nombre del archivo
+    build_type=$(basename $(dirname $(dirname "${rutas_completas[$i]}")))
+    file_name=$(basename "${rutas_completas[$i]}")
+    echo "$((i+1))) [$build_type] -> $file_name"
 done
 
+read -p "Opción [1-${#rutas_completas[@]}]: " seleccion
 
-
-
-source '/etc/environment'
-
-echo $OSIRIS000_BIN
-
-cargo="/root/.cargo/bin/cargo"
-
-
-echo ""$OSIRIS000_BIN
-
-serversPath=$OSIRIS000_BIN/server/chat_server
-
-#cd $serversPath
-
-#sudo $cargo build --release
-
-cd $serversPath/target/release
-clear
-sudo ./server
-
-#cargo
-
-#. cargo
-#cd server
-#echo "SERVER START"
-#./server
-echo "SERVER EXIT"
-
-
+# 2. Ejecución
+index=$((seleccion-1))
+if [[ "$seleccion" -gt 0 && "$seleccion" -le "${#rutas_completas[@]}" ]]; then
+    target="${rutas_completas[$index]}"
+    echo "🚀 Arrancando: $target..."
+    echo "------------------------------------------------"
+    "$target"
+else
+    echo "❌ Selección no válida."
+    exit 1
+fi
