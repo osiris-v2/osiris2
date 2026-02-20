@@ -1,12 +1,14 @@
 use tokio::net::TcpListener;
-use tokio_tungstenite::{accept_async, tungstenite::Message};
+use tokio_tungstenite::{tungstenite::Message};
 use futures_util::{StreamExt, SinkExt};
 use std::fs;
+use std::fs::OpenOptions;
 use std::error::Error;
 use log::{info, error, warn};
 use uuid::Uuid;
 use rand::{Rng, thread_rng};
 use std::io;
+use std::io::Write;
 use serde::Deserialize;
 use serde_json::json;
 use std::sync::Arc;
@@ -14,6 +16,7 @@ use tokio::sync::{Semaphore, Mutex, OwnedSemaphorePermit};
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use tokio::task::AbortHandle;
+use std::sync::Mutex as StdMutex;
 
 // --- CONFIGURACIÓN GLOBAL ---
 const MAX_GLOBAL_INSTANCES: usize = 2;
@@ -22,7 +25,80 @@ const DEFAULT_MODEL_FALLBACK: &str = "llama3.2:latest";
 const OLLAMA_URL: &str = "http://localhost:11434";
 const OLLAMA_TIMEOUT_SECS: u64 = 500;
 
+// --- LOG DE CONEXIONES ---
+const CONN_LOG_PATH: &str = "/var/log/goyimai_connections.log";
+const CONN_LOG_MAX_BYTES: u64 = 256 * 1024; // 256 KB
+
 static ACTIVE_AI_INSTANCES: AtomicUsize = AtomicUsize::new(0);
+
+/// Logger de conexiones con rotación por tamaño máximo.
+/// Escribe una línea CSV por evento: timestamp, event, client_id, ip, model, extra.
+struct ConnLogger {
+    path: &'static str,
+    max_bytes: u64,
+    lock: StdMutex<()>,
+}
+
+impl ConnLogger {
+    const fn new(path: &'static str, max_bytes: u64) -> Self {
+        Self { path, max_bytes, lock: StdMutex::new(()) }
+    }
+
+    fn write(&self, line: &str) {
+        let _guard = self.lock.lock().unwrap_or_else(|e| e.into_inner());
+
+        // Rotación: si el archivo supera el límite, lo truncamos conservando las últimas líneas
+        if let Ok(meta) = fs::metadata(self.path) {
+            if meta.len() >= self.max_bytes {
+                // Leer el contenido actual, conservar la segunda mitad aprox.
+                if let Ok(content) = fs::read_to_string(self.path) {
+                    let keep_from = content.len() / 2;
+                    // Buscar el primer '\n' desde keep_from para no cortar una línea a medias
+                    let cut = content[keep_from..].find('\n')
+                        .map(|p| keep_from + p + 1)
+                        .unwrap_or(keep_from);
+                    let kept = format!("# --- rotación automática ---\n{}", &content[cut..]);
+                    let _ = fs::write(self.path, kept);
+                }
+            }
+        }
+
+        if let Ok(mut f) = OpenOptions::new().create(true).append(true).open(self.path) {
+            let _ = writeln!(f, "{}", line);
+        }
+    }
+
+    /// Conexión entrante
+    fn log_connect(&self, client_id: Uuid, ip: &str, model: &str, total_clients: usize) {
+        let ts = chrono::Local::now().format("%Y-%m-%d %H:%M:%S");
+        self.write(&format!(
+            "{} | CONNECT   | {} | ip={} | model={} | total_clients={}",
+            ts, &client_id.to_string()[..8], ip, model, total_clients
+        ));
+    }
+
+    /// Desconexión con resumen de la sesión
+    fn log_disconnect(&self, client_id: Uuid, ip: &str, duration_secs: u64, messages: usize, total_clients: usize) {
+        let ts = chrono::Local::now().format("%Y-%m-%d %H:%M:%S");
+        self.write(&format!(
+            "{} | DISCONNECT | {} | ip={} | session_secs={} | messages={} | total_clients={}",
+            ts, &client_id.to_string()[..8], ip, duration_secs, messages, total_clients
+        ));
+    }
+
+    /// Error / evento notable
+    fn log_event(&self, client_id: Uuid, ip: &str, event: &str) {
+        let ts = chrono::Local::now().format("%Y-%m-%d %H:%M:%S");
+        self.write(&format!(
+            "{} | EVENT      | {} | ip={} | {}",
+            ts, &client_id.to_string()[..8], ip, event
+        ));
+    }
+}
+
+lazy_static::lazy_static! {
+    static ref CONN_LOG: ConnLogger = ConnLogger::new(CONN_LOG_PATH, CONN_LOG_MAX_BYTES);
+}
 
 // Comandos que responden siempre aunque la IA esté ocupada (is_busy).
 // Solo los que devuelven widgets de datos — no bloquean al usuario esperando una respuesta IA.
@@ -262,19 +338,62 @@ async fn main() -> Result<(), Box<dyn Error>> {
 async fn handle_connection(stream: tokio::net::TcpStream) {
     let client_id = Uuid::new_v4();
 
+    // IP de la capa TCP (será 127.0.0.1 si hay reverse proxy)
+    let tcp_ip = stream.peer_addr()
+        .map(|a| a.to_string())
+        .unwrap_or_else(|_| "unknown".to_string());
+
     // Modelo inicial = primer modelo disponible en Ollama
     let modelo_inicial = obtener_modelos_ollama().await
         .into_iter().next()
         .unwrap_or_else(|| DEFAULT_MODEL_FALLBACK.to_string());
 
+    // Usar accept_hdr_async para leer cabeceras HTTP durante el handshake.
+    // Si el cliente viene a través de nginx/Caddy/otro proxy, la IP real estará en
+    // X-Forwarded-For o X-Real-IP. Si no hay proxy, usamos la IP TCP directamente.
+    let real_ip: Arc<std::sync::Mutex<Option<String>>> = Arc::new(std::sync::Mutex::new(None));
+    let real_ip_cb = Arc::clone(&real_ip);
+
+    let callback = move |req: &tokio_tungstenite::tungstenite::handshake::server::Request,
+                         res:  tokio_tungstenite::tungstenite::handshake::server::Response|
+        -> Result<tokio_tungstenite::tungstenite::handshake::server::Response,
+                  tokio_tungstenite::tungstenite::handshake::server::ErrorResponse>
     {
-        let mut sessions = AI_SESSIONS.lock().await;
-        sessions.insert(client_id, ClientSession::new(modelo_inicial.clone()));
-    }
+        // X-Forwarded-For puede contener una lista "client, proxy1, proxy2" — tomamos el primero
+        let ip = req.headers()
+            .get("x-forwarded-for")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|s| s.split(',').next())
+            .map(|s| s.trim().to_string())
+            .or_else(|| {
+                req.headers()
+                    .get("x-real-ip")
+                    .and_then(|v| v.to_str().ok())
+                    .map(|s| s.trim().to_string())
+            });
+        if let Ok(mut guard) = real_ip_cb.lock() { *guard = ip; }
+        Ok(res)
+    };
 
-    info!("Cliente {} conectado. Modelo inicial: {}", client_id, modelo_inicial);
+    let ws_result = tokio_tungstenite::accept_hdr_async(stream, callback).await;
 
-    if let Ok(ws_stream) = accept_async(stream).await {
+    // IP final: cabecera del proxy si existe, si no la TCP
+    let peer_ip = real_ip.lock().ok()
+        .and_then(|g| g.clone())
+        .unwrap_or(tcp_ip);
+
+    info!("Cliente {} conectado desde {}. Modelo inicial: {}", client_id, peer_ip, modelo_inicial);
+
+    if let Ok(ws_stream) = ws_result {
+        // Insertar sesión dentro del bloque de handshake exitoso
+        {
+            let mut sessions = AI_SESSIONS.lock().await;
+            sessions.insert(client_id, ClientSession::new(modelo_inicial.clone()));
+        }
+
+        let total_clients = AI_SESSIONS.lock().await.len();
+        CONN_LOG.log_connect(client_id, &peer_ip, &modelo_inicial, total_clients);
+
         let (write, mut read) = ws_stream.split();
         let write_arc = Arc::new(Mutex::new(write));
 
@@ -385,8 +504,29 @@ async fn handle_connection(stream: tokio::net::TcpStream) {
             }
         }
 
-        info!("Cliente {} desconectado.", client_id);
+        // Recoger métricas antes de eliminar la sesión
+        let (duration_secs, messages_sent) = {
+            let sessions = AI_SESSIONS.lock().await;
+            if let Some(s) = sessions.get(&client_id) {
+                let dur = chrono::Local::now()
+                    .signed_duration_since(s.connected_at)
+                    .num_seconds()
+                    .max(0) as u64;
+                (dur, s.messages_sent)
+            } else {
+                (0, 0)
+            }
+        };
+
         AI_SESSIONS.lock().await.remove(&client_id);
+        let total_clients = AI_SESSIONS.lock().await.len();
+
+        info!("Cliente {} desconectado. Sesión: {}s, {} mensajes enviados.", client_id, duration_secs, messages_sent);
+        CONN_LOG.log_disconnect(client_id, &peer_ip, duration_secs, messages_sent, total_clients);
+    } else {
+        // Handshake WebSocket fallido — la sesión nunca se insertó, el contador no se ve afectado
+        warn!("Handshake WebSocket fallido para cliente {} desde {}.", client_id, peer_ip);
+        CONN_LOG.log_event(client_id, &peer_ip, "handshake_failed");
     }
 }
 
@@ -444,6 +584,7 @@ async fn handle_command(command: &str, client_id: Uuid) -> Result<String, String
                 s.model = nombre.clone();
                 // Tokens incompatibles entre modelos → reset, pero historial de texto se conserva
                 s.context.clear();
+                CONN_LOG.log_event(client_id, "n/a", &format!("model_change from={} to={}", anterior, nombre));
                 Ok(format!(
                     "✅ IA cambiada: {} → {}\n💬 Historial conservado ({} turnos).{}",
                     anterior, nombre, s.history_text.len(), aviso_ram

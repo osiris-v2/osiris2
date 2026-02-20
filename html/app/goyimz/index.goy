@@ -67,7 +67,7 @@ function makecard($params = []) {
     .header-img { display: block; max-width: 100%; max-height: 30px; margin: 0 auto 2px auto; flex-shrink: 0; }
     
     .view-modes { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 5px; flex-shrink: 0; }
-    .mode-btn { background: none; border: 1px solid #333; color: #555; font-size: 0.7em; cursor: pointer; padding: 2px 6px; border-radius: 3px; transition: 0.3s; }
+    .mode-btn { background: none; border: 1px solid #3a3a3a; color: #888; font-size: 0.7em; cursor: pointer; padding: 2px 6px; border-radius: 3px; transition: 0.3s; }
     .mode-btn:hover { color: #0f0; border-color: #0f0; }
     .mode-btn.active { color: #0f0; border-color: #0f0; background: #052505; }
 
@@ -99,7 +99,7 @@ function makecard($params = []) {
 
     /* Drawer de Comandos fijo abajo */
     #command-drawer { width: 100%; margin-top: 5px; flex-shrink: 0; padding-bottom: 5px; }
-    .drawer-btn { background: none; border: 1px solid #222; color: #444; font-size: 0.7em; cursor: pointer; padding: 4px; width: 100%; border-radius: 3px; }
+    .drawer-btn { background: none; border: 1px solid #2a2a2a; color: #666; font-size: 0.7em; cursor: pointer; padding: 4px; width: 100%; border-radius: 3px; }
     #quick-commands { display: none; flex-wrap: wrap; gap: 5px; padding: 10px; background: #050505; border: 1px solid #222; margin-top: -1px; }
     #quick-commands button { background: #111; border: 1px solid #333; color: #0c0; font-size: 0.75em; padding: 4px 8px; cursor: pointer; }
     #quick-commands button:hover { background: #0f0; color: #000; }
@@ -196,7 +196,6 @@ function makecard($params = []) {
     <div class="view-modes">
         <button class="mode-btn active" onclick="setMode('text', this)">TEXT</button>
         <button class="mode-btn" onclick="setMode('md', this)">MD</button>
-        <button class="mode-btn" onclick="setMode('html', this)">HTML</button>
     </div>
 
     <div id="chat-box"></div>
@@ -626,7 +625,6 @@ function makecard($params = []) {
             div.innerHTML = text;
         } else if (type === 'server') {
             if (currentMode === 'md') div.innerHTML = marked.parse(text);
-            else if (currentMode === 'html') div.innerHTML = text;
             else div.textContent = text;
         } else {
             div.textContent = text;
