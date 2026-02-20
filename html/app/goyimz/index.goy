@@ -67,9 +67,9 @@ function makecard($params = []) {
     .header-img { display: block; max-width: 100%; max-height: 30px; margin: 0 auto 2px auto; flex-shrink: 0; }
     
     .view-modes { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 5px; flex-shrink: 0; }
-    .mode-btn { background: none; border: 1px solid #3a3a3a; color: #888; font-size: 0.7em; cursor: pointer; padding: 2px 6px; border-radius: 3px; transition: 0.3s; }
-    .mode-btn:hover { color: #0f0; border-color: #0f0; }
-    .mode-btn.active { color: #0f0; border-color: #0f0; background: #052505; }
+    .mode-btn { background: none; border: 1px solid #3a3a3a; color: #b8a840 !important; font-size: 0.7em; cursor: pointer; padding: 2px 6px; border-radius: 3px; transition: 0.3s; }
+    .mode-btn:hover { color: #0f0 !important; border-color: #0f0; }
+    .mode-btn.active { color: #0f0 !important; border-color: #0f0; background: #052505; }
 
     /* EL CHAT: Rígido para forzar scroll interno */
     #chat-box { 
@@ -127,14 +127,14 @@ function makecard($params = []) {
     body.has-widgets #wrapper { margin-top: 28px; }
 
     .widget-fab-btn {
-        background: #0a0a0a; border: 1px solid #333; color: #555;
+        background: #0a0a0a; border: 1px solid #333; color: #b8a840;
         font-size: 0.62em; padding: 2px 8px; cursor: pointer;
         border-radius: 2px; white-space: nowrap;
         font-family: 'Courier New', monospace; transition: 0.15s;
     }
     .widget-fab-btn:hover  { background: #0f0; color: #000; border-color: #0f0; }
     .widget-fab-btn.active { background: #052505; border-color: #0f0; color: #0f0; }
-    .widget-fab-btn.stale  { border-color: #333; color: #444; }
+    .widget-fab-btn.stale  { border-color: #333; color: #7a6e20; }
 
     .widget-panel {
         display: none; position: fixed; left: 0; right: 0;
