@@ -192,8 +192,11 @@ function makecard($params = []) {
 
 <body>
 <div id="wrapper">
-    <img src="img/goyimzh.png" class="header-img">  
+    <br>
     <div class="view-modes">
+       
+        <img src="img/goyimzh.png" class="header-img" >  
+        <button class="header-img" onclick="setMode('text', this);"> <a href="search/index.goy?" target="_newGoyim" style="color:#a0f0b0;"><img src="img/goys1.png" class="header-img" style="max-height: 20px;width:85px;background:rgba(221,222,221,.1)"></a></button>
         <button class="mode-btn active" onclick="setMode('text', this)">TEXT</button>
         <button class="mode-btn" onclick="setMode('md', this)">MD</button>
     </div>
@@ -217,6 +220,7 @@ function makecard($params = []) {
             <button onclick="cmdRapido('/limit')">/limit</button>
             <button onclick="cmdRapido('/stop')">/stop</button>
             <button onclick="cmdRapido('/clearcontext')">/clearcontext</button>
+            <button onclick='cmdRapido("/search");'> <a href="search/index.php" target="_newGoyim" style="all:inherit;"> /buscar </a> </button>
         </div>
     </div>
 </div>
@@ -493,6 +497,13 @@ function makecard($params = []) {
         }
     });
 
+    function escaparHTML(str) {
+        return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
+
     function toggleDrawer() {
         document.getElementById('quick-commands').classList.toggle('show');
     }
@@ -624,7 +635,7 @@ function makecard($params = []) {
         if (type === 'server_html') {
             div.innerHTML = text;
         } else if (type === 'server') {
-            if (currentMode === 'md') div.innerHTML = marked.parse(text);
+            if (currentMode === 'md') div.innerHTML = marked.parse(escaparHTML(text));
             else div.textContent = text;
         } else {
             div.textContent = text;

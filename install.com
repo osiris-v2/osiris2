@@ -37,6 +37,7 @@ xcblib    			apt install libxcb-xinerama0 libxcb1 libx11-xcb1 libxcb-glx0 libxcb
 
 cdevlibs 			apt install libreadline-dev  libncurses-dev libxcb-cursor0
 
+sqlite-lib 				apt install libsqlite3-dev
 
 ExtApp     			apt install nemo
 

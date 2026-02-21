@@ -44,7 +44,7 @@ background:#000000;
 </head>
 <body>
 <center>
-<img src="img/goyimzh.png" style="max-width:100%">
+<img src="img/goys1.png" style="max-width:100%">
 <br><br>
 <a href="index.goy" style="font-size:36px;color:#eaf9d4;text-decoration:underline">
     Atraviesa la Frontera<br>
