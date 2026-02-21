@@ -562,7 +562,7 @@ y son auditables:
 
 ---
 
-## Lo que Osiris NO garantiza (honestidad del modelo)
+## Lo que Osiris NO garantiza aún (honestidad del modelo)
 
 - **No protege contra el sistema operativo comprometido.** Si el kernel
   está bajo control de un atacante, ninguna medida en espacio de usuario
