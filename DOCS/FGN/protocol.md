@@ -271,3 +271,309 @@ crear_bloque(N, URANIO)
 ## Regla de oro
 
 > Si incluyes `rb_csp.h`, **no** incluyas `uranio.h` ni `ods_definiciones.h` en la misma unidad de compilación. `rb_csp.h` es la única fuente de verdad para `RB_SafePtr`.
+
+
+
+# Modelo de Privacidad y Seguridad — Sistema Osiris
+
+## Filosofía de diseño
+
+Osiris no es un sistema que "añade seguridad encima". Es un sistema donde la
+privacidad es una propiedad estructural desde el primer byte. Cada decisión
+de arquitectura — memoria gestionada, zero persistence, canal dual, bytecode
+propio — tiene una consecuencia directa en el modelo de privacidad.
+
+La pregunta que guía el diseño no es "¿cómo ciframos esto?" sino
+"¿cómo hacemos que no exista nada que capturar?".
+
+---
+
+## Modelo de amenaza
+
+### ¿Qué protege Osiris?
+
+- El **contenido del stream de video** frente a interceptación en tránsito
+- Los **mensajes de texto** del usuario frente a volcados de memoria y forenses
+- El **historial de sesión** frente a análisis post-mortem
+- Los **modelos de IA** frente a extracción por terceros
+
+### ¿Contra quién?
+
+| Adversario | Capacidad | Nivel de protección Osiris |
+|------------|-----------|---------------------------|
+| Snifer de red pasivo | Captura paquetes TCP | Alto (con XOR/TLS activo) |
+| Análisis forense de disco | Lee archivos del sistema | Total — nada toca disco |
+| Volcado de memoria RAM | Lee el heap del proceso | Alto — zeroing garantizado en liberación |
+| Proceso externo / debugger | ptrace, /proc/mem | Medio — detectable, mitigable |
+| Auditoría del SO (EDR/Sysmon) | Eventos de proceso | Medio — mejora con renderer propio |
+| Atacante con acceso físico | Hardware | Fuera del modelo de amenaza actual |
+
+---
+
+## Capas de protección
+
+### Capa 1 — Zero Persistence (YA IMPLEMENTADA)
+
+Nada del sistema escribe contenido sensible en disco durante operación normal.
+
+- El stream de video vive y muere en el buffer Uranio (RAM)
+- Los mensajes de texto del usuario nunca se escriben en `/tmp`, logs, ni bases de datos locales
+- Al liberar cualquier bloque URANIO, `rb_liberar()` ejecuta `memset(data, 0, size)` antes del `free()`
+- Al desconectar un cliente, la sesión completa se destruye atómicamente
+
+**Garantía real:** Un análisis forense de disco posterior a una sesión no
+encuentra rastro del contenido transmitido ni de los mensajes intercambiados.
+
+```
+Ciclo de vida de un mensaje de texto:
+  
+  Usuario escribe → RAM (buffer de entrada)
+                  → Cifrado XOR en Cerebro
+                  → TCP (bytes sin sentido)
+                  → Buffer Uranio en Nodo
+                  → Renderizado como píxeles (renderer propio)
+                  → VRAM (desaparece al siguiente frame)
+                  → memset + free al desconectar
+  
+  En ningún paso existe como texto en disco.
+```
+
+---
+
+### Capa 2 — Cifrado de Contenido en Tránsito (IMPLEMENTACIÓN PENDIENTE)
+
+#### 2a. XOR dinámico por frame (prioridad alta)
+
+El Cerebro genera una clave de sesión única en cada conexión. Esa clave
+nunca sale del proceso Rust — reside únicamente en memoria volátil.
+
+Cada chunk de video o mensaje se ofusca con XOR usando una clave derivada de:
+- La clave de sesión negociada en el handshake
+- El timestamp del frame (rotación por frame)
+- La firma FGN del chunk (entropía del contenido propio)
+
+```rust
+// Cerebro — antes de enviar el chunk:
+fn xor_frame(data: &mut [u8], session_key: &[u8], frame_id: u64) {
+    let key_material = derive_frame_key(session_key, frame_id);
+    for (byte, key_byte) in data.iter_mut().zip(key_material.iter().cycle()) {
+        *byte ^= key_byte;
+    }
+}
+
+// Nodo C — después de leer del buffer Uranio:
+// Misma operación, misma clave derivada → recupera el contenido original
+// La contra-operación ocurre justo antes del renderizado, no antes.
+```
+
+**Efecto forense:** Un snifer que capture el tráfico TCP ve bytes sin
+estructura reconocible. Sin la clave de sesión (que solo existe en RAM del
+Cerebro durante la sesión), los bytes son matemáticamente inútiles.
+
+#### 2b. TLS en el canal TCP (prioridad media)
+
+XOR protege el contenido. TLS protege el canal completo incluyendo
+los headers del protocolo Osiris, los opcodes, y los tamaños de payload.
+
+Con ambas capas activas un atacante de red no puede determinar ni qué tipo
+de operación se está ejecutando ni cuánto datos contiene.
+
+---
+
+### Capa 3 — Protección de Mensajes de Texto de Usuario
+
+Esta capa es específica para el flujo de texto (comandos ODS, mensajes al
+servidor IA, interacción con Ollama).
+
+#### El problema del texto en memoria
+
+Con una aplicación normal, un mensaje de texto existe en varias copias:
+- El string original en el heap
+- La copia en el buffer de red
+- La copia en el log del servidor
+- La respuesta almacenada en el historial
+
+Cualquier volcado de memoria puede extraer conversaciones completas
+buscando cadenas de texto legibles.
+
+#### La solución Osiris: texto que nunca es texto en el Nodo
+
+```
+CEREBRO (Rust)                          NODO (C)
+──────────────────────────────────────────────────────
+Recibe mensaje de texto del usuario
+         │
+         ▼
+Renderiza el texto como imagen pequeña
+(píxeles, no caracteres)
+         │
+         ▼
+Empaqueta como chunk de video           Recibe bytes de video
+con opcode 7 (stream normal)     ──→    (no sabe que es texto)
+                                                │
+                                                ▼
+                                        Vuelca en buffer URANIO
+                                                │
+                                                ▼
+                                        Renderer SDL2/OpenGL
+                                        pinta píxeles en pantalla
+                                                │
+                                                ▼
+                                        Buffer URANIO → memset → free
+```
+
+**Garantía:** Un volcado de RAM del proceso del Nodo buscando la cadena
+"contraseña" o cualquier texto del usuario no encontrará nada.
+Solo existe como datos de píxel comprimidos en MPEG-TS.
+
+#### Destrucción atómica del historial
+
+En `server.rs` (servidor IA), el historial de conversación vive en
+`ClientSession.history_text` — un `Vec` en heap de Rust.
+
+Al desconectar, la sesión se elimina con `AI_SESSIONS.remove(&client_id)`.
+Para garantía completa, antes del drop se sobreescribe:
+
+```rust
+// Al desconectar — destrucción segura del historial:
+if let Some(mut session) = sessions.remove(&client_id) {
+    // Sobreescribir cada mensaje antes de soltar la memoria
+    for (user_msg, assistant_msg) in session.history_text.iter_mut() {
+        // Sobreescribir con ceros lógicos
+        user_msg.as_bytes_mut().fill(0);       
+        assistant_msg.as_bytes_mut().fill(0);
+    }
+    // El drop libera la memoria ya limpia
+}
+```
+
+---
+
+### Capa 4 — Opacidad ante el Sistema Operativo
+
+#### Estado actual (con ffplay)
+
+El SO ve: `osiris_node` + `ffplay` como procesos separados.
+Un EDR ve una conexión TCP en puerto 2000 con tráfico continuo.
+
+#### Estado objetivo (con renderer propio SDL2/X11)
+
+El SO ve: un único proceso `osiris_node` dibujando en pantalla.
+No hay proceso multimedia externo. No hay pipe entre procesos.
+El tráfico TCP sigue visible (inevitable) pero el contenido es opaco.
+
+**Lo que el SO registra con renderer propio:**
+```
+"El proceso osiris_node está actualizando su buffer de video"
+```
+
+**Lo que el SO NO puede ver:**
+- Qué instrucciones FGN se están ejecutando
+- Qué contenido tiene el stream
+- Si el stream es video, texto, o comandos de VM
+
+#### Aislamiento de memoria
+
+`RB_SafePtr` garantiza que no haya desbordamientos de buffer.
+Los desbordamientos son una de las señales que los EDR modernos usan para
+detectar actividad anómala. Un proceso que nunca desborda es invisible
+para esa categoría de detección.
+
+---
+
+### Capa 5 — Integridad del Canal (Autenticación)
+
+#### Estado actual
+
+La firma en `OsirisPacket` es un hash de 32 bits con semilla fija.
+Sirve para detectar corrupción accidental, no para autenticar el origen.
+
+#### Objetivo: HMAC-SHA256 por sesión
+
+```rust
+// En signer.rs — versión hardened:
+use hmac::{Hmac, Mac};
+use sha2::Sha256;
+
+pub fn generate_signature(
+    packet: &OsirisPacket, 
+    payload: &[u8],
+    session_key: &[u8]      // Clave única por sesión, nunca fija
+) -> [u8; 32] {
+    let mut mac = Hmac::<Sha256>::new_from_slice(session_key)
+        .expect("HMAC acepta cualquier longitud de clave");
+    mac.update(&[packet.opcode]);
+    mac.update(&packet.payload_size.to_le_bytes());
+    mac.update(payload);
+    mac.finalize().into_bytes().into()
+}
+```
+
+Con HMAC-SHA256 un atacante que inyecte paquetes manipulados en el canal
+no puede forjar una firma válida sin conocer la clave de sesión.
+
+---
+
+## Hoja de ruta de implementación
+
+### Fase 1 — Fundación (trabajo actual)
+- [x] Zero persistence con URANIO zeroing
+- [x] Canal dual datos/control
+- [x] Buffer Uranio con límites validados
+- [ ] Validar `payload_size` contra `URANIO_MAX_BLOQUE` antes de rescale
+- [ ] Unificación de tipos `RB_SafePtr`
+- [ ] Fix del protocolo header C/Rust
+
+### Fase 2 — Privacidad del canal
+- [ ] XOR dinámico por frame (clave de sesión en RAM volátil)
+- [ ] Handshake de intercambio de clave de sesión
+- [ ] HMAC-SHA256 en signer.rs
+- [ ] TLS sobre el canal TCP
+
+### Fase 3 — Privacidad del contenido
+- [ ] Renderer propio SDL2/OpenGL (eliminar ffplay)
+- [ ] Renderizado de texto como píxeles en Cerebro
+- [ ] Destrucción segura del historial en server.rs
+- [ ] Volcado directo a VRAM sin copia intermedia
+
+### Fase 4 — Hardening del proceso
+- [ ] Detección de ptrace / anti-debug en el Nodo C
+- [ ] Bloqueo de core dumps (`prctl(PR_SET_DUMPABLE, 0)`)
+- [ ] Memoria bloqueada en RAM (`mlock`) para buffers URANIO críticos
+
+---
+
+## Propiedades verificables hoy
+
+Estas afirmaciones están respaldadas directamente por código existente
+y son auditables:
+
+> "Ningún byte de contenido sensible sobrevive a la desconexión en disco"
+> → `rb_liberar()` en `rb_csp.c`, línea del `memset`
+
+> "El buffer de recepción nunca excede su capacidad declarada"  
+> → validación en `op_stream` de `main.c` con `rb_rescale`
+
+> "Los comandos de control no bloquean el flujo de datos"
+> → arquitectura de canal dual, puertos 2000 y 2001 independientes
+
+> "Cada sesión de IA es completamente independiente de las anteriores"
+> → `ClientSession` en `server.rs`, destruida al desconectar
+
+---
+
+## Lo que Osiris NO garantiza (honestidad del modelo)
+
+- **No protege contra el sistema operativo comprometido.** Si el kernel
+  está bajo control de un atacante, ninguna medida en espacio de usuario
+  es suficiente.
+
+- **No oculta la existencia de la conexión TCP.** Un firewall o IDS puede
+  ver que hay tráfico entre dos IPs en los puertos configurados.
+
+- **El XOR no es cifrado criptográfico fuerte.** Proporciona opacidad del
+  contenido pero no autenticación. TLS + HMAC son necesarios para
+  garantías criptográficas reales.
+
+- **Mientras se use ffplay**, los frames pasan por un proceso externo sin
+  las protecciones de memoria de Osiris.
