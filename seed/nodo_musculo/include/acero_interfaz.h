@@ -2,7 +2,7 @@
 #define ACERO_INTERFAZ_H
 
 #include <stdint.h>
-#include "../src/mem/rb_csp.h" 
+#include "rb_csp.h" 
 
 typedef struct {
     char* nombre_driver;

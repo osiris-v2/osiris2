@@ -1,7 +1,7 @@
 #ifndef ODS_PROTOCOLO_H
 #define ODS_PROTOCOLO_H
 
-#define PUERTO_OSIRIS 8080
+#define PUERTO_OSIRIS 8087
 #define CABECERA_MAGICA 0x256F 
 
 typedef struct {
