@@ -24,6 +24,9 @@
 #include <stdio.h>
 
 /* Magic del handshake: "OSKY" en little-endian */
+/* Magic "OSKY" = 0x4F534B59.
+ * Rust envia con to_le_bytes() → bytes en cable: 59 4B 53 4F
+ * x86 Nodo: memcpy a uint32_t → lee 0x4F534B59 (LE nativo). Coincide. */
 #define OSIRIS_HANDSHAKE_MAGIC  0x4F534B59u
 #define OSIRIS_KEY_SIZE         32
 #define OSIRIS_HANDSHAKE_SIZE   36   /* 4 magic + 32 key */
@@ -215,13 +218,13 @@ static inline int osiris_hmac_verificar(
     /* Construir mensaje para HMAC: mismo orden que signer.rs
      * version(1) + seed_id(1) + opcode(1) + payload_size(4) + padding(5) + payload
      * (signature excluido — dependencia circular) */
-    uint8_t  msg_fixed[12];
+    uint8_t  msg_fixed[11];
     msg_fixed[0] = hdr->version;
     msg_fixed[1] = hdr->seed_id;
     msg_fixed[2] = hdr->opcode;
     uint32_t ps_le = hdr->payload_size; /* ya en LE en memoria con #pragma pack */
     memcpy(msg_fixed + 3, &ps_le, 4);
-    memcpy(msg_fixed + 7, hdr->padding, 5); /* primeros 4 del padding */
+    memcpy(msg_fixed + 7, hdr->padding, 4); /* primeros 4 del padding */
 
     /* HMAC en dos pasadas: fixed header + payload */
     /* Usamos update manual sobre el mismo contexto */

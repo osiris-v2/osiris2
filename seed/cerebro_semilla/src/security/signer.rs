@@ -2,6 +2,11 @@
 // PROYECTO OSIRIS - security/signer.rs
 // FASE 2B: HMAC-SHA256 por sesion
 //
+// CONVENCION DE BYTES: todo little-endian (nativo x86)
+//   - magic del handshake: to_le_bytes()  → 59 4B 53 4F en cable
+//   - signature u32:       from_le_bytes() → primeros 4B del HMAC
+//   - payload_size en msg: to_le_bytes()  → igual que en el header
+//
 // MODELO DE SEGURIDAD:
 //   - session_key: 32 bytes aleatorios generados en arranque
 //   - Vive SOLO en RAM (nunca en disco, nunca en log)
@@ -50,7 +55,7 @@ pub fn generate_signature(
     // Byte 0: version | Byte 1: seed_id | Byte 2: opcode
     mac.update(&[packet.version, packet.seed_id, packet.opcode]);
     // Bytes 7-10: payload_size (en lugar de signature que va en 3-6)
-    mac.update(&packet.payload_size.to_be_bytes());
+    mac.update(&packet.payload_size.to_le_bytes());
     // Bytes 11-15: padding
     mac.update(&packet.padding);
 
@@ -90,7 +95,7 @@ fn constant_time_eq(a: u32, b: u32) -> bool {
 /// Formato: 4 bytes de magic (0x4F534B59 = "OSKY") + 32 bytes de clave
 pub fn serializar_handshake(session_key: &[u8; 32]) -> [u8; 36] {
     let mut buf = [0u8; 36];
-    buf[0..4].copy_from_slice(&0x4F534B59u32.to_be_bytes()); // magic "OSKY"
+    buf[0..4].copy_from_slice(&0x4F534B59u32.to_le_bytes()); // magic "OSKY" en LE → bytes: 59 4B 53 4F → Nodo lee 0x4F534B59 en x86
     buf[4..36].copy_from_slice(session_key);
     buf
 }
