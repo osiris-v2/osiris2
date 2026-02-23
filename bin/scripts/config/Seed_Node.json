@@ -6,6 +6,6 @@
   "panel4": "sudo com use fftv",
   "panel5": "sudo com use fftv",
   "panel6": "clear;reset;clear && cd ../../seed/cerebro_semilla/target/release && ./cerebro_semilla ../../../../bin/com/datas/ffmpeg/anon.mp4",
-  "panel7": "sudo com use mount gemini3",
+  "panel7": "clear;reset;clear && ./server.run",
   "panel8": "clear;reset;clear && cd ../../seed/ && source /etc/environment && python3 asis/bottv2.py &2>/dev/null && cd ../../seed && sudo ./bottv2.sh "
 }

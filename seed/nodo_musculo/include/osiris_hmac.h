@@ -173,7 +173,8 @@ typedef struct __attribute__((packed)) {
     uint8_t  opcode;
     uint32_t signature;
     uint32_t payload_size;
-    uint8_t  padding[5];
+    uint32_t frame_cnt;   /* contador de frame para XOR keystream */
+    uint8_t  reservado;   /* uso futuro */
 } OsirisHeaderForHMAC;
 
 /**
@@ -215,36 +216,36 @@ static inline int osiris_hmac_verificar(
         return 1;
     }
 
-    /* Construir mensaje para HMAC: mismo orden que signer.rs
-     * version(1) + seed_id(1) + opcode(1) + payload_size(4) + padding(5) + payload
-     * (signature excluido — dependencia circular) */
-    uint8_t  msg_fixed[11];
-    msg_fixed[0] = hdr->version;
-    msg_fixed[1] = hdr->seed_id;
-    msg_fixed[2] = hdr->opcode;
-    uint32_t ps_le = hdr->payload_size; /* ya en LE en memoria con #pragma pack */
-    memcpy(msg_fixed + 3, &ps_le, 4);
-    memcpy(msg_fixed + 7, hdr->padding, 4); /* primeros 4 del padding */
+    /* Construir mensaje para HMAC:
+     * Header de 16 bytes con signature=0 + payload completo.
+     * Identico al calculo en signer.rs — no puede desincronizarse.
+     *
+     * Layout: [version(1), seed_id(1), opcode(1), 0x00000000(4), payload_size(4LE), padding(5)]
+     */
+    uint8_t hdr_bytes[16] = {0};
+    hdr_bytes[0]  = hdr->version;
+    hdr_bytes[1]  = hdr->seed_id;
+    hdr_bytes[2]  = hdr->opcode;
+    /* bytes 3..6 = signature → 0 (ya inicializado) */
+    /* payload_size en LE: en x86 packed struct ya esta en LE en memoria */
+    memcpy(hdr_bytes + 7, &hdr->payload_size, 4);
+    /* frame_cnt (4 bytes LE) + reservado (1 byte) = 5 bytes */
+    memcpy(hdr_bytes + 11, &hdr->frame_cnt, 4);
+    hdr_bytes[15] = hdr->reservado;
 
-    /* HMAC en dos pasadas: fixed header + payload */
-    /* Usamos update manual sobre el mismo contexto */
-    uint8_t concat[11 + payload_len > 11 ? 11 : 0]; /* VLA si payload es grande */
-    /* Para evitar VLA grande: calcular HMAC con two-pass manual */
-
-    /* Buffer combinado solo si es razonable (< 64MB ya lo validamos antes) */
-    uint8_t *combined = (uint8_t*)malloc(11 + payload_len);
+    uint8_t *combined = (uint8_t*)malloc(16 + payload_len);
     if (!combined) return 0;
-    memcpy(combined, msg_fixed, 11);
+    memcpy(combined, hdr_bytes, 16);
     if (payload_len > 0 && payload != NULL)
-        memcpy(combined + 11, payload, payload_len);
+        memcpy(combined + 16, payload, payload_len);
 
     uint8_t hmac_out[32];
     hmac_sha256(ctx->session_key, OSIRIS_KEY_SIZE,
-                combined, 11 + payload_len,
+                combined, 16 + payload_len,
                 hmac_out);
     free(combined);
 
-    /* Comparar primeros 4 bytes (== header.signature en LE) */
+    /* Primeros 4 bytes del HMAC como u32 LE — igual que signer.rs */
     uint32_t esperado = (uint32_t)hmac_out[0]
                       | ((uint32_t)hmac_out[1] << 8)
                       | ((uint32_t)hmac_out[2] << 16)
@@ -259,6 +260,63 @@ static inline int osiris_hmac_verificar(
         return 0;
     }
     return 1;
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+ * XOR CIFRADO POR FRAME — Fase 2B
+ *
+ * Keystream = SHA256(session_key || frame_cnt_le || bloque_le)
+ * repetido en bloques de 32 bytes hasta cubrir el payload.
+ *
+ * Llamar DESPUES de verificar el HMAC — descifra el payload
+ * en el mismo buffer (in-place). Idempotente: XOR dos veces
+ * devuelve el original.
+ * ══════════════════════════════════════════════════════════════ */
+
+static void osiris_xor_payload(
+    uint8_t *payload,
+    uint32_t payload_len,
+    const uint8_t session_key[OSIRIS_KEY_SIZE],
+    uint32_t frame_cnt)
+{
+    if (payload_len == 0 || payload == NULL) return;
+
+    /* Semilla = session_key(32) || frame_cnt(4 LE) = 36 bytes */
+    uint8_t seed[36];
+    memcpy(seed, session_key, 32);
+    seed[32] = (uint8_t)(frame_cnt & 0xFF);
+    seed[33] = (uint8_t)((frame_cnt >> 8)  & 0xFF);
+    seed[34] = (uint8_t)((frame_cnt >> 16) & 0xFF);
+    seed[35] = (uint8_t)((frame_cnt >> 24) & 0xFF);
+
+    uint32_t offset = 0;
+    uint32_t bloque = 0;
+
+    while (offset < payload_len) {
+        /* keystream_block = SHA256(seed || bloque_le) */
+        uint8_t bloque_bytes[4] = {
+            (uint8_t)(bloque & 0xFF),
+            (uint8_t)((bloque >> 8)  & 0xFF),
+            (uint8_t)((bloque >> 16) & 0xFF),
+            (uint8_t)((bloque >> 24) & 0xFF)
+        };
+
+        SHA256Ctx ctx_ks;
+        sha256_init(&ctx_ks);
+        sha256_update(&ctx_ks, seed, 36);
+        sha256_update(&ctx_ks, bloque_bytes, 4);
+        uint8_t ks[32];
+        sha256_final(&ctx_ks, ks);
+
+        uint32_t remaining = payload_len - offset;
+        uint32_t n = remaining < 32 ? remaining : 32;
+        for (uint32_t i = 0; i < n; i++) {
+            payload[offset + i] ^= ks[i];
+        }
+        offset += n;
+        bloque++;
+    }
 }
 
 #undef ROTR32

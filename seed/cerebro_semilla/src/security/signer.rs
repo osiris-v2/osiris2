@@ -51,20 +51,22 @@ pub fn generate_signature(
     let mut mac = HmacSha256::new_from_slice(session_key)
         .expect("HMAC acepta cualquier longitud de clave");
 
-    // Alimentar los bytes del header que NO son la signature
-    // Byte 0: version | Byte 1: seed_id | Byte 2: opcode
-    mac.update(&[packet.version, packet.seed_id, packet.opcode]);
-    // Bytes 7-10: payload_size (en lugar de signature que va en 3-6)
-    mac.update(&packet.payload_size.to_le_bytes());
-    // Bytes 11-15: padding
-    mac.update(&packet.padding);
+    // Serializar el header de 16 bytes con signature=0
+    // Es el mismo layout que #[repr(C, packed)] escribe en memoria:
+    //   [version(1), seed_id(1), opcode(1), sig=0(4LE), payload_size(4LE), padding(5)]
+    let mut hdr_bytes = [0u8; 16];
+    hdr_bytes[0]  = packet.version;
+    hdr_bytes[1]  = packet.seed_id;
+    hdr_bytes[2]  = packet.opcode;
+    // bytes 3..7 = signature → 0x00000000 (excluido del calculo)
+    hdr_bytes[7..11].copy_from_slice(&packet.payload_size.to_le_bytes());
+    hdr_bytes[11..15].copy_from_slice(&packet.frame_cnt.to_le_bytes());
+    hdr_bytes[15] = packet.reservado;
 
-    // Alimentar el payload completo
-    mac.update(payload);
+    mac.update(&hdr_bytes); // 16 bytes exactos
+    mac.update(payload);    // payload completo
 
     let result = mac.finalize().into_bytes();
-
-    // Primeros 4 bytes como u32 LE → caben en header.signature
     u32::from_le_bytes([result[0], result[1], result[2], result[3]])
 }
 
@@ -98,4 +100,50 @@ pub fn serializar_handshake(session_key: &[u8; 32]) -> [u8; 36] {
     buf[0..4].copy_from_slice(&0x4F534B59u32.to_le_bytes()); // magic "OSKY" en LE → bytes: 59 4B 53 4F → Nodo lee 0x4F534B59 en x86
     buf[4..36].copy_from_slice(session_key);
     buf
+}
+
+
+// ============================================================
+// XOR CIFRADO POR FRAME — Fase 2B
+//
+// Keystream = SHA256(session_key || frame_cnt_le) repetido
+// El mismo keystream cifra en el Cerebro y descifra en el Nodo.
+// El frame_cnt viaja en el header — cada paquete es autonomo.
+// ============================================================
+
+use sha2::Digest;
+
+/// Genera el keystream para un frame dado y aplica XOR al payload.
+/// Llamar ANTES de calcular el HMAC (en el Cerebro).
+/// Llamar DESPUES de verificar el HMAC (en el Nodo).
+pub fn xor_payload(payload: &mut [u8], session_key: &[u8; 32], frame_cnt: u32) {
+    if payload.is_empty() { return; }
+
+    // Semilla = session_key (32B) || frame_cnt (4B LE)
+    let mut seed = [0u8; 36];
+    seed[..32].copy_from_slice(session_key);
+    seed[32..36].copy_from_slice(&frame_cnt.to_le_bytes());
+
+    // Generar keystream en bloques de 32 bytes (SHA256)
+    // SHA256(seed || bloque_idx) para cada bloque de 32 bytes del payload
+    let mut offset = 0usize;
+    let mut bloque: u32 = 0;
+
+    while offset < payload.len() {
+        // keystream_block = SHA256(seed || bloque_le)
+        let mut hasher = sha2::Sha256::new();
+        hasher.update(&seed);
+        hasher.update(&bloque.to_le_bytes());
+        let ks = hasher.finalize();
+
+        // XOR hasta 32 bytes
+        let remaining = payload.len() - offset;
+        let n = remaining.min(32);
+        for i in 0..n {
+            payload[offset + i] ^= ks[i];
+        }
+
+        offset += n;
+        bloque += 1;
+    }
 }

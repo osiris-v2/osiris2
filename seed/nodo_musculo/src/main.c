@@ -38,7 +38,8 @@ typedef struct {
     uint8_t  opcode;        /* Byte 2  : Operacion a ejecutar                 */
     uint32_t signature;     /* Bytes 3-6  : Hash de integridad del payload    */
     uint32_t payload_size;  /* Bytes 7-10 : Tamanio del payload en bytes      */
-    uint8_t  padding[5];    /* Bytes 11-15: Relleno hasta 16 bytes            */
+    uint32_t frame_cnt;   /* Fase 2B: contador XOR */
+    uint8_t  reservado;    /* Bytes 11-15: Relleno hasta 16 bytes            */
 } OsirisHeader;
 #pragma pack(pop)
 
@@ -157,6 +158,10 @@ int sock_data = 0;
 uint32_t tam_inicio = (mi_hardware.ram_total_mb > 4096) ? 67108864 : 1048576;
 uranio_safe = crear_bloque(tam_inicio, URANIO);
 
+
+//    uranio_safe = crear_bloque(1048576, URANIO);
+
+printf("RAM Total: %llu MB\n", (unsigned int long long)mi_hardware.ram_total_mb);
 
     // Llenamos la estructura con ceros por seguridad
     memset(&mi_hardware, 0, sizeof(OsirisHardwareMap));
@@ -282,7 +287,13 @@ next_op: ;
                                    chunk_size, &hmac_ctx)) {
             goto next_op; /* Firma invalida — paquete descartado */
         }
-        /* Payload verificado y disponible en uranio_safe.data */
+        /* HMAC verificado — descifrar payload con XOR */
+        osiris_xor_payload(
+            (uint8_t*)uranio_safe.data,
+            chunk_size,
+            hmac_ctx.session_key,
+            hdr.frame_cnt
+        );
     } else {
         /* Paquetes de control sin payload */
         if (!osiris_hmac_verificar((OsirisHeaderForHMAC*)&hdr,

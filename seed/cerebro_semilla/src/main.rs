@@ -139,6 +139,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let config_monitor_clone = Arc::clone(&config_monitor);
     let tx_ai_video = tx_ai.clone();
     let session_key_tx = Arc::clone(&session_key); // clave de sesion para HMAC
+    let mut frame_counter: u32 = 0; // contador de frame para XOR keystream
 
     tokio::spawn(async move {
         loop {
@@ -192,15 +193,28 @@ let n = match ffmpeg_out.read(&mut chunk).await {
     Ok(n) => n,
 };
 
-// PROTOCOLO OSIRIS + HMAC-SHA256
-                let mut pkg_osiris = network::protocol::OsirisPacket::new_video_packet(n as u32);
-                // Firmar con HMAC-SHA256(session_key, header_parcial + payload)
-                // signature = primeros 4 bytes del HMAC → en header.signature
+// PROTOCOLO OSIRIS + HMAC + XOR
+                // 1. Header con frame_cnt actual (signature=0 de momento)
+                let mut pkg_osiris = network::protocol::OsirisPacket::new_video_packet(
+                    n as u32, frame_counter
+                );
+
+                // 2. XOR del payload ANTES de calcular el HMAC
+                let mut payload_cifrado = chunk[..n].to_vec();
+                security::signer::xor_payload(
+                    &mut payload_cifrado,
+                    &session_key_tx,
+                    frame_counter,
+                );
+
+                // 3. HMAC sobre header(sig=0) + payload_cifrado → autentica lo que viaja
                 pkg_osiris.signature = security::signer::generate_signature(
                     &pkg_osiris,
-                    &chunk[..n],
+                    &payload_cifrado,
                     &session_key_tx,
                 );
+
+                frame_counter = frame_counter.wrapping_add(1);
 
                 let transcurrido = instante_arranque.elapsed().as_secs() as i32;
                 if let Ok(mut st) = state_clone.try_lock() {
@@ -211,10 +225,10 @@ let n = match ffmpeg_out.read(&mut chunk).await {
                     let _ = tx_ai_video.try_send(chunk[..n].to_vec());
                 }
 
-                // 16 bytes OsirisHeader (version=2, opcode=7, HMAC en signature) + chunk
+                // 16 bytes OsirisHeader + payload cifrado
                 let mut packet = Vec::with_capacity(16 + n);
                 packet.extend_from_slice(pkg_osiris.as_bytes());
-                packet.extend_from_slice(&chunk[..n]);
+                packet.extend_from_slice(&payload_cifrado);
 
                 let mut sd = s_data_clone.lock().await;
                 if sd.write_all(&packet).await.is_err() { break; }
