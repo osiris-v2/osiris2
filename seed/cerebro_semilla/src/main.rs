@@ -91,6 +91,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         let handshake = security::signer::serializar_handshake(&session_key_raw);
         stream_ctrl.write_all(&handshake).await?;
         println!("\x1b[32m[HMAC] Session key enviada al Nodo (36 bytes, canal CONTROL)\x1b[0m");
+
     }
     // ────────────────────────────────────────────────────────────────────────
 
@@ -105,6 +106,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
         gestor: GestorManiobra::new(),
         reset_time_pending: false,
     }));
+
+
+
 
     // --- MONITOR EXTERNO (NUEVO) ---
     let config_monitor = Arc::new(Mutex::new(monitor::MonitorConfig::new(video_url.clone())));
@@ -140,6 +144,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let tx_ai_video = tx_ai.clone();
     let session_key_tx = Arc::clone(&session_key); // clave de sesion para HMAC
     let mut frame_counter: u32 = 0; // contador de frame para XOR keystream
+
+
+/*      ------------_>    */
+
+        enviar_js_eval(&s_data, &session_key, &mut frame_counter,
+    "console.log('[FGN] QuickJS activo en Nodo');").await?;
+        solicitar_hwprobe(&s_ctrl).await?;
 
     tokio::spawn(async move {
         loop {
@@ -453,3 +464,137 @@ async fn inyectar_adn_ia(s_ctrl: Arc<Mutex<tokio::net::TcpStream>>) -> Result<()
     println!("\x1b[35m[OSIRIS] ADN IA enviado.\x1b[0m");
     Ok(())
 }
+
+// ══════════════════════════════════════════════════════════════════════════
+// HELPERS FASE 3A — Envio de opcodes de driver desde el Cerebro
+// ══════════════════════════════════════════════════════════════════════════
+
+/// Envia OP_HWPROBE al Nodo y espera la respuesta OsirisHardwareMap.
+/// El Nodo responde por canal CONTROL con opcode=51 + payload serializado.
+pub async fn solicitar_hwprobe(
+    s_ctrl: &Arc<Mutex<tokio::net::TcpStream>>,
+) -> std::io::Result<()> {
+    let pkt = network::protocol::OsirisPacket::new_hwprobe_packet();
+    let mut sc = s_ctrl.lock().await;
+    sc.write_all(pkt.as_bytes()).await?;
+    println!("\x1b[36m[CEREBRO] OP_HWPROBE enviado al Nodo.\x1b[0m");
+    Ok(())
+}
+
+/// Envia OP_WIN_CREATE al Nodo con dimensiones y titulo.
+pub async fn crear_ventana_nodo(
+    s_data: &Arc<Mutex<tokio::net::TcpStream>>,
+    s_ctrl: &Arc<Mutex<tokio::net::TcpStream>>,
+    session_key: &Arc<[u8; 32]>,
+    frame_counter: &mut u32,
+    ancho: u16,
+    alto: u16,
+    titulo: &str,
+    flags: u16,
+) -> std::io::Result<()> {
+    use network::protocol::{WinCreateParams, OsirisPacket};
+
+    let mut params = WinCreateParams {
+        ancho,
+        alto,
+        titulo: [0u8; 64],
+        flags,
+    };
+    let titulo_bytes = titulo.as_bytes();
+    let len = titulo_bytes.len().min(63);
+    params.titulo[..len].copy_from_slice(&titulo_bytes[..len]);
+
+    let payload = unsafe {
+        std::slice::from_raw_parts(
+            (&params as *const WinCreateParams) as *const u8,
+            std::mem::size_of::<WinCreateParams>(),
+        )
+    };
+
+    let mut pkt = OsirisPacket::new_win_create(&params);
+    let mut payload_cifrado = payload.to_vec();
+    security::signer::xor_payload(&mut payload_cifrado, session_key, *frame_counter);
+    pkt.signature = security::signer::generate_signature(&pkt, &payload_cifrado, session_key);
+    *frame_counter = frame_counter.wrapping_add(1);
+
+    let mut buf = Vec::with_capacity(16 + payload.len());
+    buf.extend_from_slice(pkt.as_bytes());
+    buf.extend_from_slice(&payload_cifrado);
+
+    let mut sd = s_data.lock().await;
+    sd.write_all(&buf).await?;
+    println!("\x1b[36m[CEREBRO] OP_WIN_CREATE → {}x{} '{}'\x1b[0m", ancho, alto, titulo);
+    Ok(())
+}
+
+/// Envia un script JavaScript al Nodo para evaluacion en QuickJS.
+pub async fn enviar_js_eval(
+    s_data: &Arc<Mutex<tokio::net::TcpStream>>,
+    session_key: &Arc<[u8; 32]>,
+    frame_counter: &mut u32,
+    script: &str,
+) -> std::io::Result<()> {
+    use network::protocol::OsirisPacket;
+
+    let script_bytes = script.as_bytes();
+    let len = script_bytes.len() as u32;
+
+    let mut pkt = OsirisPacket::new_js_eval(len);
+    let mut payload_cifrado = script_bytes.to_vec();
+    security::signer::xor_payload(&mut payload_cifrado, session_key, *frame_counter);
+    pkt.signature = security::signer::generate_signature(&pkt, &payload_cifrado, session_key);
+    *frame_counter = frame_counter.wrapping_add(1);
+
+    let mut buf = Vec::with_capacity(16 + script_bytes.len());
+    buf.extend_from_slice(pkt.as_bytes());
+    buf.extend_from_slice(&payload_cifrado);
+
+    let mut sd = s_data.lock().await;
+    sd.write_all(&buf).await?;
+    println!("\x1b[35m[CEREBRO] OP_JS_EVAL → {} bytes\x1b[0m", len);
+    Ok(())
+}
+
+/// Envia OP_OVERLAY_TEXT al Nodo.
+pub async fn enviar_overlay_text(
+    s_data: &Arc<Mutex<tokio::net::TcpStream>>,
+    session_key: &Arc<[u8; 32]>,
+    frame_counter: &mut u32,
+    texto: &str,
+    x: i16,
+    y: i16,
+    color: [u8; 4],
+) -> std::io::Result<()> {
+    use network::protocol::{OverlayParams, OsirisPacket};
+
+    let mut params = OverlayParams {
+        x, y, color,
+        size: 2,
+        texto: [0u8; 128],
+        pad: 0,
+    };
+    let tb = texto.as_bytes();
+    let len = tb.len().min(127);
+    params.texto[..len].copy_from_slice(&tb[..len]);
+
+    let payload = unsafe {
+        std::slice::from_raw_parts(
+            (&params as *const OverlayParams) as *const u8,
+            std::mem::size_of::<OverlayParams>(),
+        )
+    };
+
+    let mut pkt = OsirisPacket::new_overlay_text(&params);
+    let mut payload_cifrado = payload.to_vec();
+    security::signer::xor_payload(&mut payload_cifrado, session_key, *frame_counter);
+    pkt.signature = security::signer::generate_signature(&pkt, &payload_cifrado, session_key);
+    *frame_counter = frame_counter.wrapping_add(1);
+
+    let mut buf = Vec::with_capacity(16 + payload.len());
+    buf.extend_from_slice(pkt.as_bytes());
+    buf.extend_from_slice(&payload_cifrado);
+
+    let mut sd = s_data.lock().await;
+    sd.write_all(&buf).await
+}
+

@@ -11,51 +11,80 @@
 #include "acero_interfaz.h"
 #include "osiris_hw.h"
 #include "demo/fgn_monitor.c"
-#include "fgn_ai_core.h"  // <--- ESTE ES EL QUE FALTA
-#include "osiris_hmac.h"    // Fase 2B: verificacion HMAC-SHA256
+#include "fgn_ai_core.h"
+#include "osiris_hmac.h"      /* Fase 2B: HMAC-SHA256 + XOR               */
+#include "quickjs.h"          /* Fase 3A: motor QuickJS embebido           */
 
+/* sdl_core.c no tiene header propio — declaraciones explicitas */
+extern void materializar_mirror_sdl(OsirisHardwareMap *map, uint16_t id_handler);
+extern void probe_video_capacidades(OsirisHardwareMap *map);
 
-
-#define PORT_DATA 2000
-#define PORT_CTRL 2001
+#define PORT_DATA  2000
+#define PORT_CTRL  2001
 #define CEREBRO_IP "127.0.0.1"
 
 OsirisHardwareMap mi_hardware;
 OsirisVideoDriver driver_activo;
 
-// Declaraciones de los puntos de entrada del Bridge
-
-
-
-/* --- ESTRUCTURA ESPEJO DE OsirisPacket (Rust) ---
- * Debe mantenerse sincronizada con protocol.rs
- * Total: 16 bytes exactos (verificar con static_assert)
- */
+/* ── HEADER OSIRIS 16 bytes (sincronizado con protocol.rs Fase 2B) ───────── */
 #pragma pack(push, 1)
 typedef struct {
-    uint8_t  version;       /* Byte 0  : Version del protocolo (esperamos 2) */
-    uint8_t  seed_id;       /* Byte 1  : ID de semilla del signer             */
-    uint8_t  opcode;        /* Byte 2  : Operacion a ejecutar                 */
-    uint32_t signature;     /* Bytes 3-6  : Hash de integridad del payload    */
-    uint32_t payload_size;  /* Bytes 7-10 : Tamanio del payload en bytes      */
-    uint32_t frame_cnt;   /* Fase 2B: contador XOR */
-    uint8_t  reservado;    /* Bytes 11-15: Relleno hasta 16 bytes            */
+    uint8_t  version;
+    uint8_t  seed_id;
+    uint8_t  opcode;
+    uint32_t signature;
+    uint32_t payload_size;
+    uint32_t frame_cnt;   /* Fase 2B: nonce XOR keystream */
+    uint8_t  reservado;
 } OsirisHeader;
 #pragma pack(pop)
-
-/* Verificacion en tiempo de compilacion: si esto falla, hay desalineacion */
 _Static_assert(sizeof(OsirisHeader) == 16, "OsirisHeader debe ser exactamente 16 bytes");
 
-extern void inicializar_sistema_acero(void); 
+/* ── STRUCTS DE PAYLOAD FASE 3A ──────────────────────────────────────────── */
+#pragma pack(push, 1)
+
+/* OP_WIN_CREATE (30) — 70 bytes */
+typedef struct {
+    uint16_t ancho;
+    uint16_t alto;
+    uint8_t  titulo[64];
+    uint16_t flags;       /* 0=normal, 1=fullscreen, 2=borderless */
+} WinCreateParams;
+
+/* OP_OVERLAY_TEXT (35) — 136 bytes */
+typedef struct {
+    int16_t  x;
+    int16_t  y;
+    uint8_t  color[4];
+    uint8_t  size;
+    uint8_t  texto[128];
+    uint8_t  pad;
+} OverlayParams;
+
+/* OP_ACK (50) — 2 bytes, Nodo→Cerebro */
+typedef struct {
+    uint8_t opcode_origen;
+    uint8_t resultado;    /* 0=OK  1=ERROR  2=PENDIENTE */
+} AckPayload;
+
+#pragma pack(pop)
+
+#define ACK_OK      0
+#define ACK_ERROR   1
+#define ACK_PENDING 2
+
+extern void inicializar_sistema_acero(void);
 extern void inicializar_motor_osiris(void);
 extern void cerrar_motor_osiris(void);
+extern JSContext *obtener_contexto_osiris(void);
+extern void manejar_comando_fgn_js(const char *script);
 
-FILE *display_pipe = NULL;
-pid_t ffplay_pid = 0;
-int video_paused = 0;
-int sock_ctrl = 0;
+FILE    *display_pipe = NULL;
+pid_t    ffplay_pid   = 0;
+int      video_paused = 0;
+int      sock_ctrl    = 0;
 RB_SafePtr uranio_safe;
-OsirisHMACCtx hmac_ctx = { .activo = 0 }; /* Fase 2B: contexto HMAC de sesion */
+OsirisHMACCtx hmac_ctx = { .activo = 0 };
 pthread_mutex_t pipe_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void update_ffplay_pid() {
@@ -69,162 +98,117 @@ void update_ffplay_pid() {
 void close_display() {
     pthread_mutex_lock(&pipe_mutex);
     if (display_pipe) {
-        printf("\x1b[31m[SISTEMA] Cerrando visor (Flush/Salto)...\n\x1b[0m");
+        printf("\x1b[31m[SISTEMA] Cerrando visor...\n\x1b[0m");
         pclose(display_pipe);
         display_pipe = NULL;
-        ffplay_pid = 0;
+        ffplay_pid   = 0;
         video_paused = 0;
     }
     pthread_mutex_unlock(&pipe_mutex);
 }
 
+/* ── HELPER: ACK al Cerebro por canal CONTROL ────────────────────────────── */
+static inline void nodo_send_ack(uint8_t opcode_origen, uint8_t resultado) {
+    if (sock_ctrl <= 0) return;
+    uint8_t pkt[18] = {0};
+    pkt[0] = 2;   /* version */
+    pkt[1] = 1;   /* seed_id */
+    pkt[2] = 50;  /* OP_ACK  */
+    pkt[7] = 2;   /* payload_size = 2 (LE) */
+    pkt[16] = opcode_origen;
+    pkt[17] = resultado;
+    write(sock_ctrl, pkt, 18);
+}
+
+/* ── HILO DE CONTROL (handshake HMAC + pause/skip) ───────────────────────── */
 void* control_logic(void* arg) {
     (void)arg;
 
-    /* ── FASE 2B: Handshake HMAC ────────────────────────────────────────
-     * El Cerebro envia 36 bytes por canal CONTROL antes de empezar video:
-     * [0..4)  = magic 0x4F534B59 ("OSKY")
-     * [4..36) = session_key (32 bytes, CSPRNG del kernel)
-     * Sin esta clave no es posible forjar signatures validos.
-     * ─────────────────────────────────────────────────────────────────── */
+    /* Handshake: 4 bytes magic OSKY + 32 bytes session_key */
     uint8_t hs_buf[OSIRIS_HANDSHAKE_SIZE];
     int hs_tr = 0;
     while (hs_tr < OSIRIS_HANDSHAKE_SIZE) {
         int n = read(sock_ctrl, hs_buf + hs_tr, OSIRIS_HANDSHAKE_SIZE - hs_tr);
-        if (n <= 0) {
-            printf("[HMAC] Error leyendo handshake — conexion perdida.\n");
-            return NULL;
-        }
+        if (n <= 0) { printf("[HMAC] Error en handshake.\n"); return NULL; }
         hs_tr += n;
     }
     osiris_hmac_recibir_handshake(hs_buf, &hmac_ctx);
 
-    /* ── Bucle normal de comandos de control ─────────────────────────── */
-    uint8_t cmd_header[16]; /* OsirisHeader completo de 16 bytes */
-    while (read(sock_ctrl, cmd_header, 16) > 0) {
-        uint8_t opcode = cmd_header[2]; /* Byte 2 = opcode en OsirisHeader */
-        if (opcode == 10) { /* PAUSA */
-            printf("\x1b[35m[CTRL] >>> RECIBIENDO FLUJO (PLAY/PAUSE)\n\x1b[0m");
-            update_ffplay_pid();
-            if (ffplay_pid > 0) {
-                if (!video_paused) {
-                    kill(ffplay_pid, SIGSTOP); video_paused = 1;
-                    printf("\x1b[35m[CTRL] >>> SET IN PAUSE\n\x1b[0m");
-                } else {
-                    kill(ffplay_pid, SIGCONT); video_paused = 0;
-                    printf("\x1b[35m[CTRL] >>> SET IN PLAY\n\x1b[0m");
-                }
-            }
-        } else if (opcode == 15) { /* SKIP */
-            printf("\x1b[35m[CTRL] >>> REINICIANDO FLUJO (SALTO)\n\x1b[0m");
+    /* Bucle de comandos de control */
+    uint8_t cmd_header[16];
+    while (1) {
+        int n = read(sock_ctrl, cmd_header, 16);
+        if (n <= 0) break;
+        uint8_t opcode = cmd_header[2];
+        if (opcode == 10) {          /* OP_PAUSE */
+            video_paused = !video_paused;
+            if (ffplay_pid > 0)
+                kill(ffplay_pid, video_paused ? SIGSTOP : SIGCONT);
+        } else if (opcode == 15) {   /* OP_SKIP  */
+            close_display();
         }
     }
     return NULL;
 }
 
+FGN_AI_Context *core_ia = NULL;
 
-// Funcion auxiliar para mostrar el reporte de arranque
-void imprimir_reporte_hw() {
-    printf("\n\x1b[1;36m=== REPORTE DE SISTEMA (FGN) ===\x1b[0m\n");
-    printf("CPU Nucleos:    %u\n", mi_hardware.cpu_nucleos);
-    printf("RAM Total:      %lu MB\n", mi_hardware.ram_total_mb);
-    printf("Pantalla:       %ux%u\n", mi_hardware.pantalla_ancho, mi_hardware.pantalla_alto);
-    printf("Driver SDL2:    %s\n", mi_hardware.soporte_sdl2 ? "ACTIVO" : "NO DETECTADO");
-    printf("Aceleracion 3D: %s\n", mi_hardware.soporte_opengl ? "DISPONIBLE" : "SOFTWARE");
-    printf("Latencia Red:   %.2f ms\n", mi_hardware.latencia_ms);
-    printf("\x1b[1;36m================================\x1b[0m\n\n");
-}
-
-
-int main() {
-    // 1. Hardware y Video
-    inicializar_sistema_acero(); 
-    #include "demo/fgn_math.c"
-    // 2. JS Engine (Mínima huella)
-    inicializar_motor_osiris(); 
-
-    setvbuf(stdout, NULL, _IONBF, 0);
-    signal(SIGPIPE, SIG_IGN);
-
-int sock_data = 0;
+/* ════════════════════════════════════════════════════════════════════════════
+ * MAIN
+ * ════════════════════════════════════════════════════════════════════════════ */
+int main(void) {
+    int sock_data;
     struct sockaddr_in addr_data, addr_ctrl;
     pthread_t thread_ctrl;
-    
-    // DECLARACION AQUI (Para que op_stream y op_ia_update lo vean)
-    FGN_AI_Context* core_ia = NULL;
 
+    inicializar_sistema_acero();
+    inicializar_motor_osiris();
 
-// Si tengo mas de 4GB, uso buffer de 64MB, si no, de 1MB
-uint32_t tam_inicio = (mi_hardware.ram_total_mb > 4096) ? 67108864 : 1048576;
-uranio_safe = crear_bloque(tam_inicio, URANIO);
+    uranio_safe = crear_bloque(65536, URANIO);
+    if (!uranio_safe.data) {
+        printf("[ERROR] Fallo al crear bloque Uranio.\n");
+        return 1;
+    }
 
-
-//    uranio_safe = crear_bloque(1048576, URANIO);
-
-printf("RAM Total: %llu MB\n", (unsigned int long long)mi_hardware.ram_total_mb);
-
-    // Llenamos la estructura con ceros por seguridad
-    memset(&mi_hardware, 0, sizeof(OsirisHardwareMap));
-
-// --- FASE 1: PROBE (AUTODIAGNOSTICO) ---
-    printf("\x1b[1m[INIT] Iniciando secuencia de sondas...\x1b[0m\n");
-    
-
-
-// Correccion de formato de bits
-//printf("RAM Total:      %lu MB\n", (unsigned long)mi_hardware.ram_total_mb);
-
-    // Ejecutamos los drivers de deteccion
-    probe_sistema_base(&mi_hardware);    // CPU y RAM
-    probe_video_capacidades(&mi_hardware); // SDL2 y OpenGL
-    probe_red_estado(&mi_hardware);      // Latencia
-
-    // Mostramos que tenemos potencia para arrancar
-    imprimir_reporte_hw();
-
-/* --- INYECCION DE MASA (FGN) --- */
-// Usamos 'resultado' que ya viene del include de fgn_math.c
-FirmaGeo f_alfa, f_beta; 
-// Reutilizamos la variable global 'resultado'
-FirmaGeo base = FGN_Forjar(20260120, URANIO); 
-FGN_SepararOnda(&base, &f_alfa, &f_beta); 
-FGN_Colapsar(&f_alfa, &f_beta, &resultado); // <--- Aqui se llena la global
-
-/* --- TEST DE EMERGENCIA --- */
-printf("\n[DEBUG] Intentando ejecutar Monitor de Fase...\n");
-fflush(stdout);
-
-if (resultado.bloques.data != NULL) {
-    FGN_Vigilar_GPU(&resultado);
-    fflush(stdout);
-} else {
-    printf("[ERROR] La particula sigue vacia tras el colapso.\n");
-    fflush(stdout);
-}
-/* -------------------------- */
-
-
+    /* ── DISPATCH TABLE ──────────────────────────────────────────────────── */
     static void* dispatch_table[256] = { [0 ... 255] = &&unknown_op };
-    dispatch_table[5] = &&op_rescale;
-    dispatch_table[7] = &&op_stream;
-    dispatch_table[9] = &&op_exit;
-    dispatch_table[22] = &&op_ia_update; // <--- Opcode para recibir ADN
-// dispatch_table[1] = &&op_handshake; // <--- FUTURO: Enviaremos mi_hardware aqui
+
+    /* Nucleo */
+    dispatch_table[1]  = &&op_hwprobe;
+    dispatch_table[5]  = &&op_rescale;
+    dispatch_table[7]  = &&op_stream;
+    dispatch_table[9]  = &&op_exit;
+    dispatch_table[10] = &&op_pause;
+    dispatch_table[15] = &&op_skip;
+    dispatch_table[22] = &&op_ia_update;
+
+    /* Ventana / SDL (30-35) */
+    dispatch_table[30] = &&op_win_create;
+    dispatch_table[31] = &&op_win_destroy;
+    dispatch_table[32] = &&op_win_show;
+    dispatch_table[33] = &&op_win_hide;
+    dispatch_table[34] = &&op_render_frame;
+    dispatch_table[35] = &&op_overlay_text;
+
+    /* QuickJS / Bytecode FGN (40-42) */
+    dispatch_table[40] = &&op_js_eval;
+    dispatch_table[41] = &&op_js_load;
+    dispatch_table[42] = &&op_js_reset;
 
     printf("\x1b[1m--- NODO OSIRIS ACTIVO ---\x1b[0m\n");
 
     while (1) {
         sock_data = socket(AF_INET, SOCK_STREAM, 0);
         sock_ctrl = socket(AF_INET, SOCK_STREAM, 0);
-        
+
         addr_data.sin_family = addr_ctrl.sin_family = AF_INET;
-        addr_data.sin_port = htons(PORT_DATA);
-        addr_ctrl.sin_port = htons(PORT_CTRL);
+        addr_data.sin_port   = htons(PORT_DATA);
+        addr_ctrl.sin_port   = htons(PORT_CTRL);
         inet_pton(AF_INET, CEREBRO_IP, &addr_data.sin_addr);
         inet_pton(AF_INET, CEREBRO_IP, &addr_ctrl.sin_addr);
 
-        if (connect(sock_data, (struct sockaddr *)&addr_data, sizeof(addr_data)) < 0 ||
-            connect(sock_ctrl, (struct sockaddr *)&addr_ctrl, sizeof(addr_ctrl)) < 0) {
+        if (connect(sock_data, (struct sockaddr*)&addr_data, sizeof(addr_data)) < 0 ||
+            connect(sock_ctrl, (struct sockaddr*)&addr_ctrl, sizeof(addr_ctrl)) < 0) {
             close(sock_data); close(sock_ctrl);
             sleep(1); continue;
         }
@@ -232,184 +216,273 @@ if (resultado.bloques.data != NULL) {
         printf("\x1b[32m[OK] Doble vinculo con Cerebro.\n\x1b[0m");
         pthread_create(&thread_ctrl, NULL, control_logic, NULL);
 
-   
-
 next_op: ;
 
     OsirisHeader hdr;
     int tr = 0;
-
-    /* Lectura robusta: reintentar hasta tener los 16 bytes completos */
     while (tr < (int)sizeof(OsirisHeader)) {
         int n = read(sock_data, (uint8_t*)&hdr + tr, sizeof(OsirisHeader) - tr);
         if (n <= 0) goto connection_lost;
         tr += n;
     }
 
-    /* Validacion de version (en lugar del magic de 12 bytes identicos) */
     if (hdr.version != 2) {
-        printf("[SYNC] Version desconocida (%u), descartando header.\n", hdr.version);
+        printf("[SYNC] Version desconocida (%u), descartando.\n", hdr.version);
         goto next_op;
     }
 
-    /* Ahora opcode y payload_size son correctos */
     uint8_t  opcode     = hdr.opcode;
     uint32_t chunk_size = hdr.payload_size;
 
-    /* ── FASE 2B: Verificacion HMAC ─────────────────────────────────────
-     * Opcodes con payload (VIDEO=7, IA_UPDATE=22): leer el payload primero,
-     * verificar HMAC sobre header+payload, luego hacer dispatch.
-     * Opcodes de control sin payload: verificar con payload vacio.
-     * Si la verificacion falla: descartar silenciosamente (goto next_op).
-     * ─────────────────────────────────────────────────────────────────── */
+    /* ── HMAC + XOR (Fase 2B) ────────────────────────────────────────────── */
     if (chunk_size > 0) {
-        /* Seguridad: rechazar payloads absurdamente grandes antes de alocar */
-        if (chunk_size > 67108864u) { /* 64 MB maximo */
-            printf("[SEC] payload_size=%u excede limite, descartando.\n", chunk_size);
+        if (chunk_size > 67108864u) {
+            printf("[SEC] payload_size=%u excede limite.\n", chunk_size);
             goto next_op;
         }
-        /* Asegurar buffer Uranio suficiente */
-        if (chunk_size > uranio_safe.size) {
+        if (chunk_size > uranio_safe.size)
             rb_rescale(&uranio_safe, chunk_size);
-        }
-        /* Leer payload completo en buffer Uranio */
-        int tr_pre = 0;
-        while (tr_pre < (int)chunk_size) {
-            int n = read(sock_data,
-                         (uint8_t*)uranio_safe.data + tr_pre,
-                         chunk_size - tr_pre);
+
+        int tr2 = 0;
+        while (tr2 < (int)chunk_size) {
+            int n = read(sock_data, (uint8_t*)uranio_safe.data + tr2, chunk_size - tr2);
             if (n <= 0) goto connection_lost;
-            tr_pre += n;
+            tr2 += n;
         }
-        /* Verificar HMAC: header parcial + payload */
         if (!osiris_hmac_verificar((OsirisHeaderForHMAC*)&hdr,
                                    (uint8_t*)uranio_safe.data,
-                                   chunk_size, &hmac_ctx)) {
-            goto next_op; /* Firma invalida — paquete descartado */
-        }
-        /* HMAC verificado — descifrar payload con XOR */
-        osiris_xor_payload(
-            (uint8_t*)uranio_safe.data,
-            chunk_size,
-            hmac_ctx.session_key,
-            hdr.frame_cnt
-        );
-    } else {
-        /* Paquetes de control sin payload */
-        if (!osiris_hmac_verificar((OsirisHeaderForHMAC*)&hdr,
-                                   NULL, 0, &hmac_ctx)) {
+                                   chunk_size, &hmac_ctx))
             goto next_op;
-        }
+
+        osiris_xor_payload((uint8_t*)uranio_safe.data,
+                           chunk_size,
+                           hmac_ctx.session_key,
+                           hdr.frame_cnt);
+    } else {
+        if (!osiris_hmac_verificar((OsirisHeaderForHMAC*)&hdr, NULL, 0, &hmac_ctx))
+            goto next_op;
     }
 
-    /* Dispatch a la tabla de operaciones */
     goto *dispatch_table[opcode];
 
+    /* ════════════════════════════════════════════════════════════════════════
+     * HANDLERS
+     * ════════════════════════════════════════════════════════════════════════ */
 
-
-//        uint8_t header[16]; // Aumentado a 16 bytes
-//        if (read(sock_data, header, 16) <= 0) goto connection_lost;
-
-
+    /* ── OP_STREAM (7) ───────────────────────────────────────────────────── */
     op_stream:
-        {
-            // El payload ya fue leido y verificado (HMAC-SHA256) antes del dispatch.
-            // chunk_size viene de hdr.payload_size. 
-            // uranio_safe.data contiene los bytes listos para renderizar.
-            int tr = (int)chunk_size;
-
-            // --- FASE IA: VALIDACION DE RESONANCIA ---
-            // Solo si el Core IA ha sido inyectado con ADN desde Rust
-            // Nota: El core_ia deberia inicializarse en el main o en op_ia_update
-            
-            if (core_ia && core_ia->modelo_data) {
-
-// Pasamos la direccion de uranio_safe ya que es RB_SafePtr*
-                float resonancia = fgn_ai_analizar(core_ia, &uranio_safe);
-                if (resonancia < 0.25f) {
-                    printf("\x1b[1;31m[!] ALERTA: RESONANCIA DE FASE BAJA (%.2f)\x1b[0m\n", resonancia);
-                }
-            }
-
-            // 4. Renderizado via FFPLAY (Seccion Critica)
-            pthread_mutex_lock(&pipe_mutex);
-            
-            if (!display_pipe && !video_paused && tr > 0) {
-                printf("\x1b[34m[STREAM] Iniciando ffplay (Protocolo Osiris)...\n\x1b[0m");
-                // Flags optimizados para minima latencia
-                display_pipe = popen("ffplay -i pipe:0  -flags low_delay -probesize 32 -loglevel quiet -window_title ' FGN STREAM ' ", "w");
-                update_ffplay_pid();
-            }
-
-            if (display_pipe && !video_paused) {
-                if (fwrite(uranio_safe.data, 1, tr, display_pipe) < (size_t)tr) {
-                    printf("\x1b[31m[!] Error de escritura en pipe. Reiniciando visor...\n\x1b[0m");
-                    pclose(display_pipe); 
-                    display_pipe = NULL;
-                } else {
-                    fflush(display_pipe);
-                }
-            }
-            
-            pthread_mutex_unlock(&pipe_mutex);
+    {
+        if (core_ia && core_ia->modelo_data) {
+            float r = fgn_ai_analizar(core_ia, &uranio_safe);
+            if (r < 0.25f)
+                printf("\x1b[1;31m[!] RESONANCIA BAJA (%.2f)\x1b[0m\n", r);
         }
-        goto next_op;
+        pthread_mutex_lock(&pipe_mutex);
+        if (!display_pipe && !video_paused && chunk_size > 0) {
+            printf("\x1b[34m[STREAM] Iniciando ffplay...\n\x1b[0m");
+            display_pipe = popen("ffplay -i pipe:0 -flags low_delay "
+                                 "-probesize 32 -loglevel quiet "
+                                 "-window_title 'FGN STREAM'", "w");
+            update_ffplay_pid();
+        }
+        if (display_pipe && !video_paused) {
+            if (fwrite(uranio_safe.data, 1, chunk_size, display_pipe) < chunk_size) {
+                printf("\x1b[31m[!] Error pipe. Reiniciando...\n\x1b[0m");
+                pclose(display_pipe); display_pipe = NULL;
+            } else {
+                fflush(display_pipe);
+            }
+        }
+        pthread_mutex_unlock(&pipe_mutex);
+    }
+    goto next_op;
 
+    /* ── OP_RESCALE (5) ──────────────────────────────────────────────────── */
     op_rescale:
-        {
-            uint32_t ns;
-            if (read(sock_data, &ns, 4) <= 0) goto connection_lost;
-            rb_rescale(&uranio_safe, ns);
-            uint8_t dummy; read(sock_data, &dummy, 1);
+        rb_rescale(&uranio_safe, chunk_size);
+        goto next_op;
+
+    /* ── OP_PAUSE (10) ───────────────────────────────────────────────────── */
+    op_pause:
+        video_paused = !video_paused;
+        if (ffplay_pid > 0)
+            kill(ffplay_pid, video_paused ? SIGSTOP : SIGCONT);
+        goto next_op;
+
+    /* ── OP_SKIP (15) ────────────────────────────────────────────────────── */
+    op_skip:
+        close_display();
+        goto next_op;
+
+    /* ── OP_IA_UPDATE (22) ───────────────────────────────────────────────── */
+    op_ia_update:
+    {
+        printf("\x1b[35m[IA] RECIBIENDO ADN...\n\x1b[0m");
+        RB_SafePtr adn_safe = crear_bloque(1024, URANIO);
+        int tr3 = 0;
+        while (tr3 < 1024) {
+            int n = read(sock_data, (uint8_t*)adn_safe.data + tr3, 1024 - tr3);
+            if (n <= 0) { rb_liberar(&adn_safe); goto connection_lost; }
+            tr3 += n;
+        }
+        if (!core_ia) core_ia = fgn_ai_init();
+        fgn_ai_actualizar_modelo(core_ia, &adn_safe);
+        printf("\x1b[32m[IA] ADN sincronizado (ID: %u)\n\x1b[0m", core_ia->id_modelo);
+    }
+    goto next_op;
+
+    /* ── OP_HWPROBE (1) ──────────────────────────────────────────────────── */
+    op_hwprobe:
+    {
+        printf("\x1b[36m[HW] Probe solicitado por Cerebro.\x1b[0m\n");
+        probe_sistema_base(&mi_hardware);
+        probe_video_capacidades(&mi_hardware);
+        probe_red_estado(&mi_hardware);
+
+        uint32_t hw_sz = (uint32_t)sizeof(OsirisHardwareMap);
+        uint8_t resp_hdr[16] = {0};
+        resp_hdr[0] = 2;    /* version        */
+        resp_hdr[1] = 1;    /* seed_id        */
+        resp_hdr[2] = 51;   /* OP_DATA_RESPONSE */
+        resp_hdr[7]  = (uint8_t)(hw_sz & 0xFF);
+        resp_hdr[8]  = (uint8_t)((hw_sz >>  8) & 0xFF);
+        resp_hdr[9]  = (uint8_t)((hw_sz >> 16) & 0xFF);
+        resp_hdr[10] = (uint8_t)((hw_sz >> 24) & 0xFF);
+        write(sock_ctrl, resp_hdr, 16);
+        write(sock_ctrl, &mi_hardware, hw_sz);
+        printf("\x1b[32m[HW] Mapa enviado (%u bytes).\x1b[0m\n", hw_sz);
+    }
+    goto next_op;
+
+    /* ── OP_WIN_CREATE (30) ──────────────────────────────────────────────── */
+    op_win_create:
+    {
+        if (chunk_size < sizeof(WinCreateParams)) {
+            nodo_send_ack(30, ACK_ERROR); goto next_op;
+        }
+        WinCreateParams *p = (WinCreateParams*)uranio_safe.data;
+        p->titulo[63] = 0;
+        printf("\x1b[36m[SDL] Ventana: %s (%ux%u)\x1b[0m\n",
+               p->titulo, p->ancho, p->alto);
+        mi_hardware.pantalla_ancho = p->ancho;
+        mi_hardware.pantalla_alto  = p->alto;
+        mi_hardware.soporte_sdl2   = true;
+        materializar_mirror_sdl(&mi_hardware, 0);
+        nodo_send_ack(30, ACK_OK);
+    }
+    goto next_op;
+
+    /* ── OP_WIN_DESTROY (31) ─────────────────────────────────────────────── */
+    op_win_destroy:
+        printf("\x1b[33m[SDL] Ventana destruida.\x1b[0m\n");
+        nodo_send_ack(31, ACK_OK);
+        goto next_op;
+
+    /* ── OP_WIN_SHOW (32) ────────────────────────────────────────────────── */
+    op_win_show:
+        mi_hardware.soporte_sdl2 = true;
+        materializar_mirror_sdl(&mi_hardware, 0);
+        nodo_send_ack(32, ACK_OK);
+        goto next_op;
+
+    /* ── OP_WIN_HIDE (33) ────────────────────────────────────────────────── */
+    op_win_hide:
+        printf("\x1b[33m[SDL] Ventana oculta.\x1b[0m\n");
+        nodo_send_ack(33, ACK_OK);
+        goto next_op;
+
+    /* ── OP_RENDER_FRAME (34) ────────────────────────────────────────────── */
+    op_render_frame:
+        if (chunk_size > 0) {
+            mi_hardware.soporte_sdl2 = true;
+            materializar_mirror_sdl(&mi_hardware, 0);
         }
         goto next_op;
 
-op_ia_update:
-        {
-            printf("\x1b[35m[IA] RECIBIENDO ADN (BLOQUE URANIO)...\n\x1b[0m");
-            
-            // 1. Creamos el contenedor con tu funcion real
-            RB_SafePtr adn_safe = crear_bloque(1024, URANIO);
-            
-            // 2. Leemos directamente al data del SafePtr
-            int tr = 0;
-            while(tr < 1024) {
-                int n = read(sock_data, (uint8_t*)adn_safe.data + tr, 1024 - tr);
-                if (n <= 0) {
-                    rb_liberar(&adn_safe); // Limpieza si falla
-                    goto connection_lost;
-                }
-                tr += n;
+    /* ── OP_OVERLAY_TEXT (35) ────────────────────────────────────────────── */
+    op_overlay_text:
+    {
+        if (chunk_size < sizeof(OverlayParams)) {
+            nodo_send_ack(35, ACK_ERROR); goto next_op;
+        }
+        OverlayParams *op = (OverlayParams*)uranio_safe.data;
+        op->texto[127] = 0;
+        JSContext *js_ctx = obtener_contexto_osiris();
+        if (js_ctx) {
+            char script[256];
+            snprintf(script, sizeof(script),
+                "osiris_dibujar_texto('%s', %d, %d);",
+                (char*)op->texto, (int)op->x, (int)op->y);
+            manejar_comando_fgn_js(script);
+        } else {
+            printf("\x1b[36m[SDL] Overlay: '%s' @ (%d,%d)\x1b[0m\n",
+                   op->texto, op->x, op->y);
+        }
+        nodo_send_ack(35, ACK_OK);
+    }
+    goto next_op;
+
+    /* ── OP_JS_EVAL (40) ─────────────────────────────────────────────────── */
+    op_js_eval:
+    {
+        if (chunk_size == 0 || chunk_size > 65535) {
+            nodo_send_ack(40, ACK_ERROR); goto next_op;
+        }
+        if (chunk_size >= uranio_safe.size)
+            rb_rescale(&uranio_safe, chunk_size + 1);
+        ((uint8_t*)uranio_safe.data)[chunk_size] = 0;
+        printf("\x1b[35m[JS] Eval (%u bytes)\x1b[0m\n", chunk_size);
+        manejar_comando_fgn_js((const char*)uranio_safe.data);
+        nodo_send_ack(40, ACK_OK);
+    }
+    goto next_op;
+
+    /* ── OP_JS_LOAD (41) ─────────────────────────────────────────────────── */
+    op_js_load:
+    {
+        if (chunk_size == 0) { nodo_send_ack(41, ACK_ERROR); goto next_op; }
+        printf("\x1b[35m[JS] Cargando bytecode (%u bytes)\x1b[0m\n", chunk_size);
+        JSContext *js_ctx = obtener_contexto_osiris();
+        if (!js_ctx) { inicializar_motor_osiris(); js_ctx = obtener_contexto_osiris(); }
+        if (js_ctx) {
+            JSValue obj = JS_ReadObject(js_ctx,
+                                        (const uint8_t*)uranio_safe.data,
+                                        chunk_size,
+                                        JS_READ_OBJ_BYTECODE);
+            if (JS_IsException(obj)) {
+                printf("\x1b[31m[JS] Error en bytecode\x1b[0m\n");
+                nodo_send_ack(41, ACK_ERROR);
+            } else {
+                JS_FreeValue(js_ctx, JS_EvalFunction(js_ctx, obj));
+                nodo_send_ack(41, ACK_OK);
             }
+        } else { nodo_send_ack(41, ACK_ERROR); }
+    }
+    goto next_op;
 
-            if(!core_ia) core_ia = fgn_ai_init();
-
-            // 3. Sincronizamos (fgn_ai_core.h debe aceptar RB_SafePtr*)
-            fgn_ai_actualizar_modelo(core_ia, &adn_safe);
-            
-            printf("\x1b[32m[IA] RESONANCIA SINCRONIZADA (ID: %u)\n\x1b[0m", core_ia->id_modelo);
-        }        
+    /* ── OP_JS_RESET (42) ────────────────────────────────────────────────── */
+    op_js_reset:
+        printf("\x1b[33m[JS] Reset motor QuickJS.\x1b[0m\n");
+        cerrar_motor_osiris();
+        inicializar_motor_osiris();
+        nodo_send_ack(42, ACK_OK);
         goto next_op;
 
+    unknown_op:
+        goto next_op;
 
-    unknown_op: goto next_op;
-    op_exit: goto connection_lost;
+    op_exit:
+        goto connection_lost;
 
 connection_lost:
-        printf("\x1b[31m[!] Conexion perdida o reset. Limpiando...\n\x1b[0m");
-        
-        // --- LIMPIEZA DE IA (Dureza 256) ---
-        if (core_ia) {
-            fgn_ai_destruir(core_ia);
-            core_ia = NULL; // Reset de puntero para el proximo reintento
-        }
-
+        printf("\x1b[31m[!] Conexion perdida. Limpiando...\n\x1b[0m");
+        if (core_ia) { fgn_ai_destruir(core_ia); core_ia = NULL; }
         close_display();
         close(sock_data); close(sock_ctrl);
         pthread_cancel(thread_ctrl);
         sleep(1);
-    } // Fin del while(1)
- 
+    } /* fin while(1) */
+
     cerrar_motor_osiris();
     return 0;
 }
