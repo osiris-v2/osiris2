@@ -38,7 +38,7 @@ def_editor_dsk="gedit"
 nombre_venv = "osiris_env"
 
 # Comandos válidos
-valid_commands = ["hls", "shell", "blockchain", "desktop", "gemini", "scanip", "sniff", "fftv", "install","cert","create","gcom"]
+valid_commands = ["ollama", "shell", "blockchain", "desktop", "gemini", "scanip", "sniff", "fftv", "install","cert","create","gcom"]
 
 # Diccionario para almacenar información sobre los módulos y sus funciones main
 module_info = {}

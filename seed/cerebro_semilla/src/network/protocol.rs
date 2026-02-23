@@ -28,6 +28,7 @@ pub struct OsirisPacket {
 }
 
 // ── TABLA DE OPCODES ──────────────────────────────────────────────────────
+#[allow(dead_code)]
 pub mod opcodes {
 
     // ── GRUPO NUCLEO (existentes, sin cambios) ───────────────────────────
@@ -50,6 +51,9 @@ pub mod opcodes {
                                         // payload: ancho*alto*4 bytes raw
     pub const OP_OVERLAY_TEXT: u8 = 35; // Texto sobre la ventana SDL
                                         // payload: OverlayParams (136 bytes)
+    pub const OP_WIN_CLOSE:    u8 = 36; // Cerrar ventana por slot ID
+                                        // payload: u32 slot_id (4 bytes)
+    pub const OP_WIN_LIST:     u8 = 37; // Listar slots activos (sin payload)
 
     // ── GRUPO QUICKJS / BYTECODE FGN (40-49) ─────────────────────────────
     pub const OP_JS_EVAL:      u8 = 40; // Evaluar script JS en QuickJS
@@ -104,12 +108,14 @@ pub struct OverlayParams {
 /// OP_ACK payload (2 bytes)
 #[derive(Debug, Clone, Copy)]
 #[repr(C, packed)]
+#[allow(dead_code)]
 pub struct AckPayload {
     pub opcode_origen: u8,  // opcode que se confirma
     pub resultado:     u8,  // 0=OK, 1=ERROR, 2=PENDIENTE
 }
 
 // ── CONSTRUCTORES ─────────────────────────────────────────────────────────
+#[allow(dead_code)]
 impl OsirisPacket {
 
     // ── Nucleo ────────────────────────────────────────────────────────────

@@ -21,6 +21,7 @@ use video::maniobra::GestorManiobra;
 // Importamos el monitor y su estado atómico
 use video::monitor::{self, MONITOR_F_ACTIVO};
 
+#[allow(dead_code)]
 struct VideoState {
     current_seconds: i32,
     total_seconds: i32,
@@ -30,6 +31,7 @@ struct VideoState {
     reset_time_pending: bool, // <-- Nueva bandera para el Monitor F
 }
 
+#[allow(dead_code)]
 #[repr(C, packed)]
 pub struct PaqueteSoberano {
     pub magic: u16,
@@ -39,6 +41,7 @@ pub struct PaqueteSoberano {
 }
 
 static BYTES_SENT: AtomicUsize = AtomicUsize::new(0);
+#[allow(dead_code)]
 static IA_ACTIVA: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
 async fn reiniciar_flujo(st: &mut VideoState, sc: &mut tokio::net::TcpStream) {
@@ -91,7 +94,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
         let handshake = security::signer::serializar_handshake(&session_key_raw);
         stream_ctrl.write_all(&handshake).await?;
         println!("\x1b[32m[HMAC] Session key enviada al Nodo (36 bytes, canal CONTROL)\x1b[0m");
-
     }
     // ────────────────────────────────────────────────────────────────────────
 
@@ -106,9 +108,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
         gestor: GestorManiobra::new(),
         reset_time_pending: false,
     }));
-
-
-
 
     // --- MONITOR EXTERNO (NUEVO) ---
     let config_monitor = Arc::new(Mutex::new(monitor::MonitorConfig::new(video_url.clone())));
@@ -144,13 +143,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let tx_ai_video = tx_ai.clone();
     let session_key_tx = Arc::clone(&session_key); // clave de sesion para HMAC
     let mut frame_counter: u32 = 0; // contador de frame para XOR keystream
-
-
-/*      ------------_>    */
-
-        enviar_js_eval(&s_data, &session_key, &mut frame_counter,
-    "console.log('[FGN] QuickJS activo en Nodo');").await?;
-        solicitar_hwprobe(&s_ctrl).await?;
 
     tokio::spawn(async move {
         loop {
@@ -265,10 +257,14 @@ let n = match ffmpeg_out.read(&mut chunk).await {
     });
 
     // 8. HILO: RECEPTOR DE COMANDOS ODS (Consola)
-    let s_ctrl_ods = Arc::clone(&s_ctrl);
-    let state_ods = Arc::clone(&state);
+    // Recibe PaqueteSoberano de bio.deb/scripts y los reenvía al Nodo como opcodes FGN
+    let s_ctrl_ods  = Arc::clone(&s_ctrl);
+    let s_data_ods  = Arc::clone(&s_data);
+    let sk_ods      = Arc::clone(&session_key);
+    let state_ods   = Arc::clone(&state);
     tokio::spawn(async move {
         let listener_ods = TcpListener::bind("127.0.0.1:8087").await.expect("Error Bind 8087");
+        let mut ods_frame_counter: u32 = 0; // debe empezar en 0 — el Nodo verifica desde 0
         loop {
             if let Ok((mut socket, _)) = listener_ods.accept().await {
                 let mut buffer = [0u8; std::mem::size_of::<PaqueteSoberano>()];
@@ -276,20 +272,151 @@ let n = match ffmpeg_out.read(&mut chunk).await {
                     let pkg: PaqueteSoberano = unsafe { std::mem::transmute(buffer) };
                     if pkg.magic == 0x256F {
                         let len = pkg.longitud as usize;
-                        let orden = String::from_utf8_lossy(&pkg.data[..len]).trim().to_uppercase();
-                        let mut st = state_ods.lock().await;
-                        let mut sc = s_ctrl_ods.lock().await;
-                        let partes: Vec<&str> = orden.split_whitespace().collect();
+                        // Orden en mayúsculas para comandos de video/control
+                        let orden_upper = String::from_utf8_lossy(&pkg.data[..len]).trim().to_uppercase();
+                        // Orden original para JS (preserva mayúsculas/minúsculas)
+                        let orden_raw = String::from_utf8_lossy(&pkg.data[..len]).trim().to_string();
+                        let partes: Vec<String> = orden_upper.split_whitespace().map(|s| s.to_string()).collect();
                         if partes.is_empty() { continue; }
-                        match partes[0] {
-                            "BITRATE" => { if partes.len() > 1 { if let Ok(nb) = partes[1].parse::<u32>() { st.gestor.bitrate = nb; reiniciar_flujo(&mut st, &mut sc).await; }}}
-                            "FILTER" => { if partes.len() > 1 { if let Ok(id) = partes[1].parse::<usize>() { st.gestor.backup(); st.gestor.filtros_activos.push(id); reiniciar_flujo(&mut st, &mut sc).await; }}}
-                            "PAUSE" => { st.is_paused = !st.is_paused; if let Some(pid) = st.child_pid { let _ = signal::kill(pid, if st.is_paused { Signal::SIGSTOP } else { Signal::SIGCONT }); }}
-                            "SKIP" => { st.current_seconds += 30; reiniciar_flujo(&mut st, &mut sc).await; }
-                            "BACK" => { st.current_seconds = (st.current_seconds - 30).max(0); reiniciar_flujo(&mut st, &mut sc).await; }
-                            "CLEAR" => { st.gestor.filtros_activos.clear(); reiniciar_flujo(&mut st, &mut sc).await; }
-                            "RESET" => { st.current_seconds = 0; st.gestor.filtros_activos.clear(); reiniciar_flujo(&mut st, &mut sc).await; }
-                            _ => {}
+
+                        match partes[0].as_str() {
+                            // -- Comandos de video/stream -- necesitan s_ctrl --
+                            "BITRATE" | "FILTER" | "SKIP" | "BACK" | "CLEAR" | "RESET" | "PAUSE" => {
+                                let mut st = state_ods.lock().await;
+                                let mut sc = s_ctrl_ods.lock().await;
+                                match partes[0].as_str() {
+                                    "BITRATE" => { if partes.len() > 1 { if let Ok(nb) = partes[1].parse::<u32>() { st.gestor.bitrate = nb; reiniciar_flujo(&mut st, &mut sc).await; }}}
+                                    "FILTER"  => { if partes.len() > 1 { if let Ok(id) = partes[1].parse::<usize>() { st.gestor.backup(); st.gestor.filtros_activos.push(id); reiniciar_flujo(&mut st, &mut sc).await; }}}
+                                    "PAUSE"   => { st.is_paused = !st.is_paused; if let Some(pid) = st.child_pid { let _ = signal::kill(pid, if st.is_paused { Signal::SIGSTOP } else { Signal::SIGCONT }); }}
+                                    "SKIP"    => { st.current_seconds += 30; reiniciar_flujo(&mut st, &mut sc).await; }
+                                    "BACK"    => { st.current_seconds = (st.current_seconds - 30).max(0); reiniciar_flujo(&mut st, &mut sc).await; }
+                                    "CLEAR"   => { st.gestor.filtros_activos.clear(); reiniciar_flujo(&mut st, &mut sc).await; }
+                                    "RESET"   => { st.current_seconds = 0; st.gestor.filtros_activos.clear(); reiniciar_flujo(&mut st, &mut sc).await; }
+                                    _ => {}
+                                }
+                            }
+                            // JS <script> -- OP_JS_EVAL al Nodo (solo canal DATA, sin deadlock)
+                            "JS" => {
+                                let skip = orden_raw.find(' ').map(|p| p+1).unwrap_or(orden_raw.len());
+                                let script = orden_raw[skip..].trim().to_string();
+                                if !script.is_empty() {
+                                    println!("\x1b[35m[ODS->NODO] JS: {}\x1b[0m", &script[..script.len().min(60)]);
+                                    let _ = enviar_js_eval(&s_data_ods, &sk_ods, &mut ods_frame_counter, &script).await;
+                                }
+                            }
+                            // WCLOSE <slot> -- OP_WIN_CLOSE: cierra ventana por slot ID
+                            "WCLOSE" => {
+                                let slot = if partes.len() > 1 {
+                                    partes[1].parse::<u32>().unwrap_or(0)
+                                } else {
+                                    println!("\x1b[33m[ODS] Uso: >WCLOSE <slot>\x1b[0m");
+                                    continue;
+                                };
+                                println!("\x1b[36m[ODS->NODO] WCLOSE slot {}\x1b[0m", slot);
+                                let payload = slot.to_le_bytes().to_vec();
+                                let mut pkt = network::protocol::OsirisPacket {
+                                    version: 2, seed_id: 1,
+                                    opcode: network::protocol::opcodes::OP_WIN_CLOSE,
+                                    signature: 0,
+                                    payload_size: payload.len() as u32,
+                                    frame_cnt: ods_frame_counter,
+                                    reservado: 0,
+                                };
+                                let mut p = payload.clone();
+                                security::signer::xor_payload(&mut p, &sk_ods, ods_frame_counter);
+                                pkt.signature = security::signer::generate_signature(&pkt, &p, &sk_ods);
+                                ods_frame_counter = ods_frame_counter.wrapping_add(1);
+                                let mut buf = pkt.as_bytes().to_vec();
+                                buf.extend_from_slice(&p);
+                                let mut sd = s_data_ods.lock().await;
+                                let _ = sd.write_all(&buf).await;
+                            }
+                            // WDESTROY -- OP_WIN_DESTROY: destruye la ultima ventana
+                            "WDESTROY" => {
+                                println!("\x1b[36m[ODS->NODO] WDESTROY\x1b[0m");
+                                let mut pkt = network::protocol::OsirisPacket {
+                                    version: 2, seed_id: 1,
+                                    opcode: network::protocol::opcodes::OP_WIN_DESTROY,
+                                    signature: 0, payload_size: 0,
+                                    frame_cnt: ods_frame_counter, reservado: 0,
+                                };
+                                pkt.signature = security::signer::generate_signature(&pkt, &[], &sk_ods);
+                                ods_frame_counter = ods_frame_counter.wrapping_add(1);
+                                let mut sd = s_data_ods.lock().await;
+                                let _ = sd.write_all(pkt.as_bytes()).await;
+                            }
+                            // WLIST -- OP_WIN_LIST: lista slots activos en el nodo
+                            "WLIST" => {
+                                println!("\x1b[36m[ODS->NODO] WLIST\x1b[0m");
+                                let mut pkt = network::protocol::OsirisPacket {
+                                    version: 2, seed_id: 1,
+                                    opcode: network::protocol::opcodes::OP_WIN_LIST,
+                                    signature: 0, payload_size: 0,
+                                    frame_cnt: ods_frame_counter, reservado: 0,
+                                };
+                                pkt.signature = security::signer::generate_signature(&pkt, &[], &sk_ods);
+                                ods_frame_counter = ods_frame_counter.wrapping_add(1);
+                                let mut sd = s_data_ods.lock().await;
+                                let _ = sd.write_all(pkt.as_bytes()).await;
+                            }
+                            // WIN <w> <h> <titulo> -- OP_WIN_CREATE
+                            "WIN" => {
+                                if partes.len() >= 3 {
+                                    let w = partes[1].parse::<u16>().unwrap_or(640);
+                                    let h = partes[2].parse::<u16>().unwrap_or(480);
+                                    let titulo = if partes.len() > 3 { partes[3..].join(" ") } else { "FGN".to_string() };
+                                    println!("\x1b[36m[ODS->NODO] WIN {}x{} '{}'\x1b[0m", w, h, titulo);
+                                    let mut params_bytes = Vec::with_capacity(70);
+                                    params_bytes.extend_from_slice(&w.to_le_bytes());
+                                    params_bytes.extend_from_slice(&h.to_le_bytes());
+                                    let mut titulo_arr = [0u8; 64];
+                                    let tb = titulo.as_bytes();
+                                    titulo_arr[..tb.len().min(63)].copy_from_slice(&tb[..tb.len().min(63)]);
+                                    params_bytes.extend_from_slice(&titulo_arr);
+                                    params_bytes.extend_from_slice(&0u16.to_le_bytes());
+                                    let mut pkt = network::protocol::OsirisPacket {
+                                        version: 2, seed_id: 1,
+                                        opcode: network::protocol::opcodes::OP_WIN_CREATE,
+                                        signature: 0,
+                                        payload_size: params_bytes.len() as u32,
+                                        frame_cnt: ods_frame_counter,
+                                        reservado: 0,
+                                    };
+                                    security::signer::xor_payload(&mut params_bytes, &sk_ods, ods_frame_counter);
+                                    pkt.signature = security::signer::generate_signature(&pkt, &params_bytes, &sk_ods);
+                                    ods_frame_counter = ods_frame_counter.wrapping_add(1);
+                                    let mut buf = pkt.as_bytes().to_vec();
+                                    buf.extend_from_slice(&params_bytes);
+                                    let mut sd = s_data_ods.lock().await;
+                                    let _ = sd.write_all(&buf).await;
+                                }
+                            }
+                            // PROBE -- OP_HWPROBE por canal DATA (evita deadlock con s_ctrl)
+                            "PROBE" => {
+                                println!("\x1b[36m[ODS->NODO] HWPROBE\x1b[0m");
+                                let mut pkt = network::protocol::OsirisPacket {
+                                    version: 2, seed_id: 1,
+                                    opcode: network::protocol::opcodes::OP_HWPROBE,
+                                    signature: 0, payload_size: 0,
+                                    frame_cnt: ods_frame_counter, reservado: 0,
+                                };
+                                pkt.signature = security::signer::generate_signature(&pkt, &[], &sk_ods);
+                                ods_frame_counter = ods_frame_counter.wrapping_add(1);
+                                let mut sd = s_data_ods.lock().await;
+                                let _ = sd.write_all(pkt.as_bytes()).await;
+                            }
+                            // OVERLAY <x> <y> <texto>
+                            "OVERLAY" => {
+                                if partes.len() >= 4 {
+                                    let x = partes[1].parse::<i16>().unwrap_or(10);
+                                    let y = partes[2].parse::<i16>().unwrap_or(10);
+                                    let texto = partes[3..].join(" ");
+                                    let _ = enviar_overlay_text(&s_data_ods, &sk_ods, &mut ods_frame_counter, &texto, x, y, [0, 255, 0, 255]).await;
+                                }
+                            }
+                            _ => {
+                                println!("\x1b[33m[ODS] '{}' no reconocido. Usa: >PAUSE >JS >WIN >WCLOSE >WDESTROY >WLIST >PROBE >OVERLAY\x1b[0m", partes[0]);
+                            }
                         }
                     }
                 }
@@ -354,6 +481,27 @@ let n = match ffmpeg_out.read(&mut chunk).await {
                     }
                 },
                 'c' => { st.gestor.filtros_activos.clear(); reiniciar_flujo(&mut st, &mut sc).await; },
+                // t → restart inmediato del stream (sin cambiar posicion)
+                't' => {
+                    println!("\x1b[36m[CEREBRO] Reiniciando stream...\x1b[0m");
+
+                    reiniciar_flujo(&mut st, &mut sc).await;
+                },
+                // n → forzar reconexion al Nodo (el Nodo reconecta solo, esto mata ffmpeg)
+                'n' => {
+                    println!("\x1b[33m[CEREBRO] Forzando reconexion...\x1b[0m");
+
+                    if let Some(pid) = st.child_pid {
+                        let _ = signal::kill(pid, Signal::SIGKILL);
+                        st.child_pid = None;
+                    }
+                    // Enviar OP_EXIT al Nodo para que cierre limpio y reconecte
+                    let exit_pkt = network::protocol::OsirisPacket::new_control_packet(
+                        network::protocol::opcodes::OP_EXIT
+                    );
+                    let _ = sc.write_all(exit_pkt.as_bytes()).await;
+                    println!("[33m[CEREBRO] OP_EXIT enviado — el Nodo reconectara solo.[0m");
+                },
                 'q' => { if let Some(pid) = st.child_pid { let _ = signal::kill(pid, Signal::SIGKILL); } break; },
                 'i' => {
                     let s_ctrl_clone = Arc::clone(&s_ctrl);
@@ -437,6 +585,8 @@ let n = match ffmpeg_out.read(&mut chunk).await {
                     println!("  c          Limpiar todos los filtros");
                     println!("  u          Deshacer ultimo filtro");
                     println!("  r          Rollback al estado guardado");
+                    println!("  t          Restart del stream (reconectar ffmpeg)");
+                    println!("  n          Reconectar Nodo (OP_EXIT → el Nodo vuelve solo)");
                     println!("  v          Ver catalogo de filtros");
                     println!("  s          Status del sistema");
                     println!("  f          Toggle Monitor F");
@@ -484,7 +634,7 @@ pub async fn solicitar_hwprobe(
 /// Envia OP_WIN_CREATE al Nodo con dimensiones y titulo.
 pub async fn crear_ventana_nodo(
     s_data: &Arc<Mutex<tokio::net::TcpStream>>,
-    s_ctrl: &Arc<Mutex<tokio::net::TcpStream>>,
+    _s_ctrl: &Arc<Mutex<tokio::net::TcpStream>>, // reservado: ACK del Nodo en Fase 3B
     session_key: &Arc<[u8; 32]>,
     frame_counter: &mut u32,
     ancho: u16,
@@ -597,4 +747,3 @@ pub async fn enviar_overlay_text(
     let mut sd = s_data.lock().await;
     sd.write_all(&buf).await
 }
-

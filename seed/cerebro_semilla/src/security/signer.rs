@@ -71,8 +71,13 @@ pub fn generate_signature(
 }
 
 /// Verifica que el signature recibido es valido.
-/// El Nodo llama a esto tras leer cada header.
-/// Si devuelve false: descartar paquete, no ejecutar opcode.
+///
+/// NOTA: La verificacion activa la hace el Nodo C (osiris_hmac.c).
+/// Esta funcion existe en Rust para:
+///   1. Tests unitarios de firma en el Cerebro
+///   2. Verificar ACK/respuestas del Nodo cuando lleguen (Fase 3B)
+/// Por ahora el Cerebro solo genera firmas, no las verifica.
+#[allow(dead_code)]
 pub fn verificar_signature(
     packet: &OsirisPacket,
     payload: &[u8],
@@ -84,8 +89,10 @@ pub fn verificar_signature(
 }
 
 /// Comparacion de u32 en tiempo constante.
-/// Evita que un atacante deduzca bytes correctos midiendo tiempo.
+/// Evita que un atacante deduzca bytes correctos midiendo tiempo de respuesta.
+/// Se activa cuando verificar_signature empiece a usarse (Fase 3B).
 #[inline(always)]
+#[allow(dead_code)]
 fn constant_time_eq(a: u32, b: u32) -> bool {
     let diff = a ^ b;
     // Si diff == 0 → iguales. La operacion no tiene branch.
