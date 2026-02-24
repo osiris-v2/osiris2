@@ -1,11 +1,11 @@
 {
   "panel7": "clear;reset;clear && cd ../../seed/ && sudo ./osiris_telemetry_v3.sh",
   "panel1": "clear;reset;clear && cd ../../seed/nodo_musculo/bin && ./osiris_node",
-  "panel2": "clear;reset;clear && cd ../../seed/nodo_musculo/bin && ./ods_engine",
-  "panel5": "clear;clear;clear && cd ../../seed/nodo_musculo/bin && ./monitor ",
+  "panel0": "clear;reset;clear && cd ../../seed/nodo_musculo/bin && ./ods_engine",
+  "panel2": "clear;clear;clear && cd ../../seed/nodo_musculo/bin && ./monitor ",
   "panel6": "sudo com use ollama",
-  "panel3": "sudo com use fftv",
-  "panel0": "clear;reset;clear && cd ../../seed/cerebro_semilla/target/release && ./cerebro_semilla ../../../../bin/com/datas/ffmpeg/anon.mp4",
-  "panel4": "clear;reset;clear && ./server.run",
+  "panel4": "sudo com use fftv",
+  "panel3": "clear;reset;clear && cd ../../seed/cerebro_semilla/target/release && ./cerebro_semilla ../../../../bin/com/datas/ffmpeg/anon.mp4",
+  "panel5": "clear;reset;clear && ./server.run",
   "panel8": "clear;reset;clear && cd ../../seed/ && source /etc/environment && python3 asis/bottv2.py &2>/dev/null && cd ../../seed && sudo ./bottv2.sh "
 }
