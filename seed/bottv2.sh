@@ -9,8 +9,8 @@ TXT_INACTIVOS="../bin/com/datas/ffmpeg/canales_inactivos.txt"
 JSON_ACTIVOS="../bin/com/datas/ffmpeg/activos.json"
 JSON_INACTIVOS="../bin/com/datas/ffmpeg/inactivos.json"
 
-TIEMPO_MUESTREO=5 
-TIEMPO_ORDEN=60     
+TIEMPO_MUESTREO=1 
+TIEMPO_ORDEN=20     
 DEBUG=1
 
 # Preparar entorno y forzar permisos iniciales

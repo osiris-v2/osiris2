@@ -1,4 +1,11 @@
 <?php
+header("location:search");
+exit;
+
+
+
+
+
 function makecard($params = []) {
     $defaults = [
         "title"       => "Mi Sitio Web",

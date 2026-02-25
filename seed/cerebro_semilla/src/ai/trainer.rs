@@ -4,6 +4,7 @@ use std::io::Write;
 use std::error::Error;
 use std::time::{SystemTime, UNIX_EPOCH}; // Añadimos tiempo para romper el bucle
 
+#[allow(dead_code)]
 pub struct AnalisisIA {
     pub esfericidad: f32,
     pub disonancia: f32,
