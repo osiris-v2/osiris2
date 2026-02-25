@@ -4,7 +4,7 @@
   "panel5": "clear;reset;clear && cd ../../seed/nodo_musculo/bin && ./ods_engine",
   "panel2": "clear;clear;clear && cd ../../seed/nodo_musculo/bin && ./monitor ",
   "panel0": "clear;reset;clear && cd ../server/chat_server/target/optimized/release && ./client_release",
-  "panel4": "sudo com use fftv",
+  "panel4": "clear;clear;clear && cd ../../seed/nodo_musculo/bin && ./spiderbot ",
   "panel3": "clear;reset;clear && cd ../../seed/cerebro_semilla/target/release && ./cerebro_semilla ../../../../bin/com/datas/ffmpeg/anon.mp4",
   "panel6": "clear;reset;clear && cd ../server/chat_server/target/optimized/release && ./server.run.arch",
   "panel8": "clear;reset;clear && cd ../../seed/ && source /etc/environment && python3 asis/bottv2.py &2>/dev/null && cd ../../seed && sudo ./bottv2.sh "

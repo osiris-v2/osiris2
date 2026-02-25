@@ -196,7 +196,7 @@ function makecard($params = []) {
     <div class="view-modes">
        
         <img src="img/goyimzh.png" class="header-img" >  
-        <button class="header-img" onclick="setMode('text', this);"> <a href="search/index.goy?" target="_newGoyim" style="color:#a0f0b0;"><img src="img/goys1.png" class="header-img" style="max-height: 20px;width:85px;background:rgba(221,222,221,.1)"></a></button>
+        <button class="header-img" onclick="setMode('text', this);"> <a href="/search/?" target="_newGoyim" style="color:#a0f0b0;"><img src="img/goys1.png" class="header-img" style="max-height: 20px;width:85px;background:rgba(221,222,221,.1)"></a></button>
         <button class="mode-btn active" onclick="setMode('text', this)">TEXT</button>
         <button class="mode-btn" onclick="setMode('md', this)">MD</button>
     </div>
