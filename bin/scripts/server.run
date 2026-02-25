@@ -32,7 +32,7 @@ for i in "${!rutas_completas[@]}"; do
     file_name=$(basename "${rutas_completas[$i]}")
     echo "$((i+1))) [$build_type] -> $file_name"
 done
-
+ 
 read -p "Opción [1-${#rutas_completas[@]}]: " seleccion
 
 # 2. Ejecución
