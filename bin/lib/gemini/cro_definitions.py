@@ -31,8 +31,19 @@ cro_definitions = {
         "REMOTE_FS":["SFTP_LS"]
     },
     "PROTO_DEFINITIONS": {
-        "REMOTE_FS":{
-            "SFTP_LS":"filepath"
+        "REMOTE_FS": {
+            "SFTP_LS": {
+                "DESCRIPTION": "Lista el contenido de un directorio remoto vía SFTP.",
+                "ACTION_TYPE": "SFTP_LIST",
+                "PARAMETERS": {
+                    "PATH": {
+                        "TYPE": "string",
+                        "REQUIRED": True,
+                        "DYNAMIC": True,
+                        "DEFAULT": "."
+                    }
+                }
+            }
         },
         "WEB_MODE": {
             "JS": {
@@ -229,4 +240,3 @@ cro_definitions = {
         }
     }
 }
-

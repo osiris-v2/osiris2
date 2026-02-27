@@ -123,44 +123,22 @@ def text_to_speech(text: str, lang: str = 'es', save_path: str = None) -> str | 
 
 #    print(f"Osiris-TTS: Reproduciendo archivo de audio ({os.path.getsize(audio_path)} bytes)...")
 
-    # Reproducir audio con ffplay
-    player_command = ["ffplay", "-nodisp", "-autoexit", audio_path]
+    # Reproducir audio con ffplay en background (no bloquea el hilo principal)
+    # Timeout=15s causaba cortes en respuestas largas → se elimina communicate()
+    player_command = ["ffplay", "-nodisp", "-autoexit", "-loglevel", "quiet", audio_path]
     try:
-
-
-        process = subprocess.Popen(
-        player_command,
-        stdout=subprocess.PIPE,
-          stderr=subprocess.PIPE,
-           text=True
+        # Popen sin communicate() → lanza y continúa de inmediato
+        subprocess.Popen(
+            player_command,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
         )
-        stdout, stderr = process.communicate(timeout=15)
-
-#        print(f"Osiris-TTS: ffplay finalizó")
-        if stdout:
-            stdout_ok="ESTADO 0"
-            _stdout_ok = " _stdout_ok "
-#            print(f"Osiris-TTS STDOUT:\n{_stdout_ok}")
-        if stderr:
-            print("....audio....")
-#            print(f"Osiris-TTS STDERR:\n{stderr}", file=sys.stderr)
-
-        if process.returncode != 0:
-            print(f"Osiris-TTS ERROR: ffplay falló con código {process.returncode}", file=sys.stderr)
-            return None
+        print("....audio....")
     except FileNotFoundError:
-        print("Osiris-TTS ERROR: 'ffplay' no está instalado o no se encuentra en el PATH.", file=sys.stderr)
-        return None
-    except subprocess.TimeoutExpired:
-        process.kill()
-        print("Osiris-TTS ERROR: Reproducción de audio excedió el tiempo límite.", file=sys.stderr)
+        print("Osiris-TTS ERROR: 'ffplay' no instalado o no encontrado en PATH.", file=sys.stderr)
         return None
     except Exception as e:
-        print(f"Osiris-TTS ERROR: Error inesperado durante la reproducción: {e}", file=sys.stderr)
+        print(f"Osiris-TTS ERROR inesperado: {e}", file=sys.stderr)
         return None
-    finally:
-        if not save_path and os.path.exists(audio_path):
-            print(f"Osiris-TTS: Eliminando archivo temporal: {audio_path}")
-#            os.remove(audio_path)
-#    print("Osiris-TTS: Proceso finalizado *correctamente.")
+    # No limpiamos el temporal aquí: ffplay puede seguir leyéndolo
     return audio_path
