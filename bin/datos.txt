@@ -423,3 +423,5 @@
 [canal:"Tamyr",url:"https://bstonline.mediacdn.ru/cdn/tamyr/playlist.m3u8",descripcion:"Kids",xdata:"m3u8"]
 [canal:"Tavriya",url:"https://streaming.televizor-24-tochka.ru/live/24.m3u8",descripcion:"General",xdata:"m3u8"]
 [canal:"STV",url:"https://ctv.dc.beltelecom.by/ctv/ctv.stream/playlist.m3u8",descripcion:"General",xdata:"m3u8"]
+[canal:"Arirang TV UN",url:"https://amdlive-ch02-ctnd-com.akamaized.net/arirang_2ch/smil:arirang_2ch.smil/playlist.m3u8",descripcion:"News",xdata:"m3u8"]
+[canal:"Iran International",url:"https://dev-live.livetvstream.co.uk/LS-63503-4/index.m3u8",descripcion:"News",xdata:"m3u8"]

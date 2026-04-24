@@ -41,10 +41,21 @@ sqlite-lib 				apt install libsqlite3-dev
 
 ExtApp     			apt install nemo
 
+dbus-x11 				apt install dbus-x11
+
+TOOLS			         apt install wmctrl xdotool
+
+zstd   sudo apt install zstd 
+
+
+ollama curl -fsSL https://ollama.com/install.sh | sh
+
 apache2.enmod 			a2enmod ssl rewrite
 
 pip.requeriments.install 	. bin/install/installpip.sh 
 pip.requeriments.upgrade 	. bin/install/upgradepip.sh 
+
+
 
 
 install.rust 			. bin/install/rust.sh
@@ -54,9 +65,5 @@ ffmpeg-pack 			. bin/install/ffmpeg_install.sh
 tmux-pack 				. bin/install/tmux_install.sh
 
 node-Opack eval 		. bin/install/node_install.sh
-TOOLS			         sudo install wmctrl xdotool
+
 #END
-
-zstd   sudo apt-get install zstd 
-ollama curl -fsSL https://ollama.com/install.sh | sh
-

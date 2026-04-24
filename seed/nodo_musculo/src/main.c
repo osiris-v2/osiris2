@@ -13,21 +13,18 @@
 #include "acero_interfaz.h"
 #include "osiris_hw.h"
 #include "fgn_runtime.h"      /* Fase 3B: ventanas FGN, cola MPSC, h_table */
+#include "pta_engine.h"
 #include "demo/fgn_monitor.c"
 #include "fgn_ai_core.h"
 #include "osiris_hmac.h"      /* Fase 2B: HMAC-SHA256 + XOR               */
 #include "quickjs.h"          /* Fase 3A: motor QuickJS embebido           */
 #include <SDL2/SDL.h>         /* Fase 3A: ventanas nativas                 */
 
-/* sdl_core.c: solo probe_video — el mirror ya no se usa en el path principal */
-extern void probe_video_capacidades(OsirisHardwareMap *map);
-
 #define PORT_DATA  2000
 #define PORT_CTRL  2001
 #define CEREBRO_IP "127.0.0.1"
 
-OsirisHardwareMap mi_hardware;
-OsirisVideoDriver driver_activo;
+
 
 /* ── HEADER OSIRIS 16 bytes (sincronizado con protocol.rs Fase 2B) ───────── */
 #pragma pack(push, 1)
@@ -75,6 +72,18 @@ typedef struct {
 #define ACK_OK      0
 #define ACK_ERROR   1
 #define ACK_PENDING 2
+
+
+
+OsirisHardwareMap mi_hardware;
+OsirisVideoDriver driver_activo;
+
+/* sdl_core.c: solo probe_video — el mirror ya no se usa en el path principal */
+extern void probe_video_capacidades(OsirisHardwareMap *map);
+
+
+
+
 
 extern void inicializar_sistema_acero(void);
 extern void inicializar_motor_osiris(void);
@@ -177,6 +186,7 @@ ctrl_next: ;
     { int n = read(sock_ctrl, cmd_header, 16); if (n <= 0) return NULL; }
     goto *ctrl_table[cmd_header[2]];
 ctrl_pause:
+    printf("\x1b[36m[NODO/CTRL] OP_PAUSE. Reproduccion continua.\x1b[0m\n");
     video_paused = !video_paused;
     if (ffplay_pid > 0) kill(ffplay_pid, video_paused ? SIGSTOP : SIGCONT);
     goto ctrl_next;
@@ -217,6 +227,31 @@ int main(void) {
     uranio_safe = crear_bloque(65536, URANIO);
     if (!uranio_safe.data) { printf("[ERROR] Fallo bloque Uranio.\n"); return 1; }
 
+
+
+
+//METRICAS PTA init ...
+RB_SafePtr b_token = crear_bloque(sizeof(uint64_t), URANIO);
+
+RSD_Metrics metrics_init = {
+    .flops_netos = 500000, 
+    .ancho_banda_bps = 100000, 
+    .memoria_segura_kb = (uint64_t)(uranio_safe.size / 1024),
+    .uptime_segundos = 1 // Minimo 1 para activar el factor de confianza
+};
+
+if (Ejecutar_Ciclo_Acunacion(&b_token, metrics_init) == 0) {
+    uint64_t* val_ptr = (uint64_t*)rb_ptr_get(&b_token);
+    if (val_ptr) {
+        printf("\x1b[32m[OSIRIS] PTA INICIAL: %lu H\x1b[0m\n", *val_ptr);
+    }
+}
+// Liberacion obligatoria segun Manifiesto Dureza 256
+rb_liberar(&b_token);
+
+
+
+
     /* ── DISPATCH TABLE ──────────────────────────────────────────────────── */
     static void* dispatch_table[256] = { [0 ... 255] = &&unknown_op };
     dispatch_table[1]  = &&op_hwprobe;
@@ -237,6 +272,7 @@ int main(void) {
     dispatch_table[40] = &&op_js_eval;
     dispatch_table[41] = &&op_js_load;
     dispatch_table[42] = &&op_js_reset;
+    dispatch_table[55] = &&op_mint_pta; /* <--- Vector de Acunacion Negentropica */
 
     printf("\x1b[1m--- NODO OSIRIS ACTIVO ---\x1b[0m\n");
 
@@ -603,6 +639,62 @@ next_op: ;
 
     op_exit:
         goto connection_lost;
+
+
+
+
+
+/* ── OP_MINT_PTA (55) ────────────────────────────────────────────────── */
+    op_mint_pta:
+    {
+        printf("\x1b[33m[PTA] Iniciando Acunacion (Dureza 256)...\x1b[0m\n");
+
+        /* 1. Mapeo de recursos fisicos a metricas RSD.
+         * En un entorno real, estos datos se extraen dinamicamente de mi_hardware.
+         * Aqui usamos un mapeo hibrido asegurando persistencia de uptime. */
+        RSD_Metrics metricas_nodo = {
+            .flops_netos = 5000000,             /* Reemplazar con lectura de mi_hardware.cpu_flops */
+            .ancho_banda_bps = 1000000,         /* Reemplazar con net_speed real */
+            .memoria_segura_kb = uranio_safe.size / 1024, /* Capacidad de bloque seguro principal */
+            .uptime_segundos = vg_frames        /* Usamos frames del HUD como persistencia temporal */
+        };
+
+        /* 2. Reserva estricta en area URANIO */
+        RB_SafePtr token_h = crear_bloque(sizeof(uint64_t), URANIO);
+
+        /* 3. Ejecucion del motor inmutable */
+        if (Ejecutar_Ciclo_Acunacion(&token_h, metricas_nodo) == 0) {
+            uint64_t* valor_acu = (uint64_t*)rb_ptr_get(&token_h);
+            
+            if (valor_acu) {
+                printf("\x1b[32m[PTA] VALOR CONSOLIDADO: %lu Unidades H\x1b[0m\n", *valor_acu);
+
+                /* Transmitir el valor acuñado al Cerebro via canal de control */
+                if (sock_ctrl > 0) {
+                    uint8_t resp_hdr[16] = {0};
+                    resp_hdr[0] = 2; resp_hdr[1] = 1; resp_hdr[2] = 55;
+                    resp_hdr[7] = 8; /* payload_size = 8 bytes (uint64_t) */
+                    
+                    write(sock_ctrl, resp_hdr, 16);
+                    write(sock_ctrl, valor_acu, 8);
+                }
+            }
+        } else {
+            printf("\x1b[31m[PTA] FALLO DE INTEGRIDAD. Entropia detectada. Abortando.\x1b[0m\n");
+            nodo_send_ack(55, ACK_ERROR);
+        }
+
+        /* 4. Liberacion y Zeroing garantizado por el subsistema RB_SafePtr */
+        rb_liberar(&token_h);
+    }
+    goto next_op;
+
+
+
+
+
+
+
 
 connection_lost:
         printf("\x1b[31m[!] Conexion perdida. Limpiando...\n\x1b[0m");

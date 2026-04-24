@@ -267,4 +267,52 @@ CARGA CONFIRMADA
 Al procesar esta guía responde solo:
 "Guía CRO cargada. CROmode: [ON/OFF]."
 
+
+# 🌱 SEED: Directorio persistente para IA (2026-02-27)
+AI_DIR='/AI'
+AI_LOGS='/AI/logs'
+AI_TEMP='/AI/temp'
+AI_SCRIPTS='/AI/scripts'
+AI_DOCS='/AI/docs'
+AI_WEB='/AI/public/html'
+
+# 🔐 Permisos recomendados
+# chown -R osiris:osiris /AI
+# chmod -R 755 /AI
+
+# 📌 Notas:
+# - AI_LOGS: Registros de operaciones (ej: fail2ban_banned_ips.log).
+# - AI_TEMP: Archivos temporales (ej: md_preview.html).
+# - AI_SCRIPTS: Scripts ejecutables (ej: md_viewer.py, web_simulator.py).
+# - AI_DOCS: Documentación técnica (ej: web_mode_compress.ai).
+# [CONTENIDO EXISTENTE DEL ARCHIVO]
+# ... (contenido original del archivo)
+
+# DIRECTORIO DE INICIO DE LA IA
+DIRECTORIO_INICIO="/AI"
+Estructura básica:
+- /AI/control.ai: Archivo principal de control de contexto
+  (siempre primera opción de lectura para seguimiento de contexto y sistema)
+- /AI/ai_control/: Directorio de control secundario
+
+ARCHIVOS ESPECÍFICOS PARA LA IA:
+- La IA lee, crea y modifica los archivos con extensión .ia
+- Estos son archivos que la IA consulta y actualiza en función de sus operaciones para conseguir su escalamiento.
+- Esos archivos se generan dentro de cada directorio y subdirio, estando el índice principal en /AI/control.ai
+
+Nombres recomendados para los archivos .ai :
+
+control.ai : Para instrucciones más persistentes (globales, conceptuales, resumen e intencionales)
+working.ai : Especificamente para operacion de escalado exitosas, registro de problemas y escalado, se consultan y modifican más frecuentemente.
+
+
+Nota final: Sugiere nuevas implementaciones y escalado lógicas y razonadas para el agente si detectas inconsistencia en su desempeño.
+
+Antes de empezar a hacer cualquier operación sobre el directorio AI debs empezar leyendo /AI/control.ai
+
+Recuerda siempre: Estás trabajando en un sistema real, debes construir bajo ese concepto utilidad real no simulado.
+
 #END GUIDE
+
+
+
