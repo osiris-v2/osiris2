@@ -63,13 +63,38 @@ static void comando_multiline(char *nombre) {
 // Declaracion externa del driver
 extern void ods_red_transmitir(const char *mensaje, unsigned int hash);
 
-static void transmitir_a_nodo(char *mensaje) {
-    // Calculamos el hash antes de enviar para que el servidor pueda validar integridad
+/* Sanitiza in-place: comillas tipograficas UTF-8 → ASCII recto.
+ * Cualquier otro byte multibyte >= 0x80 se descarta.
+ * QuickJS y el protocolo OSIRIS solo aceptan ASCII puro. */
+static void sanitizar_ascii(char *s) {
+    unsigned char *r = (unsigned char*)s;
+    unsigned char *w = (unsigned char*)s;
+    while (*r) {
+        if (*r < 0x80) {
+            *w++ = *r++;
+        } else if (r[0]==0xE2 && r[1]==0x80 && (r[2]==0x98||r[2]==0x99)) {
+            *w++ = '\''; r += 3;  /* ' '  → ' */
+        } else if (r[0]==0xE2 && r[1]==0x80 && (r[2]==0x9C||r[2]==0x9D)) {
+            *w++ = '"';  r += 3;  /* " "  → " */
+        } else {
+            r++;
+            while (*r >= 0x80 && *r < 0xC0) r++;  /* saltar bytes de continuacion */
+        }
+    }
+    *w = '\0';
+}
+
+static const char *_linea_raw_actual = NULL;
+
+static void transmitir_a_nodo(const char *linea_completa) {
+    char buf[4096];
+    strncpy(buf, linea_completa, sizeof(buf) - 1);
+    buf[sizeof(buf) - 1] = '\0';
+    sanitizar_ascii(buf);
     unsigned int h = 0;
-    char *p = mensaje;
+    const char *p = buf;
     while (*p) h = (h << 5) + *p++;
-    
-    ods_red_transmitir(mensaje, h);
+    ods_red_transmitir(buf, h);
 }
 
 void ods_ejecutar_comando(char **args) {
@@ -80,7 +105,11 @@ void ods_ejecutar_comando(char **args) {
 
     // 1. OPERADOR DE NODO (>) - Prioridad de enlace
     if (prefijo == '>') {
-        transmitir_a_nodo(target);
+        const char *payload = (_linea_raw_actual && _linea_raw_actual[0] == '>')
+            ? _linea_raw_actual + 1
+            : target;
+        while (*payload == ' ') payload++;  /* saltar espacio tras > */
+        transmitir_a_nodo(payload);
         return;
     }
 
@@ -185,12 +214,12 @@ void ods_ejecutar_comando(char **args) {
 
 void ods_ejecutar_linea(char *linea) {
     if (!linea || *linea == '\0') return;
+    _linea_raw_actual = linea;
     char **args = tokenizar(linea);
     if (args) {
         ods_ejecutar_comando(args);
         for (int i = 0; args[i]; i++) free(args[i]);
         free(args);
     }
+    _linea_raw_actual = NULL;
 }
-
-

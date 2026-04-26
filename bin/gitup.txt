@@ -26,7 +26,20 @@ seed/osiris_telemetry_v2.sh
 seed/nodo_musculo/include
 seed/nodo_musculo/src/main.c
 seed/nodo_musculo/src/plugins
+seed/nodo_musculo/src/core
+seed/nodo_musculo/src/demo
+seed/nodo_musculo/src/drivers
+seed/nodo_musculo/src/math
+seed/nodo_musculo/src/mem
+seed/nodo_musculo/src/net
+seed/nodo_musculo/src/video
+seed/nodo_musculo/util
+
+seed/cerebro_semilla/cargo.toml
 seed/cerebro_semilla/src/
+seed/cerebro_semilla/src/
+
+seed/Makefile
 
 #Binarios Seed
 seed/nodo_musculo/bin/monitor

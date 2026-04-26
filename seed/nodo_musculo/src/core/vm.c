@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "vm.h"
-#include "../mem/rb_csp.h"
+#include "rb_csp.h"
 
 void osiris_vm_exec(uint8_t* bytecode, RB_SafePtr* block) {
     // Tabla de Saltos (Dureza Diamante)

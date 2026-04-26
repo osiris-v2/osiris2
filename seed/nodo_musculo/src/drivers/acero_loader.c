@@ -10,11 +10,12 @@ extern OsirisVideoDriver cargar_driver_gl_legacy();
 void inicializar_sistema_acero(void) {
     printf("[ACERO] Detectando Hardware...\n");
     
-    // 1. Cargamos la estructura de funciones legacy
+    // 1. Cargamos la estructura de funciones
     driver_activo = cargar_driver_gl_legacy();
     
-    // 2. Ejecutamos la inicializacion real de SDL2/GL
-    if (driver_activo.iniciar(1280, 720)) {
+    // 2. Ejecutamos la inicializacion real
+    // Las dimensiones ya no se usan — el HUD calcula su propia posicion
+    if (driver_activo.iniciar(0, 0)) {
         printf("[ACERO] Driver activo: %s\n", driver_activo.nombre_driver);
     } else {
         printf("[ERROR] Fallo critico al iniciar hardware.\n");

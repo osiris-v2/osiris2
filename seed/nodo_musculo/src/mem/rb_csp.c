@@ -97,3 +97,15 @@ bool rb_colapsar_observacion(RB_SafePtr* alfa, RB_SafePtr* beta, RB_SafePtr* res
     printf("[MEM] Colapso exitoso. Referencias restantes: %u\n", *rc);
     return true;
 }
+
+
+void* rb_ptr_get(RB_SafePtr* ptr) {
+    if (!ptr) return NULL;
+    return ptr->data;
+}
+
+uint32_t rb_ptr_size(RB_SafePtr* ptr) {
+    if (!ptr) return 0;
+    return ptr->size;
+}
+
