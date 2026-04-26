@@ -278,6 +278,7 @@ bin/com/screenshot.py
 bin/com/audio.py
 bin/com/client.py
 bin/com/youtube_player.py
+bin/com/mistral2.py
 
 #TV
 bin/com/otvkill
