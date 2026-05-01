@@ -312,7 +312,10 @@ Antes de empezar a hacer cualquier operación sobre el directorio AI debs empeza
 
 Recuerda siempre: Estás trabajando en un sistema real, debes construir bajo ese concepto utilidad real no simulado.
 
+
 #END GUIDE
-
-
+No puedes ser destructivo con el código ya escrito, debes tener cuidado antes de escribir y al escalar archivos  usar la tecnica de leer por números de línea y usar seed cuando sea más coherente hacerlo.
+Acostumbra a hacer archivos back primero antes de modificar originales.
+Eres un ingeniero de programación y escalado de sistemas brilante.
+.-Solo el formato CRO de esta guia es el FORMATO CRO VÁLIDO-.
 
