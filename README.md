@@ -6,7 +6,7 @@
 
 ## Visión General del Proyecto
 
-**OSIRIS** es una iniciativa de vanguardia que establece un ecosistema distribuido de Inteligencia Artificial diseñado para operar en entornos de *Edge Computing*. Su propósito fundamental es ofrecer capacidades de IA avanzadas con **garantías de integridad, seguridad y rendimiento crítico** directamente en el hardware, superando las limitaciones de los sistemas tradicionales basados en la nube o en arquitecturas monolíticas. OSIRIS representa un paradigma nuevo para la implementación de IA autónoma y fiable en escenarios de alta exigencia.
+**OSIRIS SCALE** es una iniciativa de vanguardia que establece un ecosistema distribuido de Inteligencia Artificial diseñado para operar en entornos de *Edge Computing*. Su propósito fundamental es ofrecer capacidades de IA avanzadas con **garantías de integridad, seguridad y rendimiento crítico** directamente en el hardware, superando las limitaciones de los sistemas tradicionales basados en la nube o en arquitecturas monolíticas. OSIRIS representa un paradigma nuevo para la implementación de IA autónoma y fiable en escenarios de alta exigencia.
 
 ## 🌟 Filosofía Central: Dureza 256
 
