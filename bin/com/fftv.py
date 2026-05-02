@@ -65,7 +65,7 @@ ffprobe_exec="com/osiris_env/ffmpeg/bin/ffprobe"
 seed_exec="../seed/cerebro_semilla/target/release/cerebro_semilla"
 
 lineInput = None
-def_output = "rtmp://a.rtmp.youtube.com/live2/hypq-r4z9-9r8g-3phm-9py4"
+def_output = "rtmp://ingest.global-contribute.live-video.net/app/live_1443704297_wQSkaRqVOuzxkD1VY2u43Tcvf8krRI"
 def_fout = "flv"
 def_progress_file = "com/datas/progress_tv.txt"
 def_seek_start = None #"00:38:17"

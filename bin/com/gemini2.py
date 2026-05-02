@@ -241,8 +241,8 @@ gemini_models = ["gemini-2.5-flash",
 
 
 # Define la clave API (si ya existe)
-API_KEY = "AIzaSyDdQRdEjvqx37q4XPB8WNY9tHUZLb7s-2E" 
-API_KEY = "AIzaSyAx4Vz390BDngPagph1GIg-bc2I1WbTfW4"
+
+API_KEY = ""
 #os.getenv("GOOGLE_API_KEY")
 
 #Define modelo a usar

@@ -1194,27 +1194,58 @@ def main(args):
         if command in ("--i", "--info", "--help"):
             print_info(); return
 
-        # ── SSH/SFTP ─────────────────────────────────────────────
+
+
+
+
+# ── SSH/SFTP ─────────────────────────────────────────────────
         if command in ("--sshc", "--ssh--connection"):
-            import asyncio
+            global sftp_global_connector
+
+    # Crear el conector si aún no existe
             if sftp_global_connector is None:
                 sftp_global_connector = SSHC.SSHConnector()
-                croparser.set_sftp_connector(sftp_global_connector)
-                print("Estableciendo conexiones SSH/SFTP…")
                 try:
-                    loop = asyncio.get_event_loop_policy().new_event_loop()
-                    asyncio.set_event_loop(loop)
-                    loop.run_until_complete(sftp_global_connector.connect())
-                finally:
-                    loop.close()
+                    croparser.set_sftp_connector(sftp_global_connector)
+                except Exception:
+                    pass
+
+    # Separar argumentos del programa vs comandos SSH:
+    # Los subcomandos del programa empiezan con '--' y están en _APP_MAP
+    # Todo lo demás son comandos a ejecutar en el servidor remoto
+            PROGRAM_SUBCMDS = {"--gui", "--tunnel", "--monitor", "--editor"}
+            sub_args = args[1:]  # todo lo que viene después de --sshc
+
+            if not sub_args:
+        # Sin args → conectar y mostrar estado
+                result = SSHC.dispatch([], sftp_global_connector)
+                print(result)
+            elif sub_args[0] in PROGRAM_SUBCMDS:
+        # Son subcomandos del programa (GUI, tunnel, etc.)
+        # Asegurarse de que hay conexión antes de lanzar la GUI
+                if not sftp_global_connector.connected:
+                    sftp_global_connector.sync_connect()
+                result = SSHC.dispatch(sub_args, sftp_global_connector)
+                print(result)
+            elif sub_args[0] == "--":
+        # Forzar renegociación de credenciales
+                import asyncio
+                asyncio.run(croparser._prompt_for_connection_details())
             else:
-                print("Conexión Global Operativa")
-                sftpcom = " ".join(args[1:]) if len(args) > 1 else "pwd"
-                if len(args) > 1 and args[1] == "--":
-                    asyncio.run(croparser._prompt_for_connection_details())
-                else:
-                    asyncio.run(croparser.test(sftpcom))
+        # Comando remoto SSH — delegar a dispatch que lo ejecuta
+                if not sftp_global_connector.connected:
+                    sftp_global_connector.sync_connect()
+                result = SSHC.dispatch(sub_args, sftp_global_connector)
+                conversation_context += result + "\n"
+                print(result)
             return
+
+
+
+
+
+
+
 
         # ── LOC ──────────────────────────────────────────────────
         if command in ("--loc", "--load-osiris-context"):
