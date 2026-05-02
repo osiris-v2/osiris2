@@ -2,7 +2,7 @@
 
 
 
-# 📑 Documento Ejecutivo del Proyecto OSIRIS: IA Operativa Endurecida en el Borde
+# 📑  IA Operativa Endurecida en el Borde
 
 ## Visión General del Proyecto
 
