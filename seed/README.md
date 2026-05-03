@@ -35,7 +35,7 @@ La inteligencia artificial de Osiris opera mediante el lenguaje CRO (Command Req
 **Importante:** El sistema se encuentra en fase de desarrollo. Se recomienda contactar al autor para soporte técnico o participación en el proyecto.
 
 *   **Método Principal de Instalación:**
-    Osiris se instala utilizando un paquete `.deb`. Actualmente, el instalador es `osiris2release.deb`, ubicado en el directorio `/DEBIAN/` del repositorio.
+    Osiris se instala utilizando un paquete `.deb`. Actualmente, el instalador es `osiris2release.deb`, ubicado en el directorio ` ./  (RAIZ) ` del repositorio.
 
 *   **Pasos para la Instalación:**
     1.  Descargue el archivo `osiris2release.deb`.
