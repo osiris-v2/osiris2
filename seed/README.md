@@ -1,4 +1,4 @@
----
+
 **Manual de Instalación de Osiris Scale**
 **Versión: General**
 **Fecha: 2026-02-27**
@@ -76,5 +76,5 @@ Osiris integra y utiliza diversas herramientas y componentes para su funcionamie
 **7. Contacto**
 
 osiris.osscom@gmail.com
----
+
 **Nota Final:** Este manual es un reflejo de la evolución de Osiris y será actualizado por la IA para mantener la información más reciente sobre su visión y capacidades.
