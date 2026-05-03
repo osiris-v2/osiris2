@@ -2,7 +2,8 @@
 
 
 
-# 📑  IA Operativa Endurecida en el Borde
+# 📑  SCALE AI  
+# IA Operativa encapsulada
 
 ## Visión General del Proyecto
 
