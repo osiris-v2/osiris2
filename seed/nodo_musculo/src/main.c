@@ -194,6 +194,7 @@ ctrl_skip:
     printf("\x1b[36m[NODO/CTRL] OP_SKIP. Reproduccion continua.\x1b[0m\n");
     goto ctrl_next;
 ctrl_unknown:
+    printf("\x1b[36m[NODO/CTRL] unknown_op.\x1b[0m\n");
     goto ctrl_next;
 }
 

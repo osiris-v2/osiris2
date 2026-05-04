@@ -48,7 +48,9 @@ def_audio_dir="com/datas/ai/audio/"
 def_audio_lrequest=def_audio_dir+"last_request.mp3"
 def_audio_flag=def_audio_dir+"readmp3.flag"
 
-
+# Define la clave API (si ya existe)
+API_KEY = os.getenv("GOOGLE_API_KEY")
+API_KEY=""
 
 try: #importaciones dinámicas
     core.dynmodule("lib.gemini.utils","win")
@@ -218,9 +220,7 @@ gemini_models = ["gemini-2.5-flash-preview-05-20",
                 "aqa"]
 
 
-# Define la clave API (si ya existe)
-API_KEY = os.getenv("GOOGLE_API_KEY")
-API_KEY="AIzaSyBYMyXFV_hXU7Wxyg-b-8m983SVkZaKJOs"
+
 
 #Define modelo a usar
 gemini_model = gemini_models[0]
