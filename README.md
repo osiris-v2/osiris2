@@ -60,7 +60,7 @@ El siguiente hito crucial es la evolución del `vm.c` hacia un motor completo ca
 
 ---  
 
-**Proyecto OSIRIS: Llevando la Inteligencia y la Seguridad al Corazón del Hardware.
+**Proyecto OSIRIS:** Llevando la Inteligencia y la Seguridad al Corazón del Hardware.
 
 [ Aportar Fondos - Acelerar Scale ](https://gofundme.com/f/soberania-digital)  
 
