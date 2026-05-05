@@ -39,7 +39,6 @@ function makecard($params = []) {
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 <style>
-    /* Bloqueamos el scroll del body para que no "baile" en móviles */
     html, body { 
         height: 100%; 
         margin: 0; 
@@ -49,8 +48,6 @@ function makecard($params = []) {
         color: #0f0; 
         font-family: 'Courier New', monospace; 
     }
-
-    /* El wrapper ahora ocupa todo el alto disponible */
     body { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
 
     #wrapper { 
@@ -63,7 +60,6 @@ function makecard($params = []) {
         text-align: center;
     }
     
-    /* Cabecera fija */
     .header-img { display: block; max-width: 100%; max-height: 30px; margin: 0 auto 2px auto; flex-shrink: 0; }
     
     .view-modes { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 5px; flex-shrink: 0; }
@@ -71,7 +67,6 @@ function makecard($params = []) {
     .mode-btn:hover { color: #0f0 !important; border-color: #0f0; }
     .mode-btn.active { color: #0f0 !important; border-color: #0f0; background: #052505; }
 
-    /* EL CHAT: Rígido para forzar scroll interno */
     #chat-box { 
         background: #0a0a0a; 
         border: 1px solid #333; 
@@ -84,7 +79,6 @@ function makecard($params = []) {
         border-radius: 5px; 
     }
     
-    /* Mensajes y enlaces */
     .msg { margin-bottom: 8px; border-bottom: 1px dashed #111; padding-bottom: 4px; white-space: pre-wrap; word-wrap: break-word; }
     .msg a { color: #ffff00; text-decoration: underline; font-weight: bold; }
     .msg a:hover { color: #fff; background: #444000; }
@@ -92,12 +86,10 @@ function makecard($params = []) {
     .user { color: #ccc; }
     .sys { color: #555; font-size: 0.8em; }
 
-    /* Formulario y Botones siempre abajo */
     #chat-form { display: flex; gap: 5px; flex-shrink: 0; }
     input { flex-grow: 1; background: #111; border: 1px solid #333; color: #0f0; padding: 10px; font-family: inherit; }
     button#send-btn { background: #0f0; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; }
 
-    /* Drawer de Comandos fijo abajo */
     #command-drawer { width: 100%; margin-top: 5px; flex-shrink: 0; padding-bottom: 5px; }
     .drawer-btn { background: none; border: 1px solid #2a2a2a; color: #666; font-size: 0.7em; cursor: pointer; padding: 4px; width: 100%; border-radius: 3px; }
     #quick-commands { display: none; flex-wrap: wrap; gap: 5px; padding: 10px; background: #050505; border: 1px solid #222; margin-top: -1px; }
@@ -105,7 +97,6 @@ function makecard($params = []) {
     #quick-commands button:hover { background: #0f0; color: #000; }
     .show { display: flex !important; }
 
-    /* Estilos Servidores (usados también por widget de servidores) */
     .server-line { display: flex; align-items: center; justify-content: space-between; background: #080808; padding: 5px; margin: 2px 0; border-left: 2px solid #0f0; }
     .server-url { font-weight: bold; flex-grow: 1; font-size: 0.85em; }
     .server-info { font-size: 0.7em; color: #555; margin-right: 10px; }
@@ -114,7 +105,7 @@ function makecard($params = []) {
     .srv-btn:hover { background: #0f0; color: #000; }
     .srv-btn.ping-btn { border-color: #ffff00; color: #ffff00; }
 
-    /* ===== SISTEMA DE WIDGETS FLOTANTES ===== */
+    /* ===== WIDGETS FLOTANTES ===== */
     #widget-fab {
         position: fixed; top: 0; left: 0; right: 0;
         display: none; flex-direction: row; flex-wrap: wrap;
@@ -123,7 +114,6 @@ function makecard($params = []) {
         z-index: 200;
     }
     #widget-fab.has-items { display: flex; }
-    /* empujar wrapper hacia abajo cuando la barra existe */
     body.has-widgets #wrapper { margin-top: 28px; }
 
     .widget-fab-btn {
@@ -138,16 +128,13 @@ function makecard($params = []) {
 
     .widget-panel {
         display: none; position: fixed; left: 0; right: 0;
-        /* top asignado en JS; no superar el área del form+drawer (~120px desde abajo) */
         max-height: calc(100vh - 120px); overflow-y: auto;
         background: #080808; border-bottom: 2px solid #0f0;
         z-index: 199; padding: 10px 14px;
         font-size: 0.78em; box-shadow: 0 6px 24px #0f04;
-        /* el panel no captura clicks en su área transparente vacía */
         pointer-events: none;
     }
     .widget-panel.visible { display: block; }
-    /* solo el contenido real del panel captura eventos */
     .widget-panel .widget-panel-title,
     .widget-panel .widget-body { pointer-events: all; }
     .widget-panel-title {
@@ -186,6 +173,84 @@ function makecard($params = []) {
     .mb-ram    { background: #002200; border: 1px solid #0f0; color: #0f0; }
     .mb-nofit  { background: #220000; border: 1px solid #f44; color: #f44; }
     .mb-active { background: #003300; border: 1px solid #0f0; color: #0f0; }
+
+    /* ===== /WHO WIDGET ===== */
+    .who-item {
+        display: flex; align-items: center; gap: 6px;
+        padding: 5px 3px; border-bottom: 1px solid #111;
+    }
+    .who-vname { flex-grow: 1; color: #0c0; font-size: 0.9em; }
+    .who-vname.self { color: #fff; font-weight: bold; }
+    .who-meta  { color: #444; font-size: 0.75em; }
+    .who-busy  { font-size: 0.65em; padding: 1px 4px; border-radius: 2px; background: #300; border: 1px solid #f44; color: #f44; }
+    .who-pm-btn {
+        background: #0a0a0a; border: 1px solid #336; color: #66f;
+        font-size: 0.65em; padding: 2px 5px; cursor: pointer; border-radius: 2px;
+    }
+    .who-pm-btn:hover { background: #66f; color: #000; }
+
+    /* ===== CHAT SOCIAL ===== */
+    /* Panel de chat reutiliza .widget-panel — solo estilos internos aquí */
+    #chat-social-body {
+        display: flex; flex-direction: column; gap: 0;
+    }
+    #chat-social-msgs {
+        min-height: 80px; max-height: 220px; overflow-y: auto;
+        background: #040404; border: 1px solid #1a1a1a;
+        padding: 6px; margin-bottom: 6px; border-radius: 3px;
+        font-size: 0.95em;
+    }
+    .cmsg { padding: 3px 0; border-bottom: 1px solid #0d0d0d; display: flex; gap: 6px; align-items: baseline; }
+    .cmsg-from { color: #0a0; font-weight: bold; white-space: nowrap; font-size: 0.85em; }
+    .cmsg-from.self { color: #ff0; }
+    .cmsg-from.pm   { color: #66f; }
+    .cmsg-text { color: #aaa; word-break: break-word; flex: 1; }
+    .cmsg-pm-label { font-size: 0.7em; color: #336; padding: 0 3px; border: 1px solid #224; border-radius: 2px; }
+
+    #chat-social-form { display: flex; gap: 4px; }
+    #chat-social-input {
+        flex: 1; background: #080808; border: 1px solid #1e1e1e;
+        color: #0f0; padding: 6px 8px; font-family: inherit; font-size: 0.9em;
+        border-radius: 2px;
+    }
+    #chat-social-input:focus { outline: none; border-color: #0f0; }
+    #chat-social-send {
+        background: #001a00; border: 1px solid #0f0; color: #0f0;
+        padding: 6px 12px; cursor: pointer; font-family: inherit; font-size: 0.85em;
+        border-radius: 2px;
+    }
+    #chat-social-send:hover { background: #0f0; color: #000; }
+    #chat-social-clear {
+        background: none; border: 1px solid #2a2a2a; color: #444;
+        padding: 6px 8px; cursor: pointer; font-size: 0.75em; border-radius: 2px;
+    }
+    #chat-social-clear:hover { border-color: #f44; color: #f44; }
+
+    .chat-online-bar {
+        font-size: 0.7em; color: #333; padding: 3px 0 5px 0;
+        display: flex; justify-content: space-between;
+    }
+    .chat-online-count { color: #0a0; }
+
+    /* ===== TICKER DE PRESENCIA ===== */
+    #presence-ticker {
+        position: fixed; bottom: 0; left: 0; right: 0;
+        height: 18px; overflow: hidden;
+        background: rgba(0,0,0,0.85);
+        border-top: 1px solid #0d0d0d;
+        z-index: 300; pointer-events: none;
+        display: none; /* visible solo cuando hay eventos */
+    }
+    #presence-ticker.visible { display: block; }
+    #presence-ticker-inner {
+        white-space: nowrap;
+        font-size: 0.65em; line-height: 18px;
+        padding: 0 8px;
+        color: #2a2a2a;
+        transition: opacity 2s;
+    }
+    #presence-ticker-inner.join { color: #0a4a0a; }
+    #presence-ticker-inner.leave { color: #3a1a00; }
 </style>
     
 </head>
@@ -204,7 +269,7 @@ function makecard($params = []) {
     <div id="chat-box"></div>
 
     <form id="chat-form" onsubmit="enviarMensaje(event); return false;">
-        <input type="text" id="message-input" placeholder="Comando..." required autocomplete="off">
+        <input type="text" id="message-input" placeholder="Comando o pregunta a la IA..." required autocomplete="off">
         <button type="submit" id="send-btn">></button>
     </form>
 
@@ -218,6 +283,8 @@ function makecard($params = []) {
             <button onclick="cmdRapido('/way')">/way</button>
             <button onclick="cmdRapido('/models')">/models</button>
             <button onclick="cmdRapido('/limit')">/limit</button>
+            <button onclick="cmdRapido('/who')">/who</button>
+            <button onclick="togglePanel('social_chat')">💬 Chat</button>
             <button onclick="cmdRapido('/stop')">/stop</button>
             <button onclick="cmdRapido('/clearcontext')">/clearcontext</button>
             <button onclick='cmdRapido("/search");'> <a href="search/index.php" target="_newGoyim" style="all:inherit;"> /buscar </a> </button>
@@ -225,37 +292,117 @@ function makecard($params = []) {
     </div>
 </div>
 
-<!-- Botones flotantes: se crean dinámicamente cuando llega un widget -->
+<!-- Barra FAB de widgets -->
 <div id="widget-fab"></div>
-<!-- Paneles flotantes: ídem -->
+<!-- Contenedor de paneles flotantes -->
 <div id="widget-panels"></div>
+<!-- Ticker de presencia (entradas/salidas) -->
+<div id="presence-ticker"><div id="presence-ticker-inner"></div></div>
 
 <script type="text/javascript">
     let socket;
     let currentMode = 'text';
     let history = []; 
-    const chatBox       = document.getElementById('chat-box');
-    const messageInput  = document.getElementById('message-input');
+    const chatBox      = document.getElementById('chat-box');
+    const messageInput = document.getElementById('message-input');
     
-    // VARIABLES DE ESTADO DE CONEXIÓN (idénticas al original)
-    let activeHost       = window.location.hostname;
+    let activeHost        = window.location.hostname;
     let reconnectInterval = 3000;
-    let reconnectTimer   = null;
-    let lastServerMsgDiv = null;
-    let lastCommandSent  = ""; 
+    let reconnectTimer    = null;
+    let lastServerMsgDiv  = null;
+    let lastCommandSent   = "";
+
+    // Mi identidad (se rellena al recibir el widget "welcome")
+    let myShortId  = "";
+    let myVname    = "";
+
+    // =====================================================================
+    // TICKER DE PRESENCIA
+    // =====================================================================
+    let tickerTimer = null;
+
+    function mostrarTicker(text, type) { // type: "join" | "leave"
+        const ticker = document.getElementById('presence-ticker');
+        const inner  = document.getElementById('presence-ticker-inner');
+        inner.textContent = text;
+        inner.className   = type;
+        ticker.classList.add('visible');
+        if (tickerTimer) clearTimeout(tickerTimer);
+        tickerTimer = setTimeout(() => {
+            ticker.classList.remove('visible');
+        }, 4000);
+    }
+
+    // =====================================================================
+    // CHAT SOCIAL — estado
+    // =====================================================================
+    const socialMsgs = [];   // { from, text, pm, self, ts }
+    let   onlineCount = 0;
+    const MAX_SOCIAL_MSGS = 100;
+
+    function pushSocialMsg(entry) {
+        socialMsgs.push(entry);
+        if (socialMsgs.length > MAX_SOCIAL_MSGS) socialMsgs.shift();
+        _renderSocialMsgs();
+        _updateOnlineBar();
+    }
+
+    function _renderSocialMsgs() {
+        const box = document.getElementById('chat-social-msgs');
+        if (!box) return;
+        box.innerHTML = socialMsgs.map(m => {
+            const isSelf  = m.self || m.from === myVname;
+            const isPm    = !!m.pm;
+            const fromCls = isPm ? 'cmsg-from pm' : (isSelf ? 'cmsg-from self' : 'cmsg-from');
+            const pmLabel = isPm ? `<span class="cmsg-pm-label">PM${m.self ? '→' + escH(m.to) : ''}</span> ` : '';
+            return `<div class="cmsg">${pmLabel}<span class="${fromCls}">${escH(m.from)}</span><span class="cmsg-text">${escH(m.text)}</span></div>`;
+        }).join('');
+        box.scrollTop = box.scrollHeight;
+    }
+
+    function _updateOnlineBar() {
+        const el = document.getElementById('chat-online-count-el');
+        if (el) el.textContent = onlineCount + ' en línea';
+    }
+
+    function enviarChatSocial() {
+        const inp = document.getElementById('chat-social-input');
+        if (!inp) return;
+        const text = inp.value.trim();
+        if (!text || !socket || socket.readyState !== WebSocket.OPEN) return;
+        socket.send(JSON.stringify({ type: 'chat', text }));
+        inp.value = '';
+    }
+
+    function limpiarChatSocial() {
+        socialMsgs.length = 0;
+        _renderSocialMsgs();
+    }
+
+    function iniciarPmDesde(targetId) {
+        const inp = document.getElementById('chat-social-input');
+        if (inp) { inp.value = `/pm ${targetId} `; inp.focus(); }
+    }
+
+    function escH(str) {
+        return String(str)
+            .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+            .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
 
     // =====================================================================
     // SISTEMA DE WIDGETS
-    // Almacén: { [widgetId]: { data, timestamp } }
     // =====================================================================
-    const widgetStore  = {};
-    const WIDGET_TTL   = 5 * 60 * 1000; // 5 min antes de marcar stale
+    const widgetStore = {};
+    const WIDGET_TTL  = 5 * 60 * 1000;
     const WIDGET_LABELS = {
-        tv_channels: '📺 TV',
-        servers:     '🌐 Servidores',
-        info:        '📊 Info',
-        models:      '🤖 Modelos',
-        welcome:     '👋 Sesión'
+        tv_channels:  '📺 TV',
+        servers:      '🌐 Servidores',
+        info:         '📊 Info',
+        models:       '🤖 Modelos',
+        welcome:      '👋 Sesión',
+        who:          '👥 Usuarios',
+        social_chat:  '💬 Chat'
     };
 
     function procesarWidget(obj) {
@@ -268,15 +415,24 @@ function makecard($params = []) {
         if (isNew) { _crearFab(id, label); _crearPanel(id); }
         _renderPanel(id, label, obj.data);
         _actualizarFab(id, label);
-        // Siempre mostrar/conmutar al recibir datos — así los botones del drawer
-        // siempre abren el panel aunque ya exista
         mostrarPanel(id);
+    }
+
+    // Crear el panel de Chat social sin necesidad de widget del servidor
+    function _asegurarChatSocial() {
+        const id    = 'social_chat';
+        const label = '💬 Chat';
+        if (!document.getElementById('panel-' + id)) {
+            _crearFab(id, label);
+            _crearPanel(id);
+            _renderPanel(id, label, null);
+            _actualizarFab(id, label);
+        }
     }
 
     function _fabBarHeight() {
         const fab = document.getElementById('widget-fab');
-        const h = fab ? fab.offsetHeight : 0;
-        return Math.max(h, 28); // mínimo 28px — nunca tapar la barra
+        return Math.max(fab ? fab.offsetHeight : 0, 28);
     }
 
     function _reposicionarPaneles() {
@@ -289,11 +445,7 @@ function makecard($params = []) {
         const btn = document.createElement('button');
         btn.className = 'widget-fab-btn';
         btn.id        = 'fab-' + id;
-        btn.onclick   = (e) => {
-            e.stopPropagation();
-            _reposicionarPaneles(); // recalcular por si la barra wrapeó en más filas
-            togglePanel(id);
-        };
+        btn.onclick   = (e) => { e.stopPropagation(); _reposicionarPaneles(); togglePanel(id); };
         fab.appendChild(btn);
         fab.classList.add('has-items');
         document.body.classList.add('has-widgets');
@@ -303,10 +455,15 @@ function makecard($params = []) {
     function _actualizarFab(id, label) {
         const btn = document.getElementById('fab-' + id);
         if (!btn) return;
+        if (id === 'social_chat') {
+            const cnt = onlineCount > 0 ? ` (${onlineCount})` : '';
+            btn.textContent = label + cnt;
+            btn.title = 'Canal de chat común';
+            return;
+        }
         const stale = (Date.now() - (widgetStore[id]?.timestamp || 0)) > WIDGET_TTL;
         btn.textContent = label + (stale ? ' ⚠' : ' ●');
         btn.classList.toggle('stale', stale);
-        // NO tocar .active aquí — lo gestiona togglePanel/mostrarPanel
         btn.title = stale ? 'Datos desactualizados' : 'Datos frescos';
     }
 
@@ -321,33 +478,34 @@ function makecard($params = []) {
     function mostrarPanel(id) {
         document.querySelectorAll('.widget-panel').forEach(p => p.classList.remove('visible'));
         document.querySelectorAll('.widget-fab-btn').forEach(b => b.classList.remove('active'));
-        const p = document.getElementById('panel-' + id);
+        const p   = document.getElementById('panel-' + id);
         const btn = document.getElementById('fab-' + id);
-        if (p) { p.style.top = _fabBarHeight() + 'px'; p.classList.add('visible'); }
+        if (p)   { p.style.top = _fabBarHeight() + 'px'; p.classList.add('visible'); }
         if (btn) btn.classList.add('active');
     }
 
     function togglePanel(id) {
         const p = document.getElementById('panel-' + id);
-        if (!p) return;
+        if (!p) { _asegurarChatSocial(); mostrarPanel(id); return; }
         const wasVisible = p.classList.contains('visible');
-        // Cerrar todos
         document.querySelectorAll('.widget-panel').forEach(el => el.classList.remove('visible'));
         document.querySelectorAll('.widget-fab-btn').forEach(b => b.classList.remove('active'));
-        // Si estaba cerrado, abrirlo; si estaba abierto, queda cerrado (conmuta)
         if (!wasVisible) {
             p.style.top = _fabBarHeight() + 'px';
             p.classList.add('visible');
             const btn = document.getElementById('fab-' + id);
             if (btn) btn.classList.add('active');
+            // Enfocar input al abrir el chat
+            if (id === 'social_chat') {
+                setTimeout(() => { const i = document.getElementById('chat-social-input'); if(i) i.focus(); }, 50);
+            }
         }
     }
 
-    // cerrarPanel: cierra sin conmutar (para el botón ✕ interno)
     function cerrarPanel(id) {
-        const p = document.getElementById('panel-' + id);
-        if (p) p.classList.remove('visible');
+        const p   = document.getElementById('panel-' + id);
         const btn = document.getElementById('fab-' + id);
+        if (p)   p.classList.remove('visible');
         if (btn) btn.classList.remove('active');
     }
 
@@ -355,56 +513,49 @@ function makecard($params = []) {
         const p = document.getElementById('panel-' + id);
         if (!p) return;
 
-        // La primera vez construimos el panel completo con título fijo y zona de contenido
         if (!p.querySelector('.widget-body')) {
-            const ts_el = document.createElement('span');
-            ts_el.className = 'widget-ts';
-            const close_el = document.createElement('span');
-            close_el.className = 'widget-close';
-            close_el.textContent = '✕';
-            close_el.onclick = (e) => { e.stopPropagation(); cerrarPanel(id); }; // ✕ cierra sin conmutar
+            const ts_el     = document.createElement('span'); ts_el.className = 'widget-ts';
+            const close_el  = document.createElement('span'); close_el.className = 'widget-close'; close_el.textContent = '✕';
+            close_el.onclick = (e) => { e.stopPropagation(); cerrarPanel(id); };
             const title_right = document.createElement('span');
-            title_right.appendChild(ts_el);
-            title_right.appendChild(close_el);
-            const title_left = document.createElement('span');
-            title_left.textContent = label;
-            const title = document.createElement('div');
-            title.className = 'widget-panel-title';
-            title.appendChild(title_left);
-            title.appendChild(title_right);
-            const body = document.createElement('div');
-            body.className = 'widget-body';
-            p.appendChild(title);
-            p.appendChild(body);
+            title_right.appendChild(ts_el); title_right.appendChild(close_el);
+            const title_left = document.createElement('span'); title_left.textContent = label;
+            const title = document.createElement('div'); title.className = 'widget-panel-title';
+            title.appendChild(title_left); title.appendChild(title_right);
+            const body = document.createElement('div'); body.className = 'widget-body';
+            p.appendChild(title); p.appendChild(body);
         }
 
-        // Actualizar solo timestamp y contenido — el título y el ✕ no se tocan
         const ts_el = p.querySelector('.widget-ts');
-        if (ts_el) ts_el.textContent = new Date().toLocaleTimeString();
+        if (ts_el && id !== 'social_chat') ts_el.textContent = new Date().toLocaleTimeString();
 
         let html = '';
-        if      (id === 'tv_channels') html = _renderTV(data);
-        else if (id === 'servers')     html = _renderServers(data);
-        else if (id === 'info')        html = _renderInfo(data);
-        else if (id === 'models')      html = _renderModels(data);
-        else if (id === 'welcome')     html = _renderWelcome(data);
+        if      (id === 'tv_channels')  html = _renderTV(data);
+        else if (id === 'servers')      html = _renderServers(data);
+        else if (id === 'info')         html = _renderInfo(data);
+        else if (id === 'models')       html = _renderModels(data);
+        else if (id === 'welcome')      html = _renderWelcome(data);
+        else if (id === 'who')          html = _renderWho(data);
+        else if (id === 'social_chat')  { _renderSocialChat(p); return; }
 
         const body = p.querySelector('.widget-body');
         if (body) body.innerHTML = html;
     }
 
+    // --- Renders de cada widget ---
+
     function _renderTV(data) {
-        if (!data.channels?.length) return '<p style="color:#555">No hay canales.</p>';
+        if (!data?.channels?.length) return '<p style="color:#555">No hay canales.</p>';
         return data.channels.map(ch =>
             `<div class="tv-item">
-                <span class="tv-name">${ch.canal}</span>
-                <a class="tv-btn" href="https://osiris000.duckdns.org/app/mitv/tv/player2.php?chn=${ch.url}" target="_blank">▶ VER</a>
+                <span class="tv-name">${escH(ch.canal)}</span>
+                <a class="tv-btn" href="https://osiris000.duckdns.org/app/mitv/tv/player2.php?chn=${escH(ch.url)}" target="_blank">▶ VER</a>
             </div>`
         ).join('');
     }
 
     function _renderServers(data) {
-        if (!data.servers?.length) return '<p style="color:#555">No hay servidores.</p>';
+        if (!data?.servers?.length) return '<p style="color:#555">No hay servidores.</p>';
         const origin = window.location.hostname;
         return data.servers.map(s => {
             const h = s.host;
@@ -413,59 +564,59 @@ function makecard($params = []) {
             const label = isCurrent ? '[ACTIVO]' : (isOrigin ? '[ORIGEN]' : '[REMOTO]');
             const style = isCurrent ? 'border-left-color:#ff0;background:#111;' : '';
             return `<div class="server-line" style="${style}">
-                <span class="server-url">${h}</span>
+                <span class="server-url">${escH(h)}</span>
                 <span class="server-info" style="${isCurrent ? 'color:#0f0;' : ''}">${label}</span>
                 <div class="server-actions">
-                    <button class="srv-btn ping-btn" onclick="pingServer('${h}')">PING</button>
-                    <button class="srv-btn" onclick="connectToServer('${h}')">${isCurrent ? 'RECON.' : 'LINK'}</button>
+                    <button class="srv-btn ping-btn" onclick="pingServer('${escH(h)}')">PING</button>
+                    <button class="srv-btn" onclick="connectToServer('${escH(h)}')">${isCurrent ? 'RECON.' : 'LINK'}</button>
                 </div>
             </div>`;
         }).join('');
     }
 
     function _renderInfo(data) {
-        const sv   = data.server || {};
-        const r    = data.ram    || {};
-        const sess = data.session || {};
+        const sv   = data?.server || {};
+        const r    = data?.ram    || {};
+        const sess = data?.session || {};
         const pct  = r.used_pct || 0;
         const cls  = pct > 85 ? 'danger' : pct > 65 ? 'warn' : '';
-        const inRam = (data.models_in_ram || []).join(', ') || 'ninguno';
+        const inRam = (data?.models_in_ram || []).join(', ') || 'ninguno';
         return `
-        <div class="info-section" style="text-align:center;color:#0f0;font-size:1.05em;padding:4px 0 6px">${data.datetime}</div>
+        <div class="info-section" style="text-align:center;color:#0f0;font-size:1.05em;padding:4px 0 6px">${escH(data?.datetime||'')}</div>
         <div class="info-section">
             <h4>🖥️ Servidor</h4>
-            <div class="info-row"><span class="info-label">Uptime</span><span class="info-value">${sv.uptime}</span></div>
-            <div class="info-row"><span class="info-label">Uptime OS</span><span class="info-value">${sv.uptime_os}</span></div>
-            <div class="info-row"><span class="info-label">Clientes</span><span class="info-value">${sv.clients}</span></div>
-            <div class="info-row"><span class="info-label">IA activas</span><span class="info-value">${sv.ai_active}/${sv.ai_max}</span></div>
+            <div class="info-row"><span class="info-label">Uptime</span><span class="info-value">${escH(sv.uptime||'')}</span></div>
+            <div class="info-row"><span class="info-label">Uptime OS</span><span class="info-value">${escH(sv.uptime_os||'')}</span></div>
+            <div class="info-row"><span class="info-label">Clientes</span><span class="info-value">${sv.clients||0}</span></div>
+            <div class="info-row"><span class="info-label">IA activas</span><span class="info-value">${sv.ai_active||0}/${sv.ai_max||0}</span></div>
         </div>
         <div class="info-section">
             <h4>💾 RAM</h4>
-            <div class="info-row"><span class="info-label">Usada</span><span class="info-value">${r.used_mb}MB/${r.total_mb}MB (${pct}%)</span></div>
-            <div class="info-row"><span class="info-label">Libre</span><span class="info-value">${r.available_mb}MB</span></div>
+            <div class="info-row"><span class="info-label">Usada</span><span class="info-value">${r.used_mb||0}MB/${r.total_mb||0}MB (${pct}%)</span></div>
+            <div class="info-row"><span class="info-label">Libre</span><span class="info-value">${r.available_mb||0}MB</span></div>
             <div class="ram-bar"><div class="ram-bar-fill ${cls}" style="width:${pct}%"></div></div>
-            <div class="info-row" style="margin-top:4px"><span class="info-label">En RAM</span><span class="info-value" style="font-size:0.82em">${inRam}</span></div>
+            <div class="info-row" style="margin-top:4px"><span class="info-label">En RAM</span><span class="info-value" style="font-size:0.82em">${escH(inRam)}</span></div>
         </div>
         <div class="info-section">
             <h4>👤 Tu sesión</h4>
-            <div class="info-row"><span class="info-label">ID</span><span class="info-value">${sess.id}</span></div>
-            <div class="info-row"><span class="info-label">Modelo</span><span class="info-value">${sess.model}</span></div>
-            <div class="info-row"><span class="info-label">Conectado</span><span class="info-value">${sess.connected_since}</span></div>
-            <div class="info-row"><span class="info-label">Mensajes</span><span class="info-value">${sess.messages}</span></div>
-            <div class="info-row"><span class="info-label">Ctx turnos</span><span class="info-value">${sess.context_turns}</span></div>
+            <div class="info-row"><span class="info-label">ID</span><span class="info-value">${escH(sess.vname||sess.id||'')}</span></div>
+            <div class="info-row"><span class="info-label">Modelo</span><span class="info-value">${escH(sess.model||'')}</span></div>
+            <div class="info-row"><span class="info-label">Conectado</span><span class="info-value">${escH(sess.connected_since||'')}</span></div>
+            <div class="info-row"><span class="info-label">Mensajes</span><span class="info-value">${sess.messages||0}</span></div>
+            <div class="info-row"><span class="info-label">Ctx turnos</span><span class="info-value">${sess.context_turns||0}</span></div>
         </div>`;
     }
 
     function _renderModels(data) {
-        if (!data.models?.length) return '<p style="color:#555">No hay modelos.</p>';
+        if (!data?.models?.length) return '<p style="color:#555">No hay modelos.</p>';
         const header = `<div style="color:#444;font-size:0.85em;margin-bottom:6px">RAM libre: ${data.ram_available_mb}MB / ${data.ram_total_mb}MB</div>`;
-        const items = data.models.map(m => {
+        const items  = data.models.map(m => {
             const nc  = m.active ? 'model-name active' : 'model-name';
             const ram = m.in_ram ? '<span class="mbadge mb-ram">RAM</span>' : (!m.fits_ram ? '<span class="mbadge mb-nofit">⚠RAM</span>' : '');
             const act = m.active ? '<span class="mbadge mb-active">✓</span>' : '';
             return `<div class="model-item" onclick="cmdRapido('/model ${m.index}'); togglePanel('models')">
                 <span class="model-idx">${m.index}</span>
-                <span class="${nc}">${m.name}</span>
+                <span class="${nc}">${escH(m.name)}</span>
                 ${ram}${act}
             </div>`;
         }).join('');
@@ -473,20 +624,75 @@ function makecard($params = []) {
     }
 
     function _renderWelcome(data) {
+        if (!data) return '';
+        // Guardar identidad propia
+        myShortId = data.id  || '';
+        myVname   = data.vname || (data.id + '@server');
         return `<div style="padding:4px">
-            <div style="color:#555;font-size:0.85em">ID: ${data.id}</div>
-            <div style="margin:4px 0">Modelo: <span style="color:#0f0;font-weight:bold">${data.model}</span></div>
-            <div style="color:#444;font-size:0.85em">${data.message}</div>
+            <div style="color:#0f0;font-size:1.1em;font-weight:bold">${escH(myVname)}</div>
+            <div style="margin:4px 0">Modelo: <span style="color:#0f0;font-weight:bold">${escH(data.model||'')}</span></div>
+            <div style="color:#444;font-size:0.85em">${escH(data.message||'')}</div>
         </div>`;
     }
 
-    // Refrescar badges cada minuto (detectar TTL expirado)
+    function _renderWho(data) {
+        if (!data?.users?.length) return '<p style="color:#555">Nadie conectado.</p>';
+        const items = data.users.map(u => {
+            const isSelf = u.id === myShortId;
+            const nc     = isSelf ? 'who-vname self' : 'who-vname';
+            const busy   = u.busy ? '<span class="who-busy">IA</span>' : '';
+            const pmBtn  = !isSelf
+                ? `<button class="who-pm-btn" onclick="iniciarPmDesde('${escH(u.id)}');togglePanel('social_chat')">PM</button>`
+                : '<span style="color:#333;font-size:0.7em">tú</span>';
+            return `<div class="who-item">
+                <span class="${nc}">${escH(u.vname)}</span>
+                <span class="who-meta">${escH(u.since)} · ${u.msgs}msg</span>
+                ${busy}${pmBtn}
+            </div>`;
+        }).join('');
+        return items + `<div style="color:#333;font-size:0.7em;margin-top:6px;text-align:right">${data.users.length} conectado(s)</div>`;
+    }
+
+    // El chat social se construye como HTML estático con IDs fijos, no como innerHTML
+    function _renderSocialChat(panel) {
+        const body = panel.querySelector('.widget-body');
+        if (!body) return;
+        // Solo construir la estructura una vez
+        if (body.querySelector('#chat-social-msgs')) {
+            _renderSocialMsgs();
+            _updateOnlineBar();
+            return;
+        }
+        body.innerHTML = `
+            <div class="chat-online-bar">
+                <span>Canal común · todos los conectados</span>
+                <span class="chat-online-count" id="chat-online-count-el">${onlineCount} en línea</span>
+            </div>
+            <div id="chat-social-msgs"></div>
+            <div id="chat-social-form">
+                <input id="chat-social-input" type="text" placeholder="Escribe aquí… · /pm &lt;id&gt; &lt;msg&gt; para privado" autocomplete="off">
+                <button id="chat-social-send" onclick="enviarChatSocial()">↩</button>
+                <button id="chat-social-clear" title="Limpiar historial local" onclick="limpiarChatSocial()">🗑</button>
+            </div>
+            <div style="color:#333;font-size:0.68em;margin-top:5px">
+                Privados: escribe <b style="color:#336">/pm id mensaje</b> (id sin @server)
+            </div>`;
+        // Enter en el input del chat
+        document.getElementById('chat-social-input').addEventListener('keydown', e => {
+            if (e.key === 'Enter') { e.preventDefault(); enviarChatSocial(); }
+        });
+        _renderSocialMsgs();
+        _updateOnlineBar();
+    }
+
+    // Refresco de badges cada minuto
     setInterval(() => {
         Object.keys(widgetStore).forEach(id => _actualizarFab(id, WIDGET_LABELS[id] || id));
+        _actualizarFab('social_chat', '💬 Chat');
     }, 60000);
 
     // =====================================================================
-    // LÓGICA ORIGINAL DE CHAT (sin cambios excepto fix de la barra /)
+    // LÓGICA ORIGINAL DE CHAT IA (íntegra, sin cambios excepto onmessage)
     // =====================================================================
 
     marked.use({
@@ -525,7 +731,6 @@ function makecard($params = []) {
         history.forEach(m => renderToDOM(m.text, m.type));
     }
 
-    // --- Lógica de servidores (original intacta) ---
     function isURL(str) {
         const pattern = /[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}/;
         return pattern.test(str.trim());
@@ -548,15 +753,10 @@ function makecard($params = []) {
         }
         activeHost = url; 
         render(`>>> CAMBIANDO DESTINO PREDETERMINADO A: ${activeHost}`, "sys");
-        if (socket) {
-            socket.onclose = null;
-            socket.close();
-        }
+        if (socket) { socket.onclose = null; socket.close(); }
         conectar(activeHost);
     }
 
-    // parseServers ya no es necesario para /servers (ahora es widget)
-    // pero se conserva por compatibilidad por si algún nodo antiguo lo envía en texto plano
     function parseServers(text) {
         const lines = text.split('\n');
         let htmlResponse = "";
@@ -566,7 +766,7 @@ function makecard($params = []) {
             const match = cleanLine.match(/[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}/);
             if (match) {
                 const url = match[0];
-                const isCurrent  = (url === activeHost);
+                const isCurrent   = (url === activeHost);
                 const isHostOrigin = (url === originalHost);
                 let label = isHostOrigin ? "[ORIGEN]" : "[REMOTO]";
                 if (isCurrent) label = "[ACTIVO]";
@@ -587,7 +787,6 @@ function makecard($params = []) {
     }
 
     function render(text, type = 'server') {
-        // Texto plano de /servers (compatibilidad con nodos viejos)
         if (type === 'server' && lastCommandSent === "/servers") {
             const parsedHTML = parseServers(text);
             history.push({text: parsedHTML, type: 'server_html'});
@@ -596,7 +795,6 @@ function makecard($params = []) {
             return;
         }
 
-        // FIX: eliminado text.startsWith("/") que rompía tokens de la IA con barras
         if (type !== 'server' || text.includes("📺") || text.includes(">>>")) {
             lastServerMsgDiv = null; 
             history.push({text, type});
@@ -604,13 +802,8 @@ function makecard($params = []) {
             return;
         }
 
-        // Fin de turno IA (solo \n) → cerrar div de streaming
-        if (text === '\n') {
-            lastServerMsgDiv = null;
-            return;
-        }
+        if (text === '\n') { lastServerMsgDiv = null; return; }
 
-        // Tokens de la IA: acumular en el mismo div
         if (lastServerMsgDiv && type === 'server') {
             history[history.length - 1].text += text;
             updateDOM(lastServerMsgDiv, history[history.length - 1].text);
@@ -650,16 +843,74 @@ function makecard($params = []) {
         socket = new WebSocket('wss://' + host + '/ws/');
         
         socket.onopen = () => { 
-            render(">>> ENLACE ESTABLECIDO CON: " + host, "sys"); 
+            render(">>> ENLACE ESTABLECIDO CON: " + host, "sys");
+            // Crear el panel de chat social al conectar
+            _asegurarChatSocial();
         };
 
-        // NUEVO: intentar parsear como widget antes de renderizar como texto
+        // ─────────────────────────────────────────────────────────────────
+        // onmessage: distingue widget / presencia / chat / pm / texto plano
+        // ─────────────────────────────────────────────────────────────────
         socket.onmessage = (e) => {
             if (!e.data || e.data.length === 0) return;
             try {
                 const obj = JSON.parse(e.data);
-                if (obj.type === 'widget') { procesarWidget(obj); return; }
+
+                // Widget del servidor (info, models, tv, etc.)
+                if (obj.type === 'widget') {
+                    procesarWidget(obj);
+                    return;
+                }
+
+                // Presencia: entrada/salida de usuarios
+                if (obj.type === 'presence') {
+                    onlineCount = obj.clients || 0;
+                    _actualizarFab('social_chat', '💬 Chat');
+                    _updateOnlineBar();
+                    if (obj.event === 'join') {
+                        mostrarTicker(`⬤ ${obj.id} se ha conectado  ·  ${onlineCount} en línea`, 'join');
+                    } else if (obj.event === 'leave') {
+                        mostrarTicker(`○ ${obj.id} se ha desconectado  ·  ${onlineCount} en línea`, 'leave');
+                    }
+                    return;
+                }
+
+                // Mensaje de chat común
+                if (obj.type === 'chat') {
+                    pushSocialMsg({ from: obj.from, text: obj.text, ts: Date.now() });
+                    // Notificación discreta si el panel está cerrado
+                    const panel = document.getElementById('panel-social_chat');
+                    if (!panel || !panel.classList.contains('visible')) {
+                        _actualizarFab('social_chat', '💬 Chat ●');
+                    }
+                    return;
+                }
+
+                // Mensaje privado (recibido o eco propio)
+                if (obj.type === 'pm') {
+                    pushSocialMsg({
+                        from: obj.from,
+                        text: obj.text,
+                        to:   obj.to,
+                        pm:   true,
+                        self: !!obj.self,
+                        ts:   Date.now()
+                    });
+                    if (!document.getElementById('panel-social_chat')?.classList.contains('visible')) {
+                        mostrarTicker(`✉ PM de ${obj.from}`, 'join');
+                    }
+                    return;
+                }
+
+                // Error del chat (sin interferir con el chat IA)
+                if (obj.type === 'chat_error') {
+                    pushSocialMsg({ from: '⚠', text: obj.text, ts: Date.now() });
+                    return;
+                }
+
             } catch (_) {}
+
+            // Texto plano → pipeline normal de IA
             render(e.data, "server");
         };
 
@@ -669,7 +920,7 @@ function makecard($params = []) {
             reconnectTimer = setTimeout(() => conectar(activeHost), reconnectInterval); 
         };
 
-        socket.onerror = (err) => { 
+        socket.onerror = () => { 
             render(">>> ERROR DE NODO EN " + host, "sys"); 
         };
     }

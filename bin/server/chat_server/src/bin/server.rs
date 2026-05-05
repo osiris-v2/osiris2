@@ -17,6 +17,7 @@ use std::collections::HashMap;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use tokio::task::AbortHandle;
 use std::sync::Mutex as StdMutex;
+use tokio::sync::mpsc;
 
 // --- CONFIGURACIÓN GLOBAL ---
 const MAX_GLOBAL_INSTANCES: usize = 2;
@@ -29,10 +30,12 @@ const OLLAMA_TIMEOUT_SECS: u64 = 500;
 const CONN_LOG_PATH: &str = "/var/log/goyimai_connections.log";
 const CONN_LOG_MAX_BYTES: u64 = 256 * 1024; // 256 KB
 
+// Longitud del short-id visible (chars hex aleatorios)
+const SHORT_ID_LEN: usize = 8;
+
 static ACTIVE_AI_INSTANCES: AtomicUsize = AtomicUsize::new(0);
 
 /// Logger de conexiones con rotación por tamaño máximo.
-/// Escribe una línea CSV por evento: timestamp, event, client_id, ip, model, extra.
 struct ConnLogger {
     path: &'static str,
     max_bytes: u64,
@@ -46,14 +49,10 @@ impl ConnLogger {
 
     fn write(&self, line: &str) {
         let _guard = self.lock.lock().unwrap_or_else(|e| e.into_inner());
-
-        // Rotación: si el archivo supera el límite, lo truncamos conservando las últimas líneas
         if let Ok(meta) = fs::metadata(self.path) {
             if meta.len() >= self.max_bytes {
-                // Leer el contenido actual, conservar la segunda mitad aprox.
                 if let Ok(content) = fs::read_to_string(self.path) {
                     let keep_from = content.len() / 2;
-                    // Buscar el primer '\n' desde keep_from para no cortar una línea a medias
                     let cut = content[keep_from..].find('\n')
                         .map(|p| keep_from + p + 1)
                         .unwrap_or(keep_from);
@@ -62,36 +61,32 @@ impl ConnLogger {
                 }
             }
         }
-
         if let Ok(mut f) = OpenOptions::new().create(true).append(true).open(self.path) {
             let _ = writeln!(f, "{}", line);
         }
     }
 
-    /// Conexión entrante
-    fn log_connect(&self, client_id: Uuid, ip: &str, model: &str, total_clients: usize) {
+    fn log_connect(&self, short_id: &str, ip: &str, model: &str, total_clients: usize) {
         let ts = chrono::Local::now().format("%Y-%m-%d %H:%M:%S");
         self.write(&format!(
             "{} | CONNECT   | {} | ip={} | model={} | total_clients={}",
-            ts, &client_id.to_string()[..8], ip, model, total_clients
+            ts, short_id, ip, model, total_clients
         ));
     }
 
-    /// Desconexión con resumen de la sesión
-    fn log_disconnect(&self, client_id: Uuid, ip: &str, duration_secs: u64, messages: usize, total_clients: usize) {
+    fn log_disconnect(&self, short_id: &str, ip: &str, duration_secs: u64, messages: usize, total_clients: usize) {
         let ts = chrono::Local::now().format("%Y-%m-%d %H:%M:%S");
         self.write(&format!(
             "{} | DISCONNECT | {} | ip={} | session_secs={} | messages={} | total_clients={}",
-            ts, &client_id.to_string()[..8], ip, duration_secs, messages, total_clients
+            ts, short_id, ip, duration_secs, messages, total_clients
         ));
     }
 
-    /// Error / evento notable
-    fn log_event(&self, client_id: Uuid, ip: &str, event: &str) {
+    fn log_event(&self, short_id: &str, ip: &str, event: &str) {
         let ts = chrono::Local::now().format("%Y-%m-%d %H:%M:%S");
         self.write(&format!(
             "{} | EVENT      | {} | ip={} | {}",
-            ts, &client_id.to_string()[..8], ip, event
+            ts, short_id, ip, event
         ));
     }
 }
@@ -100,14 +95,11 @@ lazy_static::lazy_static! {
     static ref CONN_LOG: ConnLogger = ConnLogger::new(CONN_LOG_PATH, CONN_LOG_MAX_BYTES);
 }
 
-// Comandos que responden siempre aunque la IA esté ocupada (is_busy).
-// Solo los que devuelven widgets de datos — no bloquean al usuario esperando una respuesta IA.
-// /help, /limit, /hello, /way SÍ se bloquean porque son respuestas de texto que podrían
-// confundirse con la respuesta IA en curso y desorientar al usuario.
+// Comandos libres: responden siempre aunque la IA esté ocupada (is_busy).
 fn es_comando_libre(cmd: &str) -> bool {
     let base = cmd.split_whitespace().next().unwrap_or("");
     matches!(base,
-        "/listtv" | "/info" | "/date" | "/servers" | "/models"
+        "/listtv" | "/info" | "/date" | "/servers" | "/models" | "/who"
     )
 }
 
@@ -127,21 +119,26 @@ impl Drop for AiInstanceGuard {
     }
 }
 
+// Tipo del sender por cliente para el canal de chat interno
+type ChatTx = mpsc::UnboundedSender<Message>;
+
 // --- SESIÓN DE CLIENTE ---
 struct ClientSession {
-    /// Tokens de contexto Ollama (específicos del modelo activo, se resetean al cambiar modelo)
     context: Vec<i64>,
-    /// Historial legible conservado incluso al cambiar de modelo
-    history_text: Vec<(String, String)>, // (user_msg, assistant_response)
+    history_text: Vec<(String, String)>,
     model: String,
     is_busy: bool,
     abort_handle: Option<AbortHandle>,
     connected_at: chrono::DateTime<chrono::Local>,
     messages_sent: usize,
+    /// ID corto único garantizado. Formato: 8 chars hex. Nombre virtual: id@server
+    short_id: String,
+    /// Sender del canal mpsc para enviar mensajes al WS de este cliente sin bloquear
+    chat_tx: ChatTx,
 }
 
 impl ClientSession {
-    fn new(model: String) -> Self {
+    fn new(model: String, short_id: String, chat_tx: ChatTx) -> Self {
         Self {
             context: Vec::new(),
             history_text: Vec::new(),
@@ -150,6 +147,8 @@ impl ClientSession {
             abort_handle: None,
             connected_at: chrono::Local::now(),
             messages_sent: 0,
+            short_id,
+            chat_tx,
         }
     }
 
@@ -170,9 +169,13 @@ impl ClientSession {
         out.push_str("---\n");
         out
     }
+
+    fn virtual_name(&self) -> String {
+        format!("{}@server", self.short_id)
+    }
 }
 
-// --- ESTRUCTURAS DE DESERIALIZACIÓN ---
+// --- ESTRUCTURAS ---
 #[derive(Deserialize, serde::Serialize, Clone)]
 struct TVChannel {
     canal: String,
@@ -187,8 +190,6 @@ lazy_static::lazy_static! {
 }
 
 // --- PROTOCOLO WIDGET ---
-// Envuelve datos en el formato estándar que el cliente reconoce y renderiza como panel flotante:
-// { "type": "widget", "widget": "<nombre>", "version": 1, "data": { ... } }
 fn widget_msg(widget: &str, version: u32, data: serde_json::Value) -> String {
     json!({
         "type":    "widget",
@@ -198,10 +199,69 @@ fn widget_msg(widget: &str, version: u32, data: serde_json::Value) -> String {
     }).to_string()
 }
 
+// --- SOCIAL: HELPERS ---
+
+/// Genera un short_id hex único comprobando colisiones en AI_SESSIONS.
+async fn generar_short_id_unico() -> String {
+    for _ in 0..30 {
+        let candidate: String = {
+            let mut rng = thread_rng();
+            (0..SHORT_ID_LEN).map(|_| format!("{:x}", rng.gen::<u8>() & 0xf)).collect()
+        };
+        let sessions = AI_SESSIONS.lock().await;
+        if !sessions.values().any(|s| s.short_id == candidate) {
+            return candidate;
+        }
+    }
+    // Fallback extremo: usar UUID sin guiones truncado
+    Uuid::new_v4().to_string().replace('-', "")[..SHORT_ID_LEN].to_string()
+}
+
+/// Broadcast de presencia (join/leave) a todos los clientes conectados.
+async fn broadcast_presence(event: &str, virtual_name: &str, total: usize) {
+    let msg = json!({
+        "type":    "presence",
+        "event":   event,
+        "id":      virtual_name,
+        "clients": total
+    }).to_string();
+    broadcast_raw(msg, None).await;
+}
+
+/// Broadcast de un mensaje raw a todos los clientes.
+/// exclude: UUID interno a omitir (None = enviar a todos).
+/// No bloquea — usa los canales mpsc de cada cliente.
+async fn broadcast_raw(msg: String, exclude: Option<Uuid>) {
+    let sessions = AI_SESSIONS.lock().await;
+    for (uuid, session) in sessions.iter() {
+        if let Some(ex) = exclude {
+            if *uuid == ex { continue; }
+        }
+        // Error ignorado: el cliente puede haberse desconectado justo ahora
+        let _ = session.chat_tx.send(Message::Text(msg.clone()));
+    }
+}
+
+/// Enviar un mensaje privado a un cliente por su short_id.
+async fn send_pm(from_vname: &str, to_short_id: &str, text: &str) -> Result<(), String> {
+    let sessions = AI_SESSIONS.lock().await;
+    match sessions.values().find(|s| s.short_id == to_short_id) {
+        None => Err(format!("Usuario '{}@server' no encontrado o desconectado.", to_short_id)),
+        Some(s) => {
+            let pm = json!({
+                "type": "pm",
+                "from": from_vname,
+                "to":   format!("{}@server", to_short_id),
+                "text": text
+            }).to_string();
+            s.chat_tx.send(Message::Text(pm)).map_err(|_| "Error entregando PM.".to_string())
+        }
+    }
+}
+
 // --- HELPERS DE SISTEMA ---
 
 fn leer_ram() -> (u64, u64, u64) {
-    // devuelve (total_mb, available_mb, used_mb)
     let meminfo = fs::read_to_string("/proc/meminfo").unwrap_or_default();
     let mut total_kb = 0u64;
     let mut avail_kb = 0u64;
@@ -229,7 +289,6 @@ fn formatear_duracion(secs: u64) -> String {
     else { format!("{}m", m) }
 }
 
-/// Heurística de RAM necesaria por nombre de modelo
 fn ram_necesaria_mb(modelo: &str) -> u64 {
     if modelo.contains("phi4") || modelo.contains("phi-4")            { 3500 }
     else if modelo.contains("7b") || modelo.contains("8b")            { 5000 }
@@ -255,7 +314,6 @@ async fn obtener_modelos_ollama() -> Vec<String> {
     }
 }
 
-/// Modelos actualmente cargados en RAM por Ollama (/api/ps)
 async fn obtener_modelos_en_ram() -> Vec<String> {
     let client = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(5))
@@ -282,7 +340,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
         env_logger::Env::default().default_filter_or("info")
     ).init();
 
-    // Inicializar tiempo de arranque del servidor
     let _ = *SERVER_START_TIME;
 
     if ollama_disponible().await {
@@ -293,11 +350,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
         warn!("⚠️  Ollama no responde en {}. El servidor iniciará igualmente.", OLLAMA_URL);
     }
 
-    // --- Bind con fallback a puertos aleatorios si 8081 está ocupado ---
-    let base_ip        = "0.0.0.0";
-    let default_port   = 8081u16;
-    let min_rand_port  = 20000u16;
-    let max_rand_port  = 65000u16;
+    let base_ip       = "0.0.0.0";
+    let default_port  = 8081u16;
+    let min_rand_port = 20000u16;
+    let max_rand_port = 65000u16;
     const MAX_BIND_ATTEMPTS: u8 = 10;
 
     let mut attempts = 0u8;
@@ -306,20 +362,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
         if attempts > MAX_BIND_ATTEMPTS {
             return Err("Falló al enlazar a un puerto disponible tras 10 intentos.".into());
         }
-        let current_port = if attempts == 1 {
-            default_port
-        } else {
-            thread_rng().gen_range(min_rand_port..=max_rand_port)
-        };
+        let current_port = if attempts == 1 { default_port } else { thread_rng().gen_range(min_rand_port..=max_rand_port) };
         let addr_str = format!("{}:{}", base_ip, current_port);
 
         match TcpListener::bind(&addr_str).await {
-            Ok(l) => {
-                info!("✅ Servidor WebSocket iniciado en: ws://{}", addr_str);
-                break l;
-            }
+            Ok(l) => { info!("✅ Servidor WebSocket iniciado en: ws://{}", addr_str); break l; }
             Err(e) if e.kind() == io::ErrorKind::AddrInUse => {
-                warn!("Puerto {} en uso, reintentando con puerto aleatorio...", current_port);
+                warn!("Puerto {} en uso, reintentando...", current_port);
             }
             Err(e) => return Err(e.into()),
         }
@@ -338,19 +387,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
 async fn handle_connection(stream: tokio::net::TcpStream) {
     let client_id = Uuid::new_v4();
 
-    // IP de la capa TCP (será 127.0.0.1 si hay reverse proxy)
     let tcp_ip = stream.peer_addr()
         .map(|a| a.to_string())
         .unwrap_or_else(|_| "unknown".to_string());
 
-    // Modelo inicial = primer modelo disponible en Ollama
     let modelo_inicial = obtener_modelos_ollama().await
         .into_iter().next()
         .unwrap_or_else(|| DEFAULT_MODEL_FALLBACK.to_string());
 
-    // Usar accept_hdr_async para leer cabeceras HTTP durante el handshake.
-    // Si el cliente viene a través de nginx/Caddy/otro proxy, la IP real estará en
-    // X-Forwarded-For o X-Real-IP. Si no hay proxy, usamos la IP TCP directamente.
     let real_ip: Arc<std::sync::Mutex<Option<String>>> = Arc::new(std::sync::Mutex::new(None));
     let real_ip_cb = Arc::clone(&real_ip);
 
@@ -359,60 +403,123 @@ async fn handle_connection(stream: tokio::net::TcpStream) {
         -> Result<tokio_tungstenite::tungstenite::handshake::server::Response,
                   tokio_tungstenite::tungstenite::handshake::server::ErrorResponse>
     {
-        // X-Forwarded-For puede contener una lista "client, proxy1, proxy2" — tomamos el primero
         let ip = req.headers()
             .get("x-forwarded-for")
             .and_then(|v| v.to_str().ok())
             .and_then(|s| s.split(',').next())
             .map(|s| s.trim().to_string())
-            .or_else(|| {
-                req.headers()
-                    .get("x-real-ip")
-                    .and_then(|v| v.to_str().ok())
-                    .map(|s| s.trim().to_string())
-            });
+            .or_else(|| req.headers().get("x-real-ip").and_then(|v| v.to_str().ok()).map(|s| s.trim().to_string()));
         if let Ok(mut guard) = real_ip_cb.lock() { *guard = ip; }
         Ok(res)
     };
 
     let ws_result = tokio_tungstenite::accept_hdr_async(stream, callback).await;
 
-    // IP final: cabecera del proxy si existe, si no la TCP
-    let peer_ip = real_ip.lock().ok()
-        .and_then(|g| g.clone())
-        .unwrap_or(tcp_ip);
-
-    info!("Cliente {} conectado desde {}. Modelo inicial: {}", client_id, peer_ip, modelo_inicial);
+    let peer_ip = real_ip.lock().ok().and_then(|g| g.clone()).unwrap_or(tcp_ip);
 
     if let Ok(ws_stream) = ws_result {
-        // Insertar sesión dentro del bloque de handshake exitoso
+        // Generar ID único antes de registrar la sesión
+        let short_id = generar_short_id_unico().await;
+        let virtual_name = format!("{}@server", short_id);
+
+        // Canal mpsc para mensajes de chat/presencia/pm dirigidos a este cliente
+        let (chat_tx, mut chat_rx) = mpsc::unbounded_channel::<Message>();
+
         {
             let mut sessions = AI_SESSIONS.lock().await;
-            sessions.insert(client_id, ClientSession::new(modelo_inicial.clone()));
+            sessions.insert(client_id, ClientSession::new(modelo_inicial.clone(), short_id.clone(), chat_tx));
         }
 
         let total_clients = AI_SESSIONS.lock().await.len();
-        CONN_LOG.log_connect(client_id, &peer_ip, &modelo_inicial, total_clients);
+        CONN_LOG.log_connect(&short_id, &peer_ip, &modelo_inicial, total_clients);
+        info!("Cliente {} ({}) desde {}. Modelo: {}", client_id, virtual_name, peer_ip, modelo_inicial);
 
         let (write, mut read) = ws_stream.split();
         let write_arc = Arc::new(Mutex::new(write));
 
-        // Bienvenida como widget (el cliente lo renderiza en panel flotante)
+        // Widget de bienvenida con el virtual_name asignado
         let bienvenida = widget_msg("welcome", 1, json!({
-            "id":      &client_id.to_string()[..8],
+            "id":      &short_id,
+            "vname":   &virtual_name,
             "model":   modelo_inicial,
             "message": "Escribe /help para ver los comandos disponibles."
         }));
         let _ = write_arc.lock().await.send(Message::Text(bienvenida)).await;
 
+        // Notificar a todos la llegada (incluido el propio cliente)
+        broadcast_presence("join", &virtual_name, total_clients).await;
+
+        // Task auxiliar: reenvía mensajes del canal mpsc al WebSocket del cliente.
+        // Completamente independiente del loop de lectura → NO bloqueante.
+        let write_chat = Arc::clone(&write_arc);
+        let chat_fwd = tokio::spawn(async move {
+            while let Some(msg) = chat_rx.recv().await {
+                if write_chat.lock().await.send(msg).await.is_err() { break; }
+            }
+        });
+
+        // --- Loop principal de lectura ---
         while let Some(Ok(msg)) = read.next().await {
             if let Message::Text(text) = msg {
                 let text_trimmed = text.trim().to_string();
                 if text_trimmed.is_empty() { continue; }
 
-                info!("[{}] << {}", &client_id.to_string()[..8], text_trimmed);
+                info!("[{}] << {}", &short_id, &text_trimmed[..text_trimmed.len().min(120)]);
 
-                // --- /stop: prioridad absoluta, siempre responde ---
+                // ── CHAT COMÚN / PM ──────────────────────────────────────────────
+                // El cliente envía {"type":"chat","text":"..."} para el canal social.
+                // No toca is_busy ni el semáforo de IA en ningún caso.
+                if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&text_trimmed) {
+                    if parsed["type"].as_str() == Some("chat") {
+                        let chat_text = parsed["text"].as_str().unwrap_or("").trim().to_string();
+                        if !chat_text.is_empty() {
+                            let from_vname = {
+                                let sessions = AI_SESSIONS.lock().await;
+                                sessions.get(&client_id).map(|s| s.virtual_name()).unwrap_or_default()
+                            };
+
+                            if chat_text.starts_with("/pm ") {
+                                // Mensaje privado: /pm <short_id> <texto>
+                                let parts: Vec<&str> = chat_text.splitn(3, ' ').collect();
+                                if parts.len() == 3 {
+                                    let to_id   = parts[1];
+                                    let pm_text = parts[2];
+                                    match send_pm(&from_vname, to_id, pm_text).await {
+                                        Ok(_) => {
+                                            // Eco al remitente para confirmación visual
+                                            let confirm = json!({
+                                                "type": "pm",
+                                                "from": &from_vname,
+                                                "to":   format!("{}@server", to_id),
+                                                "text": pm_text,
+                                                "self": true
+                                            }).to_string();
+                                            let _ = write_arc.lock().await.send(Message::Text(confirm)).await;
+                                        }
+                                        Err(e) => {
+                                            let err = json!({"type":"chat_error","text": e}).to_string();
+                                            let _ = write_arc.lock().await.send(Message::Text(err)).await;
+                                        }
+                                    }
+                                } else {
+                                    let err = json!({"type":"chat_error","text":"Uso: /pm <id> <mensaje>  (id sin @server)"}).to_string();
+                                    let _ = write_arc.lock().await.send(Message::Text(err)).await;
+                                }
+                            } else {
+                                // Broadcast al canal común (todos lo reciben, incluido el remitente)
+                                let broadcast = json!({
+                                    "type": "chat",
+                                    "from": &from_vname,
+                                    "text": &chat_text
+                                }).to_string();
+                                broadcast_raw(broadcast, None).await;
+                            }
+                        }
+                        continue; // chat NUNCA llega al pipeline IA
+                    }
+                }
+
+                // ── /stop: máxima prioridad ───────────────────────────────────────
                 if text_trimmed == "/stop" {
                     let mut sessions = AI_SESSIONS.lock().await;
                     if let Some(s) = sessions.get_mut(&client_id) {
@@ -427,7 +534,7 @@ async fn handle_connection(stream: tokio::net::TcpStream) {
                     continue;
                 }
 
-                // --- Comandos libres: responden siempre, ignoran is_busy y semáforo ---
+                // ── Comandos libres (ignoran is_busy) ────────────────────────────
                 if text_trimmed.starts_with('/') && es_comando_libre(&text_trimmed) {
                     let resp = handle_command(&text_trimmed, client_id).await;
                     let out = resp.unwrap_or_else(|e| format!("❌ {}", e));
@@ -435,7 +542,7 @@ async fn handle_connection(stream: tokio::net::TcpStream) {
                     continue;
                 }
 
-                // --- Rechazar si el cliente está ocupado generando ---
+                // ── Rechazar si el cliente está ocupado generando ─────────────────
                 let client_busy = {
                     let sessions = AI_SESSIONS.lock().await;
                     sessions.get(&client_id).map(|s| s.is_busy).unwrap_or(false)
@@ -447,7 +554,7 @@ async fn handle_connection(stream: tokio::net::TcpStream) {
                     continue;
                 }
 
-                // --- Comandos no libres (clearcontext, model N...) ---
+                // ── Comandos normales (bloqueados si busy) ────────────────────────
                 if text_trimmed.starts_with('/') {
                     let resp = handle_command(&text_trimmed, client_id).await;
                     let out = resp.unwrap_or_else(|e| format!("Error: {}", e));
@@ -455,7 +562,7 @@ async fn handle_connection(stream: tokio::net::TcpStream) {
                     continue;
                 }
 
-                // --- Mensaje IA ---
+                // ── Mensaje IA ────────────────────────────────────────────────────
                 match AI_LIMIT_SEM.clone().try_acquire_owned() {
                     Ok(permit) => {
                         {
@@ -468,7 +575,6 @@ async fn handle_connection(stream: tokio::net::TcpStream) {
 
                         let task = tokio::spawn(async move {
                             let _guard = AiInstanceGuard::new(permit);
-
                             let res = preguntar_ollama_stream(&text_for_ai, client_id, write_clone.clone()).await;
                             if let Err(e) = res {
                                 error!("Error en flujo de IA [{}]: {}", client_id, e);
@@ -476,7 +582,6 @@ async fn handle_connection(stream: tokio::net::TcpStream) {
                                     format!("\n⚠️ ERROR: {}. Prueba /clearcontext si persiste.", e)
                                 )).await;
                             }
-
                             let mut sessions = AI_SESSIONS.lock().await;
                             if let Some(s) = sessions.get_mut(&client_id) {
                                 s.is_busy = false;
@@ -484,7 +589,6 @@ async fn handle_connection(stream: tokio::net::TcpStream) {
                             }
                         });
 
-                        // FIX deadlock: abort_handle se obtiene antes de cualquier lock de sesiones
                         let abort_handle = task.abort_handle();
                         {
                             let mut sessions = AI_SESSIONS.lock().await;
@@ -494,39 +598,39 @@ async fn handle_connection(stream: tokio::net::TcpStream) {
                         }
                     }
                     Err(_) => {
-                        let msg = format!(
+                        let _ = write_arc.lock().await.send(Message::Text(format!(
                             "⚠️ SISTEMA SATURADO: Ya hay {} instancias activas. Espera a que alguien termine.\n",
                             MAX_GLOBAL_INSTANCES
-                        );
-                        let _ = write_arc.lock().await.send(Message::Text(msg)).await;
+                        ))).await;
                     }
                 }
             }
         }
 
-        // Recoger métricas antes de eliminar la sesión
+        // Limpiar task auxiliar
+        chat_fwd.abort();
+
+        // Métricas de sesión
         let (duration_secs, messages_sent) = {
             let sessions = AI_SESSIONS.lock().await;
             if let Some(s) = sessions.get(&client_id) {
-                let dur = chrono::Local::now()
-                    .signed_duration_since(s.connected_at)
-                    .num_seconds()
-                    .max(0) as u64;
+                let dur = chrono::Local::now().signed_duration_since(s.connected_at).num_seconds().max(0) as u64;
                 (dur, s.messages_sent)
-            } else {
-                (0, 0)
-            }
+            } else { (0, 0) }
         };
 
         AI_SESSIONS.lock().await.remove(&client_id);
         let total_clients = AI_SESSIONS.lock().await.len();
 
-        info!("Cliente {} desconectado. Sesión: {}s, {} mensajes enviados.", client_id, duration_secs, messages_sent);
-        CONN_LOG.log_disconnect(client_id, &peer_ip, duration_secs, messages_sent, total_clients);
+        info!("Cliente {} ({}) desconectado. {}s, {} msgs.", client_id, virtual_name, duration_secs, messages_sent);
+        CONN_LOG.log_disconnect(&short_id, &peer_ip, duration_secs, messages_sent, total_clients);
+
+        // Notificar salida a todos los que quedan
+        broadcast_presence("leave", &virtual_name, total_clients).await;
+
     } else {
-        // Handshake WebSocket fallido — la sesión nunca se insertó, el contador no se ve afectado
-        warn!("Handshake WebSocket fallido para cliente {} desde {}.", client_id, peer_ip);
-        CONN_LOG.log_event(client_id, &peer_ip, "handshake_failed");
+        warn!("Handshake WS fallido para {} desde {}.", client_id, peer_ip);
+        CONN_LOG.log_event(&client_id.to_string()[..8], &peer_ip, "handshake_failed");
     }
 }
 
@@ -539,15 +643,20 @@ async fn handle_command(command: &str, client_id: Uuid) -> Result<String, String
 📖 COMANDOS DISPONIBLES:
   /help           - Muestra esta ayuda.
   /stop           - Detiene la generación actual.
-  /clearcontext   - Borra contexto e historial.
+  /clearcontext   - Borra contexto e historial IA.
   /limit          - Estado de instancias IA.
-  /models         - Lista modelos instalados en Ollama.
+  /models         - Lista modelos Ollama instalados.
   /model N        - Cambia al modelo N (historial conservado).
   /info           - Métricas del servidor y tu sesión.
+  /who            - Clientes conectados ahora mismo.
   /listtv         - Canales TV activos.
   /servers        - Servidores remotos.
   /way            - Info del sistema ODyN.
   /hello          - Test de conexión.
+
+💬 CHAT COMÚN (botón 👥 Chat):
+  Escribe en el input del chat para hablar con todos.
+  /pm <id> <msg>  - Mensaje privado (id sin @server).
 "#.into()),
 
         "/clearcontext" => {
@@ -555,7 +664,7 @@ async fn handle_command(command: &str, client_id: Uuid) -> Result<String, String
             if let Some(s) = sessions.get_mut(&client_id) {
                 s.context.clear();
                 s.history_text.clear();
-                Ok("🧹 Contexto e historial borrados. Generando nueva sesión.".into())
+                Ok("🧹 Contexto e historial borrados.".into())
             } else { Err("Sesión no encontrada.".into()) }
         }
 
@@ -571,20 +680,18 @@ async fn handle_command(command: &str, client_id: Uuid) -> Result<String, String
                 .ok_or_else(|| format!("Índice inválido. Hay {} modelo(s). Usa /models.", modelos.len()))?
                 .clone();
 
-            // Aviso de RAM solo si el modelo no está ya cargado y no cabe cómodamente
             let (_, avail_mb, _) = leer_ram();
             let en_ram = obtener_modelos_en_ram().await.iter().any(|m| m == &nombre);
             let aviso_ram = if !en_ram && avail_mb < ram_necesaria_mb(&nombre) {
-                format!("\n⚠️  RAM disponible: {}MB — este modelo puede requerir swap y tardar más.", avail_mb)
+                format!("\n⚠️  RAM disponible: {}MB — este modelo puede requerir swap.", avail_mb)
             } else { String::new() };
 
             let mut sessions = AI_SESSIONS.lock().await;
             if let Some(s) = sessions.get_mut(&client_id) {
                 let anterior = s.model.clone();
                 s.model = nombre.clone();
-                // Tokens incompatibles entre modelos → reset, pero historial de texto se conserva
                 s.context.clear();
-                CONN_LOG.log_event(client_id, "n/a", &format!("model_change from={} to={}", anterior, nombre));
+                CONN_LOG.log_event(&s.short_id.clone(), "n/a", &format!("model_change from={} to={}", anterior, nombre));
                 Ok(format!(
                     "✅ IA cambiada: {} → {}\n💬 Historial conservado ({} turnos).{}",
                     anterior, nombre, s.history_text.len(), aviso_ram
@@ -594,18 +701,15 @@ async fn handle_command(command: &str, client_id: Uuid) -> Result<String, String
 
         "/models" => {
             let modelos = obtener_modelos_ollama().await;
-            if modelos.is_empty() {
-                return Ok("⚠️ Ollama no responde o no hay modelos instalados.".into());
-            }
+            if modelos.is_empty() { return Ok("⚠️ Ollama no responde o no hay modelos instalados.".into()); }
 
             let sessions = AI_SESSIONS.lock().await;
             let modelo_actual = sessions.get(&client_id).map(|s| s.model.clone()).unwrap_or_default();
             drop(sessions);
 
-            let en_ram      = obtener_modelos_en_ram().await;
+            let en_ram = obtener_modelos_en_ram().await;
             let (total_mb, avail_mb, _) = leer_ram();
 
-            // Devolver como widget para que el cliente lo renderice como panel interactivo
             let items: Vec<serde_json::Value> = modelos.iter().enumerate().map(|(i, m)| json!({
                 "index":    i + 1,
                 "name":     m,
@@ -622,8 +726,8 @@ async fn handle_command(command: &str, client_id: Uuid) -> Result<String, String
         }
 
         "/limit" => {
-            let activos = ACTIVE_AI_INSTANCES.load(Ordering::SeqCst);
-            let total   = MAX_GLOBAL_INSTANCES;
+            let activos  = ACTIVE_AI_INSTANCES.load(Ordering::SeqCst);
+            let total    = MAX_GLOBAL_INSTANCES;
             let clientes = AI_SESSIONS.lock().await.len();
             Ok(format!(
                 "\n📊 ESTADO:\n  Instancias IA: {}/{}\n  Disponibles: {}\n  Clientes conectados: {}\n",
@@ -631,32 +735,48 @@ async fn handle_command(command: &str, client_id: Uuid) -> Result<String, String
             ))
         }
 
-        // /date es alias de /info para compatibilidad con el botón del drawer
+        "/who" => {
+            let sessions = AI_SESSIONS.lock().await;
+            let ahora = chrono::Local::now();
+            let users: Vec<serde_json::Value> = sessions.values().map(|s| {
+                let dur = ahora.signed_duration_since(s.connected_at).num_seconds().max(0) as u64;
+                json!({
+                    "id":    s.short_id,
+                    "vname": s.virtual_name(),
+                    "model": s.model,
+                    "since": formatear_duracion(dur),
+                    "msgs":  s.messages_sent,
+                    "busy":  s.is_busy
+                })
+            }).collect();
+            Ok(widget_msg("who", 1, json!({ "users": users })))
+        }
+
         "/date" | "/info" => {
             let ahora = chrono::Local::now();
             let (total_mb, avail_mb, used_mb) = leer_ram();
-            let uptime_os  = leer_uptime_os();
-            let activos    = ACTIVE_AI_INSTANCES.load(Ordering::SeqCst);
+            let uptime_os = leer_uptime_os();
+            let activos   = ACTIVE_AI_INSTANCES.load(Ordering::SeqCst);
 
-            let sessions = AI_SESSIONS.lock().await;
-            let clientes   = sessions.len();
-            let mi         = sessions.get(&client_id);
-            let mi_modelo  = mi.map(|s| s.model.clone()).unwrap_or_default();
-            let mi_turnos  = mi.map(|s| s.history_text.len()).unwrap_or(0);
-            let mi_msgs    = mi.map(|s| s.messages_sent).unwrap_or(0);
-            let conectado  = mi.map(|s|
-                formatear_duracion(ahora.signed_duration_since(s.connected_at).num_seconds().max(0) as u64)
+            let sessions  = AI_SESSIONS.lock().await;
+            let clientes  = sessions.len();
+            let mi        = sessions.get(&client_id);
+            let mi_modelo = mi.map(|s| s.model.clone()).unwrap_or_default();
+            let mi_turnos = mi.map(|s| s.history_text.len()).unwrap_or(0);
+            let mi_msgs   = mi.map(|s| s.messages_sent).unwrap_or(0);
+            let mi_id     = mi.map(|s| s.short_id.clone()).unwrap_or_default();
+            let mi_vname  = mi.map(|s| s.virtual_name()).unwrap_or_default();
+            let conectado = mi.map(|s|
+                formatear_duracion(chrono::Local::now().signed_duration_since(s.connected_at).num_seconds().max(0) as u64)
             ).unwrap_or_default();
-            let mi_id      = client_id.to_string()[..8].to_string();
             drop(sessions);
 
-            let en_ram     = obtener_modelos_en_ram().await;
+            let en_ram    = obtener_modelos_en_ram().await;
             let uptime_srv = formatear_duracion(
                 ahora.signed_duration_since(*SERVER_START_TIME).num_seconds().max(0) as u64
             );
-            let ram_pct    = if total_mb > 0 { (used_mb * 100) / total_mb } else { 0 };
+            let ram_pct   = if total_mb > 0 { (used_mb * 100) / total_mb } else { 0 };
 
-            // Widget con todos los datos — el cliente los renderiza en panel bonito con barra de RAM, etc.
             Ok(widget_msg("info", 1, json!({
                 "datetime": ahora.format("%d/%m/%Y %H:%M:%S").to_string(),
                 "server": {
@@ -675,6 +795,7 @@ async fn handle_command(command: &str, client_id: Uuid) -> Result<String, String
                 "models_in_ram": en_ram,
                 "session": {
                     "id":              mi_id,
+                    "vname":           mi_vname,
                     "model":           mi_modelo,
                     "connected_since": conectado,
                     "messages":        mi_msgs,
@@ -683,8 +804,8 @@ async fn handle_command(command: &str, client_id: Uuid) -> Result<String, String
             })))
         }
 
-        "/hello" => Ok("👋 GoyimAI en línea.".into()),
-        "/way"   => Ok("Sistema ODyN - Goyim United Corp.".into()),
+        "/hello"   => Ok("👋 GoyimAI en línea.".into()),
+        "/way"     => Ok("Sistema ODyN - Goyim United Corp.".into()),
         "/listtv"  => list_tv_channels(),
         "/servers" => list_servers(),
 
@@ -731,13 +852,13 @@ async fn preguntar_ollama_stream(
         .send().await?;
 
     if !res.status().is_success() {
-        let status    = res.status();
-        let err_text  = format!("❌ Error API Ollama ({}). Revisa el modelo: {}", status, model);
+        let status   = res.status();
+        let err_text = format!("❌ Error API Ollama ({}). Revisa el modelo: {}", status, model);
         let _ = write_sink.lock().await.send(Message::Text(err_text.clone())).await;
         return Err(err_text.into());
     }
 
-    let mut full_response  = String::new();
+    let mut full_response = String::new();
     let mut new_context: Vec<i64> = Vec::new();
 
     while let Some(chunk) = res.chunk().await? {
@@ -765,13 +886,10 @@ async fn preguntar_ollama_stream(
         }
     }
 
-    // Guardar contexto e historial de texto
     let mut sessions = AI_SESSIONS.lock().await;
     if let Some(s) = sessions.get_mut(&client_id) {
-        if !new_context.is_empty()    { s.context = new_context; }
-        if !full_response.is_empty()  {
-            s.add_history(prompt.to_string(), full_response.trim().to_string());
-        }
+        if !new_context.is_empty()   { s.context = new_context; }
+        if !full_response.is_empty() { s.add_history(prompt.to_string(), full_response.trim().to_string()); }
     }
 
     Ok(())
@@ -781,11 +899,8 @@ async fn preguntar_ollama_stream(
 fn list_tv_channels() -> Result<String, String> {
     let data = fs::read_to_string("/var/osiris2/bin/com/datas/ffmpeg/activos.json")
         .map_err(|e| e.to_string())?;
-    let channels: Vec<TVChannel> = serde_json::from_str(&data)
-        .map_err(|e| e.to_string())?;
-
+    let channels: Vec<TVChannel> = serde_json::from_str(&data).map_err(|e| e.to_string())?;
     if channels.is_empty() { return Ok("📺 No hay canales activos.".into()); }
-
     Ok(widget_msg("tv_channels", 1, json!({
         "channels": channels.iter().map(|ch| json!({ "canal": ch.canal, "url": ch.url })).collect::<Vec<_>>()
     })))
@@ -795,11 +910,9 @@ fn list_tv_channels() -> Result<String, String> {
 fn list_servers() -> Result<String, String> {
     let content = fs::read_to_string("/var/osiris2/bin/net/rserver.nrl")
         .map_err(|e| e.to_string())?;
-
     let servers: Vec<serde_json::Value> = content.lines()
         .filter(|l| !l.trim().is_empty())
         .map(|l| json!({ "host": l.trim() }))
         .collect();
-
     Ok(widget_msg("servers", 1, json!({ "servers": servers })))
 }
