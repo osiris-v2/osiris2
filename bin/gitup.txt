@@ -363,7 +363,8 @@ html/app/jsa/model.js
 html/app/jsa/firefox.1.css
 
 
-# goIAPPhtml/app/goyimz/
+# goIAPP html/app/goyimz/
+html/app/goyimz/search/mnt
 html/app/goyimz/index.html
 html/app/goyimz/index.php
 html/app/goyimz/app.js
