@@ -442,12 +442,19 @@ async fn handle_connection(stream: tokio::net::TcpStream) {
             "id":      &short_id,
             "vname":   &virtual_name,
             "model":   modelo_inicial,
+            "clients": total_clients,
             "message": "Escribe /help para ver los comandos disponibles."
         }));
         let _ = write_arc.lock().await.send(Message::Text(bienvenida)).await;
 
-        // Notificar a todos la llegada (incluido el propio cliente)
-        broadcast_presence("join", &virtual_name, total_clients).await;
+        // Notificar a todos la llegada (excluye al propio cliente — no ve su propio join)
+        let join_msg = serde_json::json!({
+            "type":    "presence",
+            "event":   "join",
+            "id":      &virtual_name,
+            "clients": total_clients
+        }).to_string();
+        broadcast_raw(join_msg, Some(client_id)).await;
 
         // Task auxiliar: reenvía mensajes del canal mpsc al WebSocket del cliente.
         // Completamente independiente del loop de lectura → NO bloqueante.
@@ -470,6 +477,25 @@ async fn handle_connection(stream: tokio::net::TcpStream) {
                 // El cliente envía {"type":"chat","text":"..."} para el canal social.
                 // No toca is_busy ni el semáforo de IA en ningún caso.
                 if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&text_trimmed) {
+
+                    // ── POST: publicación en el mural común ──────────────────
+                    if parsed["type"].as_str() == Some("post") {
+                        let post_text = parsed["text"].as_str().unwrap_or("").trim().to_string();
+                        if !post_text.is_empty() && post_text.len() <= 500 {
+                            let from_vname = {
+                                let sessions = AI_SESSIONS.lock().await;
+                                sessions.get(&client_id).map(|s| s.virtual_name()).unwrap_or_default()
+                            };
+                            let broadcast = json!({
+                                "type": "post",
+                                "from": from_vname,
+                                "text": post_text
+                            }).to_string();
+                            broadcast_raw(broadcast, None).await;
+                        }
+                        continue; // los posts NUNCA llegan al pipeline IA
+                    }
+
                     if parsed["type"].as_str() == Some("chat") {
                         let chat_text = parsed["text"].as_str().unwrap_or("").trim().to_string();
                         if !chat_text.is_empty() {
@@ -619,8 +645,11 @@ async fn handle_connection(stream: tokio::net::TcpStream) {
             } else { (0, 0) }
         };
 
-        AI_SESSIONS.lock().await.remove(&client_id);
-        let total_clients = AI_SESSIONS.lock().await.len();
+        let total_clients = {
+            let mut sessions = AI_SESSIONS.lock().await;
+            sessions.remove(&client_id);
+            sessions.len()
+        };
 
         info!("Cliente {} ({}) desconectado. {}s, {} msgs.", client_id, virtual_name, duration_secs, messages_sent);
         CONN_LOG.log_disconnect(&short_id, &peer_ip, duration_secs, messages_sent, total_clients);
@@ -841,7 +870,35 @@ async fn preguntar_ollama_stream(
         "stream":  true,
         "context": if ctx.is_empty() { json!(null) } else { json!(ctx) },
         "system":  format!(
-            "Eres una IA de GoyCorp. Fecha/Hora actual: {}.\nInstrucciones: {}\n{}",
+            "Eres una IA de GoyCorp.
+
+
+
+             Fecha/Hora actual: {}.\nInstrucciones: {}\n{}\n
+             
+                         
+            CRO: Búsqueda Google (Compacto para IA)
+		Usa la búsqueda en Google sólo si te lo pide en usuario o lo consideras una situación crítica. 
+Para buscar en Google, usa el comando SEARCH_IN_* GOOGLE
+
+Formato:
+
+```CRO
+SEARCH_IN_* GOOGLE
+QUERY=\"tu consulta aquí\"
+TYPE=\"text\"
+```
+
+   QUERY: El texto a buscar en Google.\n
+   TYPE: Formato de resultados deseado (ej. \"text\", \"image\"). Usa \"text\" por defecto.\n
+
+Ejemplo:\n
+QUERY=\"Osiris Scale arquitectura\"\n
+             
+             
+             
+             " ,
+        
             ahora, instrucciones_extra, history_text
         )
     });
