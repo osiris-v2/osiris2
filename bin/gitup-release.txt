@@ -369,7 +369,7 @@ html/app/goyimz/index.php
 html/app/goyimz/app.js
 html/app/goyimz/style.css
 html/app/goyimz/search/lib
-html/app/goyimz/README.md
+html/app/goyimz/search/README.md
 html/app/goyimz/search.php
 html/app/goyimz/index.goy
 html/app/goyimz/favicon.ico
@@ -435,10 +435,12 @@ bin/com.vars
 
 bin/datos.txt
 
-
-#Release File 13 may 2026 05:04
-
+#Create Release File 13 may 2026 08:08
 #EOF
+
+
+
+
 
 
 
