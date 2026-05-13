@@ -35,9 +35,12 @@ seed/nodo_musculo/src/net
 seed/nodo_musculo/src/video
 seed/nodo_musculo/util
 
-seed/cerebro_semilla/cargo.toml
+seed/cerebro_semilla/Cargo.toml
 seed/cerebro_semilla/src/
 seed/cerebro_semilla/src/
+
+seed/aichat_server/src/
+seed/aichat_server/Cargo.toml
 
 seed/Makefile
 
@@ -363,9 +366,17 @@ html/app/jsa/firefox.1.css
 # goIAPPhtml/app/goyimz/
 html/app/goyimz/index.html
 html/app/goyimz/index.php
+html/app/goyimz/app.js
+html/app/goyimz/style.css
+html/app/goyimz/search/lib
+html/app/goyimz/README.md
+html/app/goyimz/search.php
 html/app/goyimz/index.goy
 html/app/goyimz/favicon.ico
 html/app/goyimz/img/goyimzh.png
+
+
+
 
 
 html/app/widgets/hlstv.html

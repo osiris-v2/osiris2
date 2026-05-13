@@ -1,0 +1,32 @@
+use lazy_static::lazy_static;
+use tokio::sync::{Semaphore, Mutex};
+use std::collections::HashMap;
+use uuid::Uuid;
+use std::sync::atomic::{AtomicUsize, Ordering}; 
+use std::sync::{Arc, Mutex as StdMutex}; // Corregido: Importar Arc y Mutex con alias StdMutex
+use chrono; 
+
+use crate::session::ClientSession; 
+
+// --- CONFIGURACIÓN GLOBAL ---
+pub const MAX_GLOBAL_INSTANCES: usize = 2;
+pub const MAX_HISTORY_MESSAGES: usize = 20;
+pub const DEFAULT_MODEL_FALLBACK: &str = "llama3.2:latest";
+pub const OLLAMA_URL: &str = "http://localhost:11434";
+pub const OLLAMA_TIMEOUT_SECS: u64 = 500;
+
+// --- LOG DE CONEXIONES ---
+pub const CONN_LOG_PATH: &str = "/var/log/goyimai_connections.log";
+pub const CONN_LOG_MAX_BYTES: u64 = 256 * 1024; // 256 KB
+
+// Longitud del short-id visible (chars hex aleatorios)
+pub const SHORT_ID_LEN: usize = 8;
+
+pub static ACTIVE_AI_INSTANCES: AtomicUsize = AtomicUsize::new(0);
+
+// --- LAZY STATICS ---
+lazy_static! {
+    pub static ref AI_LIMIT_SEM: Arc<Semaphore> = Arc::new(Semaphore::new(MAX_GLOBAL_INSTANCES));
+    pub static ref AI_SESSIONS: Mutex<HashMap<Uuid, ClientSession>> = Mutex::new(HashMap::new());
+    pub static ref SERVER_START_TIME: chrono::DateTime<chrono::Local> = chrono::Local::now();
+}

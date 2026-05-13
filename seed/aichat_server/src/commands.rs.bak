@@ -1,0 +1,227 @@
+use uuid::Uuid;
+use serde_json::json;
+use std::fs;
+use chrono; 
+
+use crate::config::{AI_SESSIONS, ACTIVE_AI_INSTANCES, MAX_GLOBAL_INSTANCES, SERVER_START_TIME, DEFAULT_MODEL_FALLBACK}; // DEFAULT_MODEL_FALLBACK se usaba en main.rs, no commands.rs. Aquí solo para ser coherente con la propuesta anterior. Si no se usa en este módulo, se puede quitar.
+use crate::ollama::{obtener_modelos_ollama, obtener_modelos_en_ram};
+use crate::utils::{leer_ram, leer_uptime_os, formatear_duracion, ram_necesaria_mb};
+use crate::protocol::widget_msg;
+use crate::types::TVChannel;
+use crate::logger::CONN_LOG;
+
+// Comandos libres: responden siempre aunque la IA esté ocupada (is_busy).
+pub fn es_comando_libre(cmd: &str) -> bool {
+    let base = cmd.split_whitespace().next().unwrap_or("");
+    matches!(base,
+        "/listtv" | "/info" | "/date" | "/servers" | "/models" | "/who"
+    )
+}
+
+// --- MANEJO DE COMANDOS ---
+pub async fn handle_command(command: &str, client_id: Uuid) -> Result<String, String> {
+    let parts: Vec<&str> = command.split_whitespace().collect();
+
+    match parts[0] {
+        "/help" => Ok(r#"
+📖 COMANDOS DISPONIBLES:
+  /help           - Muestra esta ayuda.
+  /stop           - Detiene la generación actual.
+  /clearcontext   - Borra contexto e historial IA.
+  /limit          - Estado de instancias IA.
+  /models         - Lista modelos Ollama instalados.
+  /model N        - Cambia al modelo N (historial conservado).
+  /info           - Métricas del servidor y tu sesión.
+  /who            - Clientes conectados ahora mismo.
+  /listtv         - Canales TV activos.
+  /servers        - Servidores remotos.
+  /way            - Info del sistema ODyN.
+  /hello          - Test de conexión.
+
+💬 CHAT COMÚN (botón 👥 Chat):
+  Escribe en el input del chat para hablar con todos.
+  /pm <id> <msg>  - Mensaje privado (id sin @server).
+"#.into()),
+
+        "/clearcontext" => {
+            let mut sessions = AI_SESSIONS.lock().await;
+            if let Some(s) = sessions.get_mut(&client_id) {
+                s.context.clear();
+                s.history_text.clear();
+                Ok("🧹 Contexto e historial borrados.".into())
+            } else { Err("Sesión no encontrada.".into()) }
+        }
+
+        "/model" => {
+            let idx: usize = parts.get(1).and_then(|s| s.parse().ok())
+                .ok_or("Uso: /model [N] — usa /models para ver la lista.")?;
+            if idx == 0 { return Err("Los modelos empiezan en 1. Usa /models.".into()); }
+
+            let modelos = obtener_modelos_ollama().await;
+            if modelos.is_empty() { return Err("Ollama no responde o no hay modelos instalados.".into()); }
+
+            let nombre = modelos.get(idx - 1)
+                .ok_or_else(|| format!("Índice inválido. Hay {} modelo(s). Usa /models.", modelos.len()))?
+                .clone();
+
+            let (_, avail_mb, _) = leer_ram();
+            let en_ram = obtener_modelos_en_ram().await.iter().any(|m| m == &nombre);
+            let aviso_ram = if !en_ram && avail_mb < ram_necesaria_mb(&nombre) {
+                format!("
+⚠️  RAM disponible: {}MB — este modelo puede requerir swap.", avail_mb)
+            } else { String::new() };
+
+            let mut sessions = AI_SESSIONS.lock().await;
+            if let Some(s) = sessions.get_mut(&client_id) {
+                let anterior = s.model.clone();
+                s.model = nombre.clone();
+                s.context.clear();
+                CONN_LOG.log_event(&s.short_id.clone(), "n/a", &format!("model_change from={} to={}", anterior, nombre));
+                Ok(format!(
+                    "✅ IA cambiada: {} → {}
+💬 Historial conservado ({} turnos).{}",
+                    anterior, nombre, s.history_text.len(), aviso_ram
+                ))
+            } else { Err("Sesión no encontrada.".into()) }
+        }
+
+        "/models" => {
+            let modelos = obtener_modelos_ollama().await;
+            if modelos.is_empty() { return Ok("⚠️ Ollama no responde o no hay modelos instalados.".into()); }
+
+            let sessions = AI_SESSIONS.lock().await;
+            let modelo_actual = sessions.get(&client_id).map(|s| s.model.clone()).unwrap_or_default();
+            drop(sessions);
+
+            let en_ram = obtener_modelos_en_ram().await;
+            let (total_mb, avail_mb, _) = leer_ram();
+
+            let items: Vec<serde_json::Value> = modelos.iter().enumerate().map(|(i, m)| json!({
+                "index":    i + 1,
+                "name":     m,
+                "active":   *m == modelo_actual,
+                "in_ram":   en_ram.iter().any(|c| c == m),
+                "fits_ram": avail_mb >= ram_necesaria_mb(m)
+            })).collect();
+
+            Ok(widget_msg("models", 1, json!({
+                "ram_total_mb":     total_mb,
+                "ram_available_mb": avail_mb,
+                "models":           items
+            })))
+        }
+
+        "/limit" => {
+            let activos  = ACTIVE_AI_INSTANCES.load(std::sync::atomic::Ordering::SeqCst);
+            let total    = MAX_GLOBAL_INSTANCES;
+            let clientes = AI_SESSIONS.lock().await.len();
+            Ok(format!(
+                "
+📊 ESTADO:
+  Instancias IA: {}/{}
+  Disponibles: {}
+  Clientes conectados: {}
+",
+                activos, total, total.saturating_sub(activos), clientes
+            ))
+        }
+
+        "/who" => {
+            let sessions = AI_SESSIONS.lock().await;
+            let ahora = chrono::Local::now();
+            let users: Vec<serde_json::Value> = sessions.values().map(|s| {
+                let dur = ahora.signed_duration_since(s.connected_at).num_seconds().max(0) as u64;
+                json!({
+                    "id":    s.short_id,
+                    "vname": s.virtual_name(),
+                    "model": s.model,
+                    "since": formatear_duracion(dur),
+                    "msgs":  s.messages_sent,
+                    "busy":  s.is_busy
+                })
+            }).collect();
+            Ok(widget_msg("who", 1, json!({ "users": users })))
+        }
+
+        "/date" | "/info" => {
+            let ahora = chrono::Local::now();
+            let (total_mb, avail_mb, used_mb) = leer_ram();
+            let uptime_os = leer_uptime_os();
+            let activos   = ACTIVE_AI_INSTANCES.load(std::sync::atomic::Ordering::SeqCst);
+
+            let sessions  = AI_SESSIONS.lock().await;
+            let clientes  = sessions.len();
+            let mi        = sessions.get(&client_id);
+            let mi_modelo = mi.map(|s| s.model.clone()).unwrap_or_default();
+            let mi_turnos = mi.map(|s| s.history_text.len()).unwrap_or(0);
+            let mi_msgs   = mi.map(|s| s.messages_sent).unwrap_or(0);
+            let mi_id     = mi.map(|s| s.short_id.clone()).unwrap_or_default();
+            let mi_vname  = mi.map(|s| s.virtual_name()).unwrap_or_default();
+            let conectado = mi.map(|s|
+                formatear_duracion(chrono::Local::now().signed_duration_since(s.connected_at).num_seconds().max(0) as u64)
+            ).unwrap_or_default();
+            drop(sessions);
+
+            let en_ram    = obtener_modelos_en_ram().await;
+            let uptime_srv = formatear_duracion(
+                ahora.signed_duration_since(*SERVER_START_TIME).num_seconds().max(0) as u64
+            );
+            let ram_pct   = if total_mb > 0 { (used_mb * 100) / total_mb } else { 0 };
+
+            Ok(widget_msg("info", 1, json!({
+                "datetime": ahora.format("%d/%m/%Y %H:%M:%S").to_string(),
+                "server": {
+                    "uptime":    uptime_srv,
+                    "uptime_os": formatear_duracion(uptime_os),
+                    "clients":   clientes,
+                    "ai_active": activos,
+                    "ai_max":    MAX_GLOBAL_INSTANCES
+                },
+                "ram": {
+                    "total_mb":     total_mb,
+                    "used_mb":      used_mb,
+                    "available_mb": avail_mb,
+                    "used_pct":     ram_pct
+                },
+                "models_in_ram": en_ram,
+                "session": {
+                    "id":              mi_id,
+                    "vname":           mi_vname,
+                    "model":           mi_modelo,
+                    "connected_since": conectado,
+                    "messages":        mi_msgs,
+                    "context_turns":   mi_turnos
+                }
+            })))
+        }
+
+        "/hello"   => Ok("👋 GoyimAI en línea.".into()),
+        "/way"     => Ok("Sistema ODyN - Goyim United Corp.".into()),
+        "/listtv"  => list_tv_channels(),
+        "/servers" => list_servers(),
+
+        _ => Err(format!("Comando desconocido: '{}'. Escribe /help.", parts[0]))
+    }
+}
+
+// --- TV como widget ---
+fn list_tv_channels() -> Result<String, String> {
+    let data = fs::read_to_string("/var/osiris2/bin/com/datas/ffmpeg/activos.json")
+        .map_err(|e| e.to_string())?;
+    let channels: Vec<TVChannel> = serde_json::from_str(&data).map_err(|e| e.to_string())?;
+    if channels.is_empty() { return Ok("📺 No hay canales activos.".into()); }
+    Ok(widget_msg("tv_channels", 1, json!({
+        "channels": channels.iter().map(|ch| json!({ "canal": ch.canal, "url": ch.url })).collect::<Vec<_>>()
+    })))
+}
+
+// --- SERVIDORES como widget ---
+fn list_servers() -> Result<String, String> {
+    let content = fs::read_to_string("/var/osiris2/bin/net/rserver.nrl")
+        .map_err(|e| e.to_string())?;
+    let servers: Vec<serde_json::Value> = content.lines()
+        .filter(|l| !l.trim().is_empty())
+        .map(|l| json!({ "host": l.trim() }))
+        .collect();
+    Ok(widget_msg("servers", 1, json!({ "servers": servers })))
+}

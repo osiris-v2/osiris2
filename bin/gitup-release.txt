@@ -15,6 +15,7 @@ LICENSE.md
 
 # SEMILLA
 #seed/
+#seed fuentes
 seed/README.md
 seed/bottv-opt.sh
 seed/bottv2.sh
@@ -22,12 +23,32 @@ seed/inyector.sh
 seed/videourl.sh
 seed/osiris_telemetry_v2.sh
 
+seed/nodo_musculo/include
+seed/nodo_musculo/src/main.c
+seed/nodo_musculo/src/plugins
+seed/nodo_musculo/src/core
+seed/nodo_musculo/src/demo
+seed/nodo_musculo/src/drivers
+seed/nodo_musculo/src/math
+seed/nodo_musculo/src/mem
+seed/nodo_musculo/src/net
+seed/nodo_musculo/src/video
+seed/nodo_musculo/util
+
+seed/cerebro_semilla/Cargo.toml
+seed/cerebro_semilla/src/
+seed/cerebro_semilla/src/
+
+seed/aichat_server/src/
+seed/aichat_server/Cargo.toml
+
+seed/Makefile
+
 #Binarios Seed
 seed/nodo_musculo/bin/monitor
 seed/nodo_musculo/bin/osiris_node
 seed/nodo_musculo/bin/ods_engine
 seed/cerebro_semilla/target/release/cerebro_semilla
-
 
 
 #Archivos instalación
@@ -260,6 +281,7 @@ bin/com/screenshot.py
 bin/com/audio.py
 bin/com/client.py
 bin/com/youtube_player.py
+bin/com/mistral2.py
 
 #TV
 bin/com/otvkill
@@ -344,9 +366,17 @@ html/app/jsa/firefox.1.css
 # goIAPPhtml/app/goyimz/
 html/app/goyimz/index.html
 html/app/goyimz/index.php
+html/app/goyimz/app.js
+html/app/goyimz/style.css
+html/app/goyimz/search/lib
+html/app/goyimz/README.md
+html/app/goyimz/search.php
 html/app/goyimz/index.goy
 html/app/goyimz/favicon.ico
 html/app/goyimz/img/goyimzh.png
+
+
+
 
 
 html/app/widgets/hlstv.html
@@ -389,7 +419,7 @@ html/app/mitv/channels/main/live-ts/info.txt
 
 
 ##RELEASE GENERADO EN 17-11-2025 11.52.00
-##updated files: 18.12.2026 10,17
+
 osiris2release.deb
 bio.deb
 
@@ -401,9 +431,18 @@ bin/com/tmp/zj91enedg3.png
 bin/com.vars
 
 
-
 #CANALESsTreaMing
 
 bin/datos.txt
 
+
+#Release File 13 may 2026 05:04
+
 #EOF
+
+
+
+
+
+
+

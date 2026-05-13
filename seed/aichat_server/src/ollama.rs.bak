@@ -1,0 +1,147 @@
+use std::error::Error;
+use std::fs;
+use std::sync::Arc;
+use tokio::sync::Mutex;
+use tokio_tungstenite::tungstenite::Message;
+use futures_util::SinkExt;
+use log::warn;
+use serde_json::json;
+use uuid::Uuid;
+use chrono; 
+
+use crate::config::{OLLAMA_URL, OLLAMA_TIMEOUT_SECS, AI_SESSIONS}; 
+
+// --- OLLAMA HELPERS ---
+
+pub async fn obtener_modelos_ollama() -> Vec<String> {
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(5))
+        .build().unwrap_or_default();
+    match client.get(format!("{}/api/tags", OLLAMA_URL)).send().await {
+        Ok(res) => res.json::<serde_json::Value>().await.ok()
+            .and_then(|j| j["models"].as_array().map(|a|
+                a.iter().filter_map(|m| m["name"].as_str().map(|s| s.to_string())).collect()
+            )).unwrap_or_default(),
+        Err(e) => { warn!("No se pudo contactar Ollama (tags): {}", e); vec![] }
+    }
+}
+
+pub async fn obtener_modelos_en_ram() -> Vec<String> {
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(5))
+        .build().unwrap_or_default();
+    match client.get(format!("{}/api/ps", OLLAMA_URL)).send().await {
+        Ok(res) => res.json::<serde_json::Value>().await.ok()
+            .and_then(|j| j["models"].as_array().map(|a|
+                a.iter().filter_map(|m| m["name"].as_str().map(|s| s.to_string())).collect()
+            )).unwrap_or_default(),
+        Err(_) => vec![],
+    }
+}
+
+pub async fn ollama_disponible() -> bool {
+    reqwest::Client::builder().timeout(std::time::Duration::from_secs(3))
+        .build().unwrap_or_default()
+        .get(format!("{}/api/tags", OLLAMA_URL)).send().await.is_ok()
+}
+
+
+// --- INFERENCIA CON OLLAMA (STREAMING) ---
+pub async fn preguntar_ollama_stream(
+    prompt: &str,
+    client_id: Uuid,
+    write_sink: Arc<Mutex<futures_util::stream::SplitSink<
+        tokio_tungstenite::WebSocketStream<tokio::net::TcpStream>, Message,
+    >>>,
+) -> Result<(), Box<dyn Error + Send + Sync>> {
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(OLLAMA_TIMEOUT_SECS))
+        .build()?;
+
+    let (ctx, model, history_text) = {
+        let sessions = AI_SESSIONS.lock().await;
+        let s = sessions.get(&client_id).ok_or("Sesión perdida")?;
+        (s.context.clone(), s.model.clone(), s.history_as_text())
+    };
+
+    let ahora = chrono::Local::now().format("%d/%m/%Y %H:%M:%S").to_string();
+    let instrucciones_extra = fs::read_to_string("instrucciones.txt")
+        .unwrap_or_else(|_| "Instrucciones por defecto".to_string());
+
+    let body = json!({
+        "model":   model,
+        "prompt":  prompt,
+        "stream":  true,
+        "context": if ctx.is_empty() { json!(null) } else { json!(ctx) },
+        "system":  format!(
+            "Eres una IA de GoyCorp. Fecha/Hora actual: {}.
+Instrucciones: {}
+{}
+
+            CRO: Búsqueda Google (Compacto para IA)
+            Usa la búsqueda en Google sólo si te lo pide en usuario o lo consideras una situación crítica. 
+            Para buscar en Google, usa el comando SEARCH_IN_* GOOGLE
+            Formato:
+            ```CRO
+            SEARCH_IN_* GOOGLE
+            QUERY=\"tu consulta aquí\"
+            TYPE=\"text\"
+            ```
+            QUERY: El texto a buscar en Google.
+            TYPE: Formato de resultados deseado (ej. \"text\", \"image\"). Usa \"text\" por defecto.
+            Ejemplo:
+            QUERY=\"Osiris Scale arquitectura\"",
+            ahora, instrucciones_extra, history_text
+        )
+    });
+
+    let mut res = client
+        .post(format!("{}/api/generate", OLLAMA_URL))
+        .json(&body)
+        .send().await?;
+
+    if !res.status().is_success() {
+        let status   = res.status();
+        let err_text = format!("❌ Error API Ollama ({}). Revisa el modelo: {}", status, model);
+        let _ = write_sink.lock().await.send(Message::Text(err_text.clone())).await;
+        return Err(err_text.into());
+    }
+
+    let mut full_response = String::new();
+    let mut new_context: Vec<i64> = Vec::new();
+
+    while let Some(chunk) = res.chunk().await? {
+        let text = String::from_utf8_lossy(&chunk);
+        for line in text.split('
+') {
+            if line.is_empty() { continue; }
+            if let Ok(json_val) = serde_json::from_str::<serde_json::Value>(line) {
+
+                if let Some(token) = json_val["response"].as_str() {
+                    full_response.push_str(token);
+                    let _ = write_sink.lock().await.send(Message::Text(token.to_string())).await;
+                }
+
+                if json_val["done"].as_bool().unwrap_or(false) {
+                    if let Some(new_ctx) = json_val["context"].as_array() {
+                        new_context = new_ctx.iter().filter_map(|v| v.as_i64()).collect();
+                    }
+                    let _ = write_sink.lock().await.send(Message::Text("
+".into())).await;
+                }
+
+                if let Some(err) = json_val["error"].as_str() {
+                    return Err(format!("Ollama stream error: {}", err).into());
+                }
+            }
+        }
+    }
+
+    let mut sessions = AI_SESSIONS.lock().await;
+    if let Some(s) = sessions.get_mut(&client_id) {
+        if !new_context.is_empty()   { s.context = new_context; }
+        if !full_response.is_empty() { s.add_history(prompt.to_string(), full_response.trim().to_string()); }
+    }
+
+    Ok(())
+}

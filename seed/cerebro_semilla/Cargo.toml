@@ -8,7 +8,9 @@ indicatif = "0.17"
 console = "0.15"
 tokio = { version = "1", features = ["full"] }
 nix = { version = "0.27", features = ["signal"] }
-# Serialización para el protocolo espejo
 serde = { version = "1.0", features = ["derive"] }
-# Gestión de memoria eficiente
 bytes = "1.0"
+# Fase 2B: HMAC-SHA256 para autenticacion de paquetes
+hmac = "0.12"
+sha2 = "0.10"
+getrandom = "0.2"
