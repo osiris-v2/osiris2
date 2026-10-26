@@ -82,6 +82,12 @@ function makecard($params = []) {
             <button onclick="togglePanel('posts')">📢 Posts</button>
             <button onclick="cmdRapido('/stop')">/stop</button>
             <button onclick="cmdRapido('/clearcontext')">/clearcontext</button>
+            <!-- NUEVOS -->
+            <button onclick="abrirWidgetCuenta()">👤 Cuenta</button>
+            <button onclick="abrirWidgetSalas()">🏠 Salas</button>
+            <button onclick="abrirWidgetAyuda()">📖 Ayuda</button>
+            <button onclick="abrirWidgetPerfil()">✏️ Perfil</button>
+            <button onclick="abrirSelectorSkins()">🎨 Skin</button>
             <button>
                 <a href="search/index.php" target="_newGoyim" style="all:inherit;">/buscar</a>
             </button>
@@ -90,12 +96,12 @@ function makecard($params = []) {
 </div>
 
 <!-- ═══════════════════════════════════════════
-     FAB BAR — barra superior de paneles
+     FAB BAR
 ═══════════════════════════════════════════ -->
 <div id="widget-fab"></div>
 
 <!-- ═══════════════════════════════════════════
-     TV EMBED — iframe fijo con resize handle
+     TV EMBED
 ═══════════════════════════════════════════ -->
 <div id="tv-embed-bar">
     <div id="tv-embed-header">
@@ -108,7 +114,7 @@ function makecard($params = []) {
 </div>
 
 <!-- ═══════════════════════════════════════════
-     WIDGET PANELS — contenedor
+     WIDGET PANELS
 ═══════════════════════════════════════════ -->
 <div id="widget-panels"></div>
 

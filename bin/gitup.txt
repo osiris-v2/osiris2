@@ -49,7 +49,9 @@ seed/nodo_musculo/bin/monitor
 seed/nodo_musculo/bin/osiris_node
 seed/nodo_musculo/bin/ods_engine
 seed/cerebro_semilla/target/release/cerebro_semilla
-
+#Otros Binarios (se moverán a seed todaslas compilaciones)
+bin/server/chat_server/target/optimized/release/server.run.arch
+bin/server/chat_server/target/optimized/release/client_release
 
 #Archivos instalación
 osiris.inst

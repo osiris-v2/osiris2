@@ -124,8 +124,8 @@ pub async fn preguntar_ollama_stream(
 
     // ── System prompt final ───────────────────────────────────────────────
     let system_prompt = format!(
-        "Eres GoyimAI, asistente de GoyCorp. Fecha y hora: {ahora}.\n\
-        Responde siempre en el idioma del usuario. Sé directo y conciso.\n\
+        "Soy GoyimAI, asistente de GoyCorp. Fecha y hora: {ahora}.\n\
+        Respondo siempre en el idioma del usuario. Soy directo y conciso y genero respuestas completas. Soy una IA y ese es mi desempeño.\n\
         \n\
         {bloque_identidad}\
         {bloque_instrucciones}\

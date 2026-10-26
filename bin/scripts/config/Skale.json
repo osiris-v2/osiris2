@@ -1,0 +1,12 @@
+{
+  "panel1": "clear;reset;clear && cd ../server/chat_server/target/optimized/release && sudo ./server.run.arch",
+  "panel0": "clear;reset;clear && cd ../server/chat_server/target/optimized/release && ./client_release",
+  "panel2": "sudo nano ../develop.info -y",
+  "panel3": "clear && reset && clear && sudo com use mistral2",
+  "panel5": "cd .. && clear && reset && clear && sudo ./OPS/ops",
+  "panel8": "clear && reset && clear && ./monitor_mp3_flag.sh",
+  "panel4": "clear;reset;clear && cd ../../seed/nodo_musculo/bin && ./osiris_node",
+  "panel7": "clear;reset;clear && cd ../../seed/nodo_musculo/bin && ./ods_engine",
+  "panel6": "clear;reset;clear && cd ../../seed/cerebro_semilla/target/release && ./cerebro_semilla ../../../../bin/com/datas/ffmpeg/anon.mp4"
+}
+

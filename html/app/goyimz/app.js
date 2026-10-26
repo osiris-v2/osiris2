@@ -369,7 +369,7 @@ function _htmlPerfil() {
         <div class="cuenta-section-title">Datos</div>
         <input id="p-nombre"  class="cuenta-input" type="text" placeholder='Nombre completo  (comillas si tiene espacios)'>
         <input id="p-desc"    class="cuenta-input" type="text" placeholder="Descripción / quién eres">
-        <input id="p-sector"  class="cuenta-input" type="text" placeholder="Sector (solo empresa)" id="p-sector-row">
+        <input id="p-sector"  class="cuenta-input" type="text" placeholder="Sector (solo empresa)" style="display:none">
         <input id="p-tono"    class="cuenta-input" type="text" placeholder="Tono: informal / formal / técnico…">
 
         <div class="cuenta-section-title" style="margin-top:10px">Visibilidad pública</div>
@@ -378,6 +378,10 @@ function _htmlPerfil() {
             <label><input type="checkbox" id="pv-tipo"   checked> Tipo</label>
             <label><input type="checkbox" id="pv-desc"> Descripción</label>
         </div>
+
+        <div class="cuenta-sep"></div>
+        <div class="cuenta-section-title">🎨 Skin / Tema visual</div>
+        ${_htmlSelectorSkins()}
 
         <div class="cuenta-sep"></div>
         <button class="cuenta-btn accent" onclick="guardarPerfil()">💾 Guardar perfil</button>
@@ -1133,6 +1137,7 @@ function _renderWelcome(data) {
             <button class="sala-btn" onclick="abrirWidgetCuenta()">👤 Cuenta</button>
             <button class="sala-btn" onclick="abrirWidgetPerfil()">✏️ Perfil</button>
             <button class="sala-btn" onclick="abrirWidgetSalas()">🏠 Salas</button>
+            <button class="sala-btn" onclick="abrirSelectorSkins()">🎨 Skin</button>
             <button class="sala-btn" onclick="abrirWidgetAyuda()">📖 Ayuda</button>
         </div>
     </div>`;
@@ -1467,20 +1472,105 @@ function _initLayerResize(id) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   SISTEMA DE SKINS
+   SISTEMA DE SKINS — cargador dinámico
+   ─────────────────────────────────────────────────────────────────────
+   Dos modos de skin conviven:
+     A) Skin INTERNA (variables CSS en style.css) → sin fichero externo
+     B) Skin EXTERNA (fichero skins/<nombre>.css)  → cargado dinámico
+
+   Para añadir una skin nueva basta con:
+     1. Crear skins/mi_skin.css  (redefine las variables :root)
+     2. Añadir { id:'mi_skin', label:'Mi Skin', external:true }  al array SKINS
+      → aparecerá automáticamente en el selector sin tocar nada más.
+
+   Si external:false  → solo cambia el atributo data-skin en <html>
+                         (el CSS ya tiene el bloque html[data-skin="x"]{…})
 ═══════════════════════════════════════════════════════════════════════ */
-const SKINS = ['default', 'matrix', 'light', 'retro', 'neon'];
-function setSkin(name) {
-    document.documentElement.setAttribute('data-skin', name);
-    localStorage.setItem('goyim_skin', name);
+const SKINS = [
+    { id: 'default',  label: '🟢 Default',  external: false },
+    { id: 'matrix',   label: '💚 Matrix',   external: false },
+    { id: 'tweets',   label: '🐦 Tweets',   external: false },
+    { id: 'terminal', label: '💀 Terminal', external: false },
+];
+
+let _skinActiva = 'default';
+
+/** Cambia el skin en caliente. Carga CSS externo si es necesario. */
+function setSkin(idOrName) {
+    const skin = SKINS.find(s => s.id === idOrName) || { id: idOrName, external: false };
+    _skinActiva = skin.id;
+
+    // Atributo data-skin para variables CSS internas
+    document.documentElement.setAttribute('data-skin', skin.id);
+    localStorage.setItem('goyim_skin', skin.id);
+
+    // Gestión del <link> externo
+    let link = document.getElementById('skin-css-ext');
+    if (skin.external) {
+        if (!link) {
+            link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.id  = 'skin-css-ext';
+            document.head.appendChild(link);
+        }
+        link.href = `skins/${skin.id}.css`;
+    } else {
+        // Si cambiamos a una skin interna, eliminamos el link externo
+        link?.remove();
+    }
+
+    // Actualizar selector si está abierto
+    _actualizarSelectorSkins();
 }
-function _crearSkinLink() {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet'; link.id = 'skin-css';
-    document.head.appendChild(link);
-    return link;
+
+/** Renderiza el HTML del selector de skins (usado en perfil y en menú inicio) */
+function _htmlSelectorSkins() {
+    return `
+    <div class="skin-selector">
+        ${SKINS.map(s => `
+        <button class="skin-btn ${_skinActiva === s.id ? 'active' : ''}"
+                id="skinbtn-${s.id}"
+                onclick="setSkin('${s.id}');_actualizarSelectorSkins()">
+            ${escH(s.label)}
+        </button>`).join('')}
+    </div>
+    <div class="skin-preview-bar" id="skin-preview-bar">
+        <span style="background:var(--bg-base);color:var(--c-primary)">Aa</span>
+        <span style="background:var(--bg-panel);color:var(--c-accent)">●</span>
+        <span style="background:var(--bg-input);color:var(--c-user)">✎</span>
+        <span style="background:var(--c-danger);color:#fff">✕</span>
+        <span style="color:var(--c-secondary);font-size:0.75em;margin-left:4px">
+            Vista previa del skin activo
+        </span>
+    </div>`;
 }
+
+/** Actualiza los botones activos del selector sin reconstruirlo entero */
+function _actualizarSelectorSkins() {
+    SKINS.forEach(s => {
+        document.getElementById(`skinbtn-${s.id}`)
+            ?.classList.toggle('active', _skinActiva === s.id);
+    });
+}
+
+/** Abre la layer del selector de skins */
+function abrirSelectorSkins() {
+    const h = SKINS.length * 36 + 120;
+    abrirLayer('skins', '🎨 Skins', 'html:' + `
+        <div class="cuenta-wrap">
+            <div class="cuenta-section-title">Tema visual</div>
+            ${_htmlSelectorSkins()}
+            <div class="cuenta-sep" style="margin-top:10px"></div>
+            <div style="color:var(--c-secondary);font-size:0.75em;line-height:1.5">
+                Para añadir un skin externo crea <code>skins/nombre.css</code>
+                y añádelo al array <code>SKINS</code> en app.js con <code>external:true</code>.
+            </div>
+        </div>`, { w: 320, h });
+}
+
+/* Restaurar skin al cargar */
 (function _loadSkin() {
     const saved = localStorage.getItem('goyim_skin');
-    if (saved && SKINS.includes(saved)) setSkin(saved);
+    const exists = SKINS.find(s => s.id === saved);
+    if (saved && exists) setSkin(saved);
 })();
