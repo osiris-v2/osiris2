@@ -26,3 +26,5 @@ whisper
 qrcode
 cipher
 Markdown
+SpeechRecognition
+pyaudio

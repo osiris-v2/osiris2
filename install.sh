@@ -72,14 +72,6 @@ check_command_installed apache2.enmod
 
 check_command_installed ollama.install
 
-
-
-
-
-
-
-
-
 #check_command_installed /usr/bin/pip
 #check_command_installed /usr/bin/nodejs
 check_command_installed /usr/bin/certbot

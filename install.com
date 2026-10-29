@@ -10,10 +10,10 @@ python-pack  ./bin/install/python_pack_install.sh
 
 date				apt install date
 
-py3				apt install python3.11
-py3full				apt install python3.11-full
+py3				apt install python3
+py3full				apt install python3-full
 py3pip			 	apt install python3-pip 
-py3env				apt install python3.11-venv
+py3env				apt install python3-venv
 
 py3Virtualenv			apt install python3-virtualenv
 
@@ -29,7 +29,7 @@ tcptrack			apt install tcptrack
 nodejs   			apt install nodejs
 certbot 			apt install certbot
 tor 				apt install tor
-port-audio     			apt install portaudio19-dev 
+port-audio     			apt install portaudio19-dev alsa-utils jackd2 libasound2-plugins
 
 QtCppLib                        apt install qtbase5-dev g++ qtdeclarative5-dev
 

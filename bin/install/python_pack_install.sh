@@ -10,7 +10,7 @@ fi
 
 
 # Variables
-PYTHON_VERSION="3.11"
+PYTHON_VERSION="3"
 PIP_DEP_FILE="${OSIRIS000_BIN}/install/pip_dep"
 
 # Crear el directorio para el entorno virtual si no existe

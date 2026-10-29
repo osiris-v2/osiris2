@@ -1,0 +1,5 @@
+#!/bin/bash
+clear ; reset ; clear
+cd /var/osiris2/bin
+source com/osiris_env/bin/activate
+python3 com.py $@ 
