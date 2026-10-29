@@ -1596,3 +1596,4 @@ if __name__ == "__main__":
         main(sys.argv[1:])
     else:
         main(HELO)
+main("El operador ha iniciado esta interfaz. Haz autoreporte de servicio.")

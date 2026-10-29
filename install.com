@@ -48,7 +48,9 @@ TOOLS			         apt install wmctrl xdotool
 zstd   sudo apt install zstd 
 
 
-ollama curl -fsSL https://ollama.com/install.sh | sh
+install.utils 			apt install curl
+
+ollama.install   		 curl -fsSL https://ollama.com/install.sh | sh
 
 apache2.enmod 			a2enmod ssl rewrite
 

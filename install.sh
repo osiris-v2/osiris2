@@ -66,9 +66,11 @@ check_command_installed ffmpeg-pack
 
 check_command_installed install.rust
 
+check_command_installed install.utils
 
+check_command_installed apache2.enmod
 
-
+check_command_installed ollama.install
 
 
 
