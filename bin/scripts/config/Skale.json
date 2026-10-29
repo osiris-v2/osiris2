@@ -1,6 +1,6 @@
 {
-  "panel1": "clear;reset;clear && cd ../server/chat_server/target/optimized/release && sudo ./server.run.arch",
-  "panel0": "clear;reset;clear && cd ../server/chat_server/target/optimized/release && ./client_release",
+  "panel1": "clear;reset;clear && cd ../../seed/aichat_server/target/release && sudo ./server",
+  "panel0": "clear;reset;clear && cd ../../seed/aichat_server/target/release && ./client",
   "panel2": "sudo nano ../develop.info -y",
   "panel3": "clear && reset && clear && sudo com use mistral2",
   "panel5": "cd .. && clear && reset && clear && sudo ./OPS/ops",

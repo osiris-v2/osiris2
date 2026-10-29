@@ -20,6 +20,8 @@ seed/README.md
 seed/bottv-opt.sh
 seed/bottv2.sh
 seed/inyector.sh
+seed/inyector_videourl.sh
+seed/launch_osiris.sh
 seed/videourl.sh
 seed/osiris_telemetry_v2.sh
 
@@ -33,6 +35,7 @@ seed/nodo_musculo/src/math
 seed/nodo_musculo/src/mem
 seed/nodo_musculo/src/net
 seed/nodo_musculo/src/video
+seed/nodo_musculo/src/inline/dispatch_table.inl
 seed/nodo_musculo/util
 
 seed/cerebro_semilla/Cargo.toml
@@ -49,9 +52,21 @@ seed/nodo_musculo/bin/monitor
 seed/nodo_musculo/bin/osiris_node
 seed/nodo_musculo/bin/ods_engine
 seed/cerebro_semilla/target/release/cerebro_semilla
+
+#fuentes
+seed/nodo_musculo/util/monitor.c
 #Otros Binarios (se moverán a seed todaslas compilaciones)
+#DEPRECATED
 bin/server/chat_server/target/optimized/release/server.run.arch
 bin/server/chat_server/target/optimized/release/client_release
+
+#UNDP
+seed/aichat_server/target/release/server
+seed/aichat_server/target/release/client
+
+
+seed/asis/bottv2.py
+
 
 #Archivos instalación
 osiris.inst

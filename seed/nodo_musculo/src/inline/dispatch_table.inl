@@ -1,0 +1,20 @@
+    static void* dispatch_table[256] = { [0 ... 255] = &&unknown_op };
+    dispatch_table[1]  = &&op_hwprobe;
+    dispatch_table[5]  = &&op_rescale;
+    dispatch_table[7]  = &&op_stream;
+    dispatch_table[9]  = &&op_exit;
+    dispatch_table[10] = &&op_pause;
+    dispatch_table[15] = &&op_skip;
+    dispatch_table[22] = &&op_ia_update;
+    dispatch_table[30] = &&op_win_create;
+    dispatch_table[31] = &&op_win_destroy;
+    dispatch_table[32] = &&op_win_show;
+    dispatch_table[33] = &&op_win_hide;
+    dispatch_table[34] = &&op_render_frame;
+    dispatch_table[35] = &&op_overlay_text;
+    dispatch_table[36] = &&op_win_close;
+    dispatch_table[37] = &&op_win_list;
+    dispatch_table[40] = &&op_js_eval;
+    dispatch_table[41] = &&op_js_load;
+    dispatch_table[42] = &&op_js_reset;
+    dispatch_table[55] = &&op_mint_pta; /* <--- Vector de Acunacion Negentropica */
