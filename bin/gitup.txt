@@ -53,6 +53,10 @@ seed/cerebro_semilla/target/release/cerebro_semilla
 bin/server/chat_server/target/optimized/release/server.run.arch
 bin/server/chat_server/target/optimized/release/client_release
 
+
+seed/asis/bottv2.py
+
+
 #Archivos instalación
 osiris.inst
 osiris

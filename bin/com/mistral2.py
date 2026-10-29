@@ -1584,7 +1584,7 @@ if MCX_MANAGER:
 conversation_context += HELO + "\nComandos (Glyphs): " + str(commands_map) + "\n--\n"
 
 if use_def:
-    def1 = ["--cm", "--info"]
+    def1 = ["--cm", "--info","--aap","--ap"]
     while_args(def1)
     print("Cargado con valores por defecto:", " | ".join(def1))
 
