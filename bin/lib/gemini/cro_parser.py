@@ -500,13 +500,19 @@ class CROTranslator:
                     translated_output["executable_command"] = js_script_output
                     translated_output["message"] = f"Se ha generado un script JavaScript para '{js_function}'."
 
+            elif action_type == "SFTP_LIST":
+                path = params.get("PATH", ".")
+                translated_output["executable_command"] = {"type": "SFTP_LS", "path": path}
+                translated_output["message"] = f"Se listará el directorio remoto SFTP: '{path}'."
+                translated_output["needs_confirmation"] = self.require_confirmation
+
             elif action_type == "FILE_SYSTEM_READ": # LIST_DIRECTORY, READ_FILE
                 if self.global_mode in ["CLI", "DESKTOP"]:
                     path = params.get("PATH")
                     if path:
                         quoted_path = shlex.quote(path)
                         if member == "LIST_DIRECTORY":
-                            detail_flag = "-la" if params.get("DETAIL") else ""
+                            detail_flag = "-la" if params.get("DETAIL") else "-la"
                             translated_output["executable_command"] = f"ls {detail_flag} {quoted_path}".strip()
                             translated_output["message"] = f"Se listará el contenido de: '{path}'."
                             translated_output["needs_confirmation"] = self.require_confirmation
@@ -762,8 +768,8 @@ def main(ai_response_text: str, global_mode: str = "CLI"):
             if action['action_type'] == "URL_SEARCH":
                 print(f"  (Simulando apertura de URL en el navegador o curl silencioso...)")
                 if  f"{action['group']}_{action['member']}" == "SEARCH_IN_GOOGLE":
-                    API_KEY = "YOUR_KEY"
-                    CX_CODE = "YOUR_CODE"
+                    API_KEY = "AIzaSyBsYrgEJzFZaTF6ydlF2q2LsFoyVTgBZPo"
+                    CX_CODE = "27248a5fafda94d9d"
                     reemplazos_keys = [("%%API_KEY%%",API_KEY),("%%CX_CODE%%",CX_CODE)]
                     parse_command_url = command_to_execute
                     for var, valor in reemplazos_keys:
@@ -793,30 +799,28 @@ def main(ai_response_text: str, global_mode: str = "CLI"):
                 system_execution_context[action['executable_command']['var_name']] = action['executable_command']['value']
             elif action['action_type'] == "JAVASCRIPT_EXECUTION" and self.global_mode == "WEB":
                  print(f"  (Simulando ejecución de JavaScript en el navegador...)")
-            elif action['action_type'] == "FILE_SYSTEM_READ":
-                 print(f"  (Simulando lectura de archivo/directorio...)")
-                 if isinstance(command_to_execute, str):
-                     try:
-                        result = subprocess.run(
-                            command_to_execute, 
-                            shell=True, 
-                            capture_output=True, 
-                            text=True, 
-                            check=False
+            elif action['action_type'] == "SFTP_LIST":
+                # Ejecutar vía conector SFTP global
+                path = action['executable_command'].get('path', '.')
+                print(f"  (Ejecutando SFTP LS en '{path}'...)")
+                if _sftp_connector_global and _sftp_connector_global.connected:
+                    try:
+                        loop = asyncio.new_event_loop()
+                        output, error, status = loop.run_until_complete(
+                            _sftp_connector_global.execute_command(f"ls -la {shlex.quote(path)}")
                         )
-                        if result.returncode == 0:
-                            print("\n--- Salida de lectura ---")
-                            print(result.stdout.strip())
-                            system_execution_context[f"fs_read_output_{action['member']}_{int(time.time())}"] = result.stdout.strip()
-                            print("\n(Salida añadida al contexto de Osiris.)")
+                        loop.close()
+                        if status == 0:
+                            print(f"\n--- Salida SFTP LS '{path}' ---\n{output}")
+                            system_execution_context[f"output_REMOTE_FS_SFTP_LS_{int(time.time())}"] = output
                         else:
-                            print(f"👎 La lectura falló con código de salida {result.returncode}.")
-                            print(f"Stderr: {result.stderr.strip()}")
-                            system_execution_context[f"fs_read_error_{action['member']}_{int(time.time())}"] = {"stdout": result.stdout.strip(), "stderr": result.stderr.strip(), "returncode": result.returncode}
-                     except Exception as e:
-                         print(f"❌ Error en lectura de archivo/directorio: {e}")
-                 else:
-                     print(" (No se pudo ejecutar la lectura: comando no es string.)")
+                            system_execution_context[f"error_output_REMOTE_FS_SFTP_LS_{int(time.time())}"] = {"stdout": output, "stderr": error, "returncode": status}
+                    except Exception as sftp_e:
+                        print(f"❌ Error SFTP LS: {sftp_e}")
+                        system_execution_context[f"error_output_REMOTE_FS_SFTP_LS_{int(time.time())}"] = {"stderr": str(sftp_e), "stdout": "", "returncode": -1}
+                else:
+                    print("  ⚠️ Conector SFTP no inicializado. Usa --sshc primero.")
+                    system_execution_context[f"error_output_REMOTE_FS_SFTP_LS_{int(time.time())}"] = {"stderr": "SFTP no conectado", "stdout": "", "returncode": -1}
 
             if action['post_processing_hint']:
                 print(f"  Pista Post-Procesamiento: {action['post_processing_hint']}")
@@ -892,4 +896,3 @@ def extract_data(context):
 
 #output = extract_data(osiris_context)
 #print(f"OSIRIS_CONTEXT_UPDATE:{output}")
-

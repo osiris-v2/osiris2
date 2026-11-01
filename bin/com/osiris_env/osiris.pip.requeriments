@@ -16,7 +16,7 @@ pyOpenSSL
 pyperclip
 PyQt5
 PyQt6==6.9.0
-PyQt6-WebEngine==6.9.0
+PyQt6-WebEngine
 PyQtWebEngine
 yt-dlp
 ffmpeg
@@ -48,3 +48,4 @@ huggingface_hub
 diffusers 
 transformers 
 accelerate
+mistralai
