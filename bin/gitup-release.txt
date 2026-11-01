@@ -131,7 +131,7 @@ bin/server/chat_server/src/bin/server.rs
 bin/net/rserver.nrl
 
 #archivos asistentes de instalacion en bin/install
-
+bin/install/patchb.sh
 #instala y actualiza ollama y demonio ademin
 bin/install/ollama.sh
 #descarga, compila e instala ffmpeg (versión ligera)

@@ -103,4 +103,4 @@ check_command_installed /usr/bin/tcptrack -v
 #check_command_installed /usr/bin/docker 
 
 
-
+check_command_installed ParcheBeta

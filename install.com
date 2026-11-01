@@ -68,4 +68,6 @@ tmux-pack 				. bin/install/tmux_install.sh
 
 node-Opack eval 		. bin/install/node_install.sh
 
+ParcheBeta         		. bin/install/patchb.sh
+
 #END
