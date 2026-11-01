@@ -177,7 +177,7 @@ bin/help/
 bin/lib/help.py
 bin/lib/core.py
 bin/lib/ffmpeg.py
-bin/lib/serialize.py
+bin/lib/serializes.py
 bin/lib/multiprocess.py
 bin/lib/processstart.py
 bin/lib/osiris/common.py
