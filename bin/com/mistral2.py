@@ -195,7 +195,7 @@ def obtener_key_mistral(nkey=""):
                 return key_descifrada
             except Exception as e:
                 print(f"Error descifrando: {e} — se pedirá nueva clave.")
-        webbrowser.open_new_tab("https://console.mistral.ai/api-keys/")
+#        webbrowser.open_new_tab("https://console.mistral.ai/api-keys/")
         key = input("Pega tu key de Mistral (o '--reset' para borrar): ")
         if key == "--reset":
             if os.path.isfile(ruta_archivo_key):

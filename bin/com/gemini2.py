@@ -166,7 +166,7 @@ def obtener_key_gemini(nkey=""):
                 print("Se pedirá una nueva clave.")
 
         # Abrir la página de configuración de las claves de la API de Gemini en el navegador
-        webbrowser.open_new_tab("https://ai.google.dev/gemini-api/docs/api-key")
+#        webbrowser.open_new_tab("https://ai.google.dev/gemini-api/docs/api-key")
 
         # Esperar a que el usuario configure su clave gratuita
 

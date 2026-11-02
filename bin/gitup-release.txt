@@ -1,8 +1,6 @@
 #dpkg .deb package
 DEBIAN/
 
-#para directorio osirisp root
-
 #Ignores
 .gitignore
 
@@ -220,7 +218,7 @@ bin/scripts/osiris_tmux.sh
 bin/scripts/o2load
 
 #perfils de configuración
-bin/scripts/config/
+bin/scripts/config
 
 #Lectura continua de progreso tv y hls
 bin/scripts/progress_hls
