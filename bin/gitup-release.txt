@@ -34,6 +34,7 @@ seed/nodo_musculo/src/net/
 seed/nodo_musculo/src/video/
 seed/nodo_musculo/util/
 seed/nodo_musculo/src/inline/dispatch_table.inl
+seed/nodo_musculo/src/uranio_safe.c
 seed/nodo_musculo/src/main.c
 
 seed/cerebro_semilla/Cargo.toml
