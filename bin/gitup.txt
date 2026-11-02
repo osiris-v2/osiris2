@@ -1,5 +1,5 @@
 #dpkg .deb package
-DEBIAN
+DEBIAN/
 
 #para directorio osirisp root
 
@@ -7,7 +7,7 @@ DEBIAN
 .gitignore
 
 #DOC MD
-DOCS
+DOCS/
 
 #README git
 README.md

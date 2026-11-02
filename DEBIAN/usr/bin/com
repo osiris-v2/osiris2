@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/bash
 clear ; reset ; clear
 cd /var/osiris2/bin
 source com/osiris_env/bin/activate
