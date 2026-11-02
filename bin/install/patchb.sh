@@ -3,6 +3,7 @@
 
 echo "USER: ${SUDO_USER:-}"
 
+pwd
 
 SDIR=$(dirname "$(readlink -f "$0")")
 
