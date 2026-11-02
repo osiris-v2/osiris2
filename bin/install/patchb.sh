@@ -1,6 +1,8 @@
 #!/usr/bin/bash
 
 
+echo "USER: ${SUDO_USER:-}"
+
 
 SDIR=$(dirname "$(readlink -f "$0")")
 
@@ -10,16 +12,19 @@ read -p "Instalar el parche Beta Y/N:   " resp
 
 if [[ "${resp^^}" == "Y" ]]; then
 
-echo "Se instalarán los Parches Beta... \n "
+echo "Se instalarán los Parches Beta...  "
 
 cd $SDIR
 cd ../../DEBIAN/usr/bin
  
-  if cp -r . /usr/bin ; then
-   echo "Copia a /usr/bin efectuada \n"
+usr_bin_f=("o2load" "com") 
+printf '%s\n' "${usr_bin_f[@]}" | while IFS= read -r archivo; do 
+  if cp ./$archivo /usr/bin/$archivo ; then
+   echo "Copia a /usr/bin/$archivo efectuada "
   else
-   echo "Error al copiar de DEBIAN a /usr/bin \n"
-  fi
+   echo "Error al copiar de DEBIAN a /usr/bin/$archivo "
+  fi 
+done
 
 else
 echo "Optaste por no instalar el Parche Beta \n"
@@ -28,3 +33,7 @@ fi
 
 #volvemos al directorio del script
 cd $SDIR
+
+
+
+
