@@ -1,12 +1,20 @@
 #!/usr/bin/env bash
 
 
-echo "USER: ${SUDO_USER:-}"
 
-pwd
 
-SDIR=$(dirname "$(readlink -f "$0")")
-echo $SDIR
+if [[ "${USER^^}" == "ROOT" ]]; then
+USERX=${SUDO_USER:-}
+echo "Detectado usuario: $USERX en modo root"
+
+else
+USERX=${USER}
+echo "Detectado usuario: $USERX"
+fi
+
+ACTDIR=$(pwd)
+
+SDIR=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 
 echo "El parche beta completa y corrige bugs que se puedan dar durante el desarrollo de la versión Beta"
 
@@ -36,9 +44,9 @@ echo "Optaste por no instalar el Parche Beta \n"
 echo "El sistema podría no funcionar correctamente."
 fi
 
-#volvemos al directorio del script
-cd $SDIR
-
+#volvemos al directorio actual
+cd $ACTDIR
+pwd
 
 
 
