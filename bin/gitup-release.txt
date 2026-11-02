@@ -1,5 +1,9 @@
+#Versión BETA
+#Cuando la versión Beta esté en producción al final de este archivo...
+#aparecerá el texto # BETA READY  , mientras tanto pondrá # BETADEV
+
 #dpkg .deb package
-DEBIAN
+DEBIAN/
 
 #para directorio osirisp root
 
@@ -7,7 +11,7 @@ DEBIAN
 .gitignore
 
 #DOC MD
-DOCS
+DOCS/
 
 #README git
 README.md
@@ -314,6 +318,7 @@ bin/com/play3/play4.py
 
 
 #para fftv
+bin/com/datas/ffmpeg/anon.mp4
 bin/com/datas/ffmpeg/start.mkv
 bin/com/datas/ffmpeg/carta.mkv
 bin/com/datas/ffmpeg/intro.mp4
@@ -461,3 +466,4 @@ bin/datos.txt
 
 
 #EOF
+# BETADEV
