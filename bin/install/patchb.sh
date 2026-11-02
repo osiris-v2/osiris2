@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 
 
 echo "USER: ${SUDO_USER:-}"
@@ -6,6 +6,7 @@ echo "USER: ${SUDO_USER:-}"
 pwd
 
 SDIR=$(dirname "$(readlink -f "$0")")
+echo $SDIR
 
 echo "El parche beta completa y corrige bugs que se puedan dar durante el desarrollo de la versión Beta"
 
