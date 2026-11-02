@@ -39,6 +39,10 @@ printf '%s\n' "${usr_bin_f[@]}" | while IFS= read -r archivo; do
   fi 
 done
 
+#Copiamos librerías al entorno virtual
+
+
+
 else
 echo "Optaste por no instalar el Parche Beta \n"
 echo "El sistema podría no funcionar correctamente."

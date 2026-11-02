@@ -314,6 +314,7 @@ bin/com/play3/play4.py
 
 
 #para fftv
+bin/com/datas/ffmpeg/anon.mp4
 bin/com/datas/ffmpeg/start.mkv
 bin/com/datas/ffmpeg/carta.mkv
 bin/com/datas/ffmpeg/intro.mp4
