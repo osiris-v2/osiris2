@@ -14,12 +14,15 @@ if [[ "${resp^^}" == "Y" ]]; then
 
 echo "Se instalarán los Parches Beta...  "
 
+echo "cambiando a $SDIR"
 cd $SDIR
+echo "cambiando a ../../DEBIAN/usr/bin"
 cd ../../DEBIAN/usr/bin
  
 usr_bin_f=("o2load" "com") 
 printf '%s\n' "${usr_bin_f[@]}" | while IFS= read -r archivo; do 
-  if cp ./$archivo /usr/bin/$archivo ; then
+  if sudo cp ./$archivo /usr/bin/$archivo ; then
+   sudo chmod +x /usr/bin/$archivo
    echo "Copia a /usr/bin/$archivo efectuada "
   else
    echo "Error al copiar de DEBIAN a /usr/bin/$archivo "

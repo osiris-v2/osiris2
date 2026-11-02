@@ -6,7 +6,7 @@ cd "$OSIRIS000_BASEPATH"
 # Guardar el PID del script actual
 SCRIPT_PID=$$
 
-sleep 2
+echo "usa el modificador --fs para abrir la aplicación en Terminator FullScreen"
 
 if [[ "$1" == "--fs" ]]; then
 # Ejecutar Terminator en segundo plano y capturar el PID de Terminator
