@@ -1,8 +1,6 @@
 #dpkg .deb package
 DEBIAN/
 
-#para directorio osirisp root
-
 #Ignores
 .gitignore
 

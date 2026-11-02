@@ -48,4 +48,6 @@ huggingface_hub
 diffusers 
 transformers 
 accelerate
-mistralai
+mistralai==1.12.4
+
+

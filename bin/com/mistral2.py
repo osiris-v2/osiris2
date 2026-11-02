@@ -57,8 +57,8 @@ try:
     commands_map = ComMap.commands_map
     core.dynmodule("lib.gemini.sftp", "SSHC")
     SSHC = core.SSHC
-    core.dynmodule("lib.fftv", "fftv")
-    FFTV = core.fftv
+#    core.dynmodule("lib.fftv", "fftv")
+#    FFTV = core.fftv
 except Exception as E:
     print("ERDyM:", E)
     commands_map = {}
