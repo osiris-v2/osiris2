@@ -2,12 +2,15 @@
 ROOT_DIR    := $(shell pwd)
 NODO_DIR    := $(ROOT_DIR)/nodo_musculo
 CEREBRO_DIR := $(ROOT_DIR)/cerebro_semilla
+AICHAT_DIR  := $(ROOT_DIR)/aichat_server
 
 BIN_NODO    := $(NODO_DIR)/bin/osiris_node
 BIN_CEREBRO := $(CEREBRO_DIR)/target/release/cerebro_semilla
 BIN_ODS     := $(NODO_DIR)/bin/ods_engine
 BIN_MONITOR := $(NODO_DIR)/bin/monitor
 BIN_SPIDERBOT := $(NODO_DIR)/bin/spiderbot
+BIN_AICHAT := $(AICHAT_DIR)/target/release/server
+
 CARGO       := /root/.cargo/bin/cargo
 
 # --- CONFIGURACION DE EJECUCION ---
@@ -58,7 +61,7 @@ SRC_ODS := $(NODO_DIR)/src/core/ods_memoria.c \
 # --- REGLAS PRINCIPALES ---
 .PHONY: all nodo cerebro ods monitor clean setup run_semilla run_nodo run_ods run_monitor
 
-all: setup cerebro nodo ods monitor
+all: setup cerebro nodo ods monitor aichat
 	@echo "\n$(GREEN)>>> PROYECTO OSIRIS: ECOSISTEMA Y DRIVERS CONSOLIDADOS <<<$(NC)"
 
 setup:
@@ -92,7 +95,10 @@ spiderbot: setup
 	$(CC) $(NODO_DIR)/util/spiderbot.c -o $(BIN_SPIDERBOT) -lncurses -lcurl -lsqlite3
 	@echo "$(GREEN)[OK] SpiderBot listo en $(BIN_SPIDERBOT)$(NC)"
 
-
+aichat:
+	@echo "$(YELLOW)[FORJA] Compilando AiChat Server (Rust)...$(NC)"
+	@cd $(AICHAT_DIR) && $(CARGO) build --release
+	
 # --- EJECUCION ---
 
 run_semilla:
@@ -116,6 +122,9 @@ run_spiderbot:
 	@echo "$(CYAN)[EJECUCION] Lanzando Monitor de Fase...$(NC)"
 	@$(BIN_SPIDERBOT)
 
+run_aichat:
+	@echo "$(CYAN)[EJECUCION] Iniciando AiChat Server ...$(NC)"
+	@$(BIN_AICHAT) 
 
 
 clean:
