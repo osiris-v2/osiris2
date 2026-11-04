@@ -60,9 +60,11 @@ bin/server/chat_server/target/optimized/release/server.run.arch
 bin/server/chat_server/target/optimized/release/client_release
 
 #UNDP
+seed/aichat_server/Cargo.toml
+seed/aichat_server/src/
 seed/aichat_server/target/release/server
 seed/aichat_server/target/release/client
-
+seed/aichat_server/target/release/client_release
 
 seed/asis/bottv2.py
 
