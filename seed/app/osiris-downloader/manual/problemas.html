@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Solución de problemas · Osiris Downloader</title><link rel="stylesheet" href="style.css"><script src="manual.js"></script></head>
+<body><nav class="side"><h1>Osiris Downloader</h1><small>C puro · SDL2 · yt-dlp</small><div style="height:14px"></div><a href="index.html">Índice</a><a href="uso.html">Manual de uso</a><a href="compilacion.html">Compilación</a><a href="arquitectura.html">Arquitectura</a><a href="problemas.html" class=cur>Solución de problemas</a><button id="theme" type="button">Tema claro / oscuro</button></nav>
+<main><h1 class="t">Solución de problemas</h1>
+<h2>Compilación</h2>
+<h3><code>Package 'sdl2' not found</code> / <code>SDL2_ttf not found</code></h3><p>Faltan los paquetes de desarrollo: instala <code>libsdl2-dev libsdl2-ttf-dev</code> (Debian/Ubuntu) o ejecuta <code>./install-deps.sh</code>. Comprueba con:</p><pre><code>pkg-config --modversion sdl2 SDL2_ttf</code></pre>
+<h3><code>fatal error: SDL.h: No such file</code></h3><p>Compila con <code>make</code> o CMake (usan pkg-config, que añade <code>-I/usr/include/SDL2</code>). No uses <code>#include &lt;SDL2/SDL.h&gt;</code> a mano.</p>
+<h3>Error en <code>goto *</code> o <code>cleanup</code></h3><p>Usas un compilador sin extensiones GNU (MSVC). Usa GCC o Clang con <code>-std=gnu11</code>.</p>
+<h3>SDL instalada en una ruta no estándar</h3><pre><code>PKG_CONFIG_PATH=/opt/sdl2/lib/pkgconfig make</code></pre>
+<h2>Ejecución</h2>
+<h3>«No se encontró ninguna fuente TTF»</h3><p>Instala <code>fonts-dejavu-core</code> o apunta a una fuente: <code>OSIRIS_FONT=/ruta/fuente.ttf ./build/osiris-downloader</code>, o copia una fuente a <code>./font.ttf</code> en el directorio desde el que ejecutas.</p>
+<h3>«yt-dlp NO encontrado»</h3><p>Instálalo (ver Compilación) o escribe su ruta completa en Opciones. Comprueba que es ejecutable: <code>ls -l $(which yt-dlp)</code>.</p>
+<h3>Aparece «No se pudo ejecutar yt-dlp»</h3><p>La ruta configurada no existe o no tiene permiso de ejecución. Mira el registro: el mensaje incluye la razón del sistema.</p>
+<h3>El audio no se convierte / no hay miniatura</h3><p>Falta <b>ffmpeg</b> (o <code>AtomicParsley</code> para algunos formatos). Instálalo con tu gestor de paquetes.</p>
+<h3>Error 403, «Sign in to confirm you’re not a bot» o vídeo no disponible</h3><p>Actualiza yt-dlp (<code>yt-dlp -U</code>). Si el sitio exige sesión, elige tu navegador en «Cookies del navegador». Revisa el registro para ver el mensaje exacto.</p>
+<h3>La ventana no abre (Wayland / SSH / WSL)</h3><p>Prueba <code>SDL_VIDEODRIVER=x11 ./build/osiris-downloader</code> o <code>SDL_VIDEODRIVER=wayland</code>. Por SSH necesitas <code>ssh -X</code>. En WSL2 necesitas Windows 11 / WSLg.</p>
+<h3>Interfaz con poca nitidez en pantallas HiDPI</h3><p>Está pensado para escala 1×. Si se ve pequeña, usa la escala del escritorio o cambia el tamaño de fuente (15) en <code>main.c</code> (<code>ui_init(&amp;a-&gt;ui, ren, 15)</code>).</p>
+<h3>El texto con acentos no se escribe</h3><p>Los campos usan eventos de texto de SDL (UTF-8). Comprueba que tu entorno proporciona un método de entrada; las teclas muertas deberían funcionar con IBus/Fcitx.</p>
+<h2>Depuración</h2><pre><code>make clean &amp;&amp; make debug      # AddressSanitizer + UBSan
+./build/osiris-downloader
+# Probar sin descargar nada, con un yt-dlp falso:
+printf &#x27;#!/bin/bash\necho &quot;[download]  50.0%% of 10MiB at 1MiB/s ETA 00:05&quot;; sleep 3\n&#x27; &gt; /tmp/fake &amp;&amp; chmod +x /tmp/fake
+# Opciones → Ruta de yt-dlp: /tmp/fake</code></pre>
+<p>Para reiniciar la configuración borra <code>~/.config/osiris-downloader/settings.ini</code>.</p><div class="pager"><a href="arquitectura.html">← Arquitectura</a><span></span></div></main></body></html>

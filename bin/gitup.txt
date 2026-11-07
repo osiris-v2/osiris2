@@ -11,6 +11,11 @@ DOCS/
 README.md
 LICENSE.md
 
+install/README.md
+install/dist/README.md
+
+
+
 # SEMILLA
 #seed/
 #seed fuentes
@@ -66,6 +71,29 @@ seed/aichat_server/target/release/server
 seed/aichat_server/target/release/client
 seed/aichat_server/target/release/client_release
 
+
+#Aplicaciones
+
+#Osiris Downloader SDL2
+seed/app/osiris-downloader/README.md
+seed/app/osiris-downloader/build.sh
+seed/app/osiris-downloader/install-deps.sh
+seed/app/osiris-downloader/CMakeLists.txt
+seed/app/osiris-downloader/Makefile
+
+seed/app/osiris-downloader/src/core.c
+seed/app/osiris-downloader/src/core.h
+seed/app/osiris-downloader/src/main.c
+seed/app/osiris-downloader/src/safe.h
+seed/app/osiris-downloader/src/ui.c
+seed/app/osiris-downloader/src/ui.h
+
+seed/app/osiris-downloader/manual/
+
+seed/app/osiris-downloader/build/osiris-downloader
+#...
+
+#...
 seed/asis/bottv2.py
 
 

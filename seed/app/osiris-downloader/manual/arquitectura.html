@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arquitectura · Osiris Downloader</title><link rel="stylesheet" href="style.css"><script src="manual.js"></script></head>
+<body><nav class="side"><h1>Osiris Downloader</h1><small>C puro · SDL2 · yt-dlp</small><div style="height:14px"></div><a href="index.html">Índice</a><a href="uso.html">Manual de uso</a><a href="compilacion.html">Compilación</a><a href="arquitectura.html" class=cur>Arquitectura</a><a href="problemas.html">Solución de problemas</a><button id="theme" type="button">Tema claro / oscuro</button></nav>
+<main><h1 class="t">Arquitectura</h1>
+<h2>Módulos</h2>
+<table><tr><th>Fichero</th><th>Contenido</th></tr>
+<tr><td><code>src/safe.h</code></td><td>Memoria segura y cadena dinámica <code>SBuf</code>.</td></tr>
+<tr><td><code>src/core.h/.c</code></td><td>Opciones y persistencia, detección de yt-dlp, construcción de argumentos, analizador de salida, hilos de descarga, registro global.</td></tr>
+<tr><td><code>src/ui.h/.c</code></td><td>Mini-GUI de modo inmediato: botones, casillas, campos de texto UTF-8, selector cíclico, barra de progreso, recortes anidados.</td></tr>
+<tr><td><code>src/main.c</code></td><td>Aplicación: bucle SDL, cola y planificador, las tres pestañas, despacho de eventos.</td></tr></table>
+<h2>Memoria segura (<code>safe.h</code>)</h2>
+<table><tr><th>Utilidad</th><th>Garantía</th></tr>
+<tr><td><code>safe_malloc / calloc / realloc</code></td><td>Nunca devuelven <code>NULL</code>: si falta memoria se aborta con un mensaje claro.</td></tr>
+<tr><td><code>safe_ptr(T) p</code></td><td>Se libera automáticamente al salir del ámbito (<code>cleanup</code>), incluso con <code>return</code> anticipado.</td></tr>
+<tr><td><code>safe_free(&amp;p)</code></td><td>Libera y pone <code>p = NULL</code>: un segundo <code>safe_free</code> es inofensivo.</td></tr>
+<tr><td><code>SAFE_MOVE(p)</code></td><td>Cede la propiedad y anula el origen (evita doble liberación).</td></tr>
+<tr><td><code>safe_strlcpy</code></td><td>Copia acotada, siempre terminada en <code>\0</code>.</td></tr>
+<tr><td><code>SBuf</code></td><td>Cadena que crece sola; las líneas de yt-dlp se limitan a 2000 bytes.</td></tr></table>
+<pre><code>static int add_urls(App *a, const char *text) {
+    safe_ptr(char) cp = safe_strdup(text);   // se libera solo
+    ...
+}</code></pre>
+<h2>Computed gotos</h2>
+<p>Se usan en dos puntos calientes, con una tabla estática de direcciones de etiquetas (<code>&amp;&amp;etiqueta</code>) y salto indirecto (<code>goto *tabla[i]</code>):</p>
+<ul><li><b><code>parse_line()</code> (core.c)</b>: <code>classify()</code> devuelve una clase (progreso, destino, mezcla, error…) y el salto va directo al manejador.</li>
+<li><b><code>handle_event()</code> (main.c)</b>: despacho de eventos SDL (ratón, rueda, texto, teclado, salir).</li></ul>
+<pre><code>static const void *const T[] = {&amp;&amp;o_other, &amp;&amp;o_prog, &amp;&amp;o_dest, ...};
+goto *T[classify(l)];
+o_prog: ... return;</code></pre>
+<h2>Hilos y sincronización</h2>
+<ul><li>Cada descarga tiene su hebra (<code>worker</code>), que lanza yt-dlp, lee su salida por una tubería y analiza línea a línea (<code>\n</code> y <code>\r</code>).</li>
+<li>El estado de cada descarga (<code>pct, speed, eta, status</code>) está protegido por el mutex de ese <code>Download</code>; la interfaz toma una copia con <code>dl_snapshot()</code>.</li>
+<li>El registro global es un anillo de 2000 líneas con su propio mutex.</li>
+<li>La interfaz nunca bloquea: solo lee copias y usa banderas atómicas (<code>cancel</code>).</li></ul>
+<h2>Proceso hijo y cancelación</h2>
+<ul><li><code>posix_spawnp</code> con vector de argumentos: <b>no hay shell</b>, así que una URL con <code>;</code> o <code>$()</code> no puede ejecutar nada.</li>
+<li>stdout y stderr se unen en una tubería (<code>dup2</code>). La creación de la tubería y el spawn se hacen bajo un mutex para que un hijo no herede el extremo de escritura de otro.</li>
+<li>El hijo se crea en su <b>propio grupo de procesos</b>; cancelar es <code>kill(-pid, SIGTERM)</code>, lo que termina también a ffmpeg.</li>
+<li>Si se cancela mientras arranca, la hebra lo detecta tras registrar el <code>pid</code>.</li></ul>
+<h2>Mejoras frente al esqueleto C++ original</h2>
+<ul><li>El esqueleto usaba <code>std::regex</code> con grupos con nombre <code>(?P&lt;…&gt;)</code>, que <code>std::regex</code> no soporta; aquí el progreso se analiza a mano y es más rápido.</li>
+<li><code>popen</code> + <code>pclose</code> desde otro hilo no mata al hijo y es una condición de carrera; aquí se mata el grupo de procesos.</li>
+<li><code>popen</code> pasa por el shell (inyección); aquí no hay shell.</li>
+<li>El esqueleto no guardaba configuración ni gestionaba la cola; aquí sí.</li></ul>
+<h2>Ideas de extensión</h2>
+<ul><li>Vista previa con <code>yt-dlp --dump-json</code> antes de descargar.</li><li>Selector de directorio nativo y menú contextual.</li><li>Puerto a Windows (<code>CreateProcess</code>).</li><li>Migración a SDL3.</li></ul><div class="pager"><a href="compilacion.html">← Compilación</a><a href="problemas.html">Solución de problemas →</a></div></main></body></html>

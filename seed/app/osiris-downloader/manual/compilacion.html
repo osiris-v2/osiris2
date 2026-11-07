@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Compilación · Osiris Downloader</title><link rel="stylesheet" href="style.css"><script src="manual.js"></script></head>
+<body><nav class="side"><h1>Osiris Downloader</h1><small>C puro · SDL2 · yt-dlp</small><div style="height:14px"></div><a href="index.html">Índice</a><a href="uso.html">Manual de uso</a><a href="compilacion.html" class=cur>Compilación</a><a href="arquitectura.html">Arquitectura</a><a href="problemas.html">Solución de problemas</a><button id="theme" type="button">Tema claro / oscuro</button></nav>
+<main><h1 class="t">Compilación</h1>
+<h2>Requisitos</h2>
+<table><tr><th>Componente</th><th>Para qué</th></tr>
+<tr><td>GCC o Clang (GNU C11)</td><td>Usa <code>goto *</code> (computed goto) y <code>__attribute__((cleanup))</code>. <b>MSVC no sirve.</b></td></tr>
+<tr><td>SDL2 ≥ 2.0.14 y SDL2_ttf (desarrollo)</td><td>Ventana, renderizado y texto.</td></tr>
+<tr><td>pkg-config, make (o CMake ≥ 3.10)</td><td>Localizar librerías y compilar.</td></tr>
+<tr><td>Una fuente TTF</td><td>DejaVu, Liberation, Noto, Ubuntu o Arial; se busca sola.</td></tr>
+<tr><td>yt-dlp (en ejecución) y ffmpeg</td><td>Descargar y convertir/mezclar.</td></tr></table>
+<h2>Instalación de dependencias</h2>
+<h3>Automática</h3><pre><code>./install-deps.sh</code></pre>
+<h3>Manual</h3><pre><code># Debian / Ubuntu / Mint
+sudo apt install build-essential pkg-config cmake libsdl2-dev libsdl2-ttf-dev fonts-dejavu-core ffmpeg xdg-utils
+# Fedora
+sudo dnf install gcc make pkgconf-pkg-config cmake SDL2-devel SDL2_ttf-devel dejavu-sans-fonts ffmpeg-free
+# Arch / Manjaro
+sudo pacman -S base-devel cmake sdl2 sdl2_ttf ttf-dejavu ffmpeg
+# macOS (Homebrew)
+brew install pkg-config cmake sdl2 sdl2_ttf ffmpeg yt-dlp</code></pre>
+<h3>yt-dlp</h3><pre><code>mkdir -p ~/.local/bin
+curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o ~/.local/bin/yt-dlp
+chmod +x ~/.local/bin/yt-dlp
+yt-dlp -U        # actualizar cuando un sitio deje de funcionar</code></pre>
+<h2>Compilar</h2>
+<h3>Opción 1: script</h3><pre><code>./build.sh</code></pre>
+<h3>Opción 2: make</h3><pre><code>make            # release (-O2)
+make debug      # con AddressSanitizer y UBSan
+make clean</code></pre>
+<h3>Opción 3: CMake</h3><pre><code>cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+./build/bin/osiris-downloader</code></pre>
+<p>Con <code>make</code> el binario queda en <code>build/osiris-downloader</code>; con CMake en <code>build/bin/</code>.</p>
+<h2>Ejecutar</h2><pre><code>./build/osiris-downloader
+OSIRIS_FONT=/ruta/a/fuente.ttf ./build/osiris-downloader   # forzar una fuente</code></pre>
+<h2>Instalar en el sistema (opcional)</h2><pre><code>sudo install -m755 build/osiris-downloader /usr/local/bin/</code></pre>
+<h2>Windows</h2>
+<p>El código usa APIs POSIX (<code>posix_spawn</code>, <code>kill</code> sobre grupo de procesos, <code>pthread</code>).</p>
+<ul><li><b>WSL2 (recomendado):</b> Windows 11 incluye WSLg, así que las ventanas SDL aparecen directamente. Dentro de Ubuntu sigue los pasos de Linux.</li>
+<li><b>MSYS2 / MinGW:</b> no soportado de serie; habría que sustituir el lanzador de procesos de <code>core.c</code> por <code>CreateProcess</code> y las señales por <code>TerminateProcess</code>.</li></ul>
+<h2>Usar SDL3 en el futuro</h2>
+<p>La interfaz usa solo ventana, renderer, eventos de ratón/teclado/texto y TTF. Migrar a SDL3 implica cambiar <code>SDL_RenderSetClipRect → SDL_SetRenderClipRect</code>, la API de eventos de ratón, <code>SDL_CreateWindow</code>, y usar SDL3_ttf. Todo el cambio se concentra en <code>ui.c</code> y <code>main.c</code>.</p><div class="pager"><a href="uso.html">← Manual de uso</a><a href="arquitectura.html">Arquitectura →</a></div></main></body></html>

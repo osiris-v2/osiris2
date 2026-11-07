@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Osiris Downloader AI · Osiris Downloader</title><link rel="stylesheet" href="style.css"><script src="manual.js"></script></head>
+<body><nav class="side"><h1>Osiris Downloader</h1><small>C puro · SDL2 · yt-dlp</small><div style="height:14px"></div><a href="index.html" class=cur>Índice</a><a href="uso.html">Manual de uso</a><a href="compilacion.html">Compilación</a><a href="arquitectura.html">Arquitectura</a><a href="problemas.html">Solución de problemas</a><button id="theme" type="button">Tema claro / oscuro</button></nav>
+<main><h1 class="t">Osiris Downloader AI</h1>
+<p>Gestor gráfico de descargas de vídeo y audio basado en <b>yt-dlp</b>, escrito en <b>C puro (GNU C11)</b> con <b>SDL2</b>.
+Pega URLs, elige formato y deja que la cola trabaje en segundo plano con varias descargas en paralelo.</p>
+<div class="cards">
+<a href="uso.html"><b>Manual de uso</b>Pestañas, opciones, atajos, formatos y ejemplos.</a>
+<a href="compilacion.html"><b>Compilación</b>Linux, macOS y Windows (WSL/MSYS2) con make o CMake.</a>
+<a href="arquitectura.html"><b>Arquitectura</b>Módulos, hilos, <code>safe.h</code> y computed gotos.</a>
+<a href="problemas.html"><b>Solución de problemas</b>Fuente, yt-dlp, SDL, cookies, cancelación…</a></div>
+<h2>Inicio rápido</h2><pre><code>unzip osiris-downloader-c.zip &amp;&amp; cd osiris-downloader-c
+./install-deps.sh      # opcional: SDL2, SDL2_ttf, yt-dlp (Debian/Ubuntu, Fedora, Arch, macOS)
+./build.sh             # genera build/osiris-downloader
+./build/osiris-downloader</code></pre>
+<h2>Características</h2>
+<ul><li>Cola con descargas en paralelo (1–8), parar / reintentar / quitar por fila.</li>
+<li>Progreso, velocidad y ETA en tiempo real analizando la salida de yt-dlp.</li>
+<li>Formatos: mejor calidad, mp4, mkv, webm y audio mp3, m4a, opus, flac, wav.</li>
+<li>Miniatura y metadatos incrustados, límite de velocidad, proxy, cookies del navegador, User-Agent, rango de playlist y argumentos extra.</li>
+<li>Registro con colores, configuración persistente en <code>~/.config/osiris-downloader/settings.ini</code>.</li>
+<li>Sin shell: yt-dlp se ejecuta con <code>posix_spawnp</code> y vector de argumentos (sin inyección de comandos).</li></ul>
+<div class="note"><b>¿Por qué SDL2 y no SDL3?</b> SDL3 aún no está en los repositorios de muchas distribuciones, y compilarlo desde fuente es lo que daba problemas de librerías. SDL2 se instala con un solo comando y la aplicación solo usa API básica (ventana, renderer, eventos).</div>
+<div class="warn"><b>Uso responsable:</b> descarga solo contenido que tengas derecho a descargar y respeta los términos de cada sitio.</div><div class="pager"><span></span><a href="uso.html">Manual de uso →</a></div></main></body></html>
