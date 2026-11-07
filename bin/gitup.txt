@@ -91,7 +91,15 @@ seed/app/osiris-downloader/src/ui.h
 seed/app/osiris-downloader/manual/
 
 seed/app/osiris-downloader/build/osiris-downloader
-#...
+
+#SpiderBot
+seed/app/spiderbot/README.md
+seed/app/spiderbot/Makefile
+seed/app/spiderbot/spiderbot_core.c
+
+seed/app/spiderbot/spiderbot_release
+#..
+
 
 #...
 seed/asis/bottv2.py
