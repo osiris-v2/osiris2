@@ -1,6 +1,6 @@
 # Osiris Downloader AI (C puro + SDL2)
 
-Gestor gráfico de descargas sobre **yt-dlp**, escrito en C (GNU C11), sin C++ ni Dear ImGui.
+Gestor gráfico de descargas sobre **yt-dlp**, escrito en C (GNU C11).
 
 - Ventana SDL2 + mini-GUI propia de modo inmediato (`src/ui.c`), texto con SDL2_ttf.
 - Memoria segura (`src/safe.h`): `safe_ptr`, `safe_free`, `SAFE_MOVE`, `SBuf`.

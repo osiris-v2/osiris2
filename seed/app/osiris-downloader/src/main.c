@@ -313,7 +313,7 @@ int main(void) {
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0) { fprintf(stderr, "SDL_Init: %s\n", SDL_GetError()); return 1; }
     if (TTF_Init() != 0) { fprintf(stderr, "TTF_Init: %s\n", TTF_GetError()); return 1; }
-    SDL_Window *win = SDL_CreateWindow("Osiris Downloader AI (C / SDL2)", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+    SDL_Window *win = SDL_CreateWindow("Osiris Downloader 0.2", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                                        1100, 720, SDL_WINDOW_RESIZABLE);
     if (!win) { fprintf(stderr, "SDL_CreateWindow: %s\n", SDL_GetError()); return 1; }
     SDL_Renderer *ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
