@@ -301,7 +301,7 @@ let n = match ffmpeg_out.read(&mut chunk).await {
                                 let script = orden_raw[skip..].trim().to_string();
                                 if !script.is_empty() {
                                     println!("\x1b[35m[ODS->NODO] JS: {}\x1b[0m", &script[..script.len().min(60)]);
-                                    let _ = enviar_js_eval(&s_data_ods, &sk_ods, &mut ods_frame_counter, &script).await;
+                                    let _ = enviar_js_eval(&s_ctrl_ods, &sk_ods, &script).await;
                                 }
                             }
                             // WCLOSE <slot> -- OP_WIN_CLOSE: cierra ventana por slot ID
@@ -681,7 +681,6 @@ pub async fn crear_ventana_nodo(
 pub async fn enviar_js_eval(
     s_ctrl: &Arc<Mutex<tokio::net::TcpStream>>,
     session_key: &Arc<[u8; 32]>,
-    frame_counter: &mut u32,
     script: &str,
 ) -> std::io::Result<()> {
     use network::protocol::OsirisPacket;
@@ -690,20 +689,20 @@ pub async fn enviar_js_eval(
     let len = script_bytes.len() as u32;
 
     let mut pkt = OsirisPacket::new_js_eval(len);
-    let mut payload_cifrado = script_bytes.to_vec();
-    security::signer::xor_payload(&mut payload_cifrado, session_key, *frame_counter);
-    pkt.signature = security::signer::generate_signature(&pkt, &payload_cifrado, session_key);
-    *frame_counter = frame_counter.wrapping_add(1);
+    pkt.frame_cnt = 0;
+
+    let payload_claro = script_bytes.to_vec();
+    pkt.signature = security::signer::generate_signature(&pkt, &payload_claro, session_key);
 
     let mut buf = Vec::with_capacity(16 + script_bytes.len());
     buf.extend_from_slice(pkt.as_bytes());
-    buf.extend_from_slice(&payload_cifrado);
+    buf.extend_from_slice(&payload_claro);
 
     let mut sc = s_ctrl.lock().await;
     sc.write_all(&buf).await?;
-    println!("\x1b[35m[CEREBRO] OP_JS_EVAL → {} bytes\x1b[0m", len);
     Ok(())
 }
+
 
 /// Envia OP_OVERLAY_TEXT al Nodo.
 pub async fn enviar_overlay_text(
