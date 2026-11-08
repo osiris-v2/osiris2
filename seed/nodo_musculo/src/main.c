@@ -575,15 +575,34 @@ next_op: ;
     /* ── OP_JS_EVAL (40) ─────────────────────────────────────────────────── */
     op_js_eval:
     {
+
+
+        printf("[DEBUG RAW] chunk_size=%u | bytes:",chunk_size);
+        for(uint32_t i=0; i<chunk_size;i++){
+            printf("%02X",((uint8_t*)uranio_safe.data)[i]);
+        }
+        printf("\n");
+
         if (chunk_size == 0 || chunk_size > 65535) {
             nodo_send_ack(40, ACK_ERROR); goto next_op;
         }
         if (chunk_size >= uranio_safe.size)
             rb_rescale(&uranio_safe, chunk_size + 1);
-        ((uint8_t*)uranio_safe.data)[chunk_size] = 0;
-        printf("\x1b[35m[JS] Eval (%u bytes)\x1b[0m\n", chunk_size);
-        manejar_comando_fgn_js((const char*)uranio_safe.data);
-        nodo_send_ack(40, ACK_OK);
+      
+        /* AISLAMIENTO y limpieza */
+        char *script_temp = malloc(chunk_size + 1);
+        if(script_temp){
+            memcpy(script_temp, uranio_safe.data,chunk_size);
+            script_temp[chunk_size] = '\0';
+
+            printf("\x1b[35m[JS] Eval (%u bytes): %s\x1b[0m\n", chunk_size, script_temp);
+            manejar_comando_fgn_js(script_temp);
+            free(script_temp);
+            nodo_send_ack(40, ACK_OK);    
+        } else {
+
+        nodo_send_ack(40, ACK_ERROR);
+        }
     }
     goto next_op;
 

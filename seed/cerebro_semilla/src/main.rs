@@ -679,7 +679,7 @@ pub async fn crear_ventana_nodo(
 
 /// Envia un script JavaScript al Nodo para evaluacion en QuickJS.
 pub async fn enviar_js_eval(
-    s_data: &Arc<Mutex<tokio::net::TcpStream>>,
+    s_ctrl: &Arc<Mutex<tokio::net::TcpStream>>,
     session_key: &Arc<[u8; 32]>,
     frame_counter: &mut u32,
     script: &str,
@@ -699,8 +699,8 @@ pub async fn enviar_js_eval(
     buf.extend_from_slice(pkt.as_bytes());
     buf.extend_from_slice(&payload_cifrado);
 
-    let mut sd = s_data.lock().await;
-    sd.write_all(&buf).await?;
+    let mut sc = s_ctrl.lock().await;
+    sc.write_all(&buf).await?;
     println!("\x1b[35m[CEREBRO] OP_JS_EVAL → {} bytes\x1b[0m", len);
     Ok(())
 }
