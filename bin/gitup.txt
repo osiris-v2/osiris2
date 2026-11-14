@@ -502,8 +502,8 @@ bin/datos.txt
 #zip install SRC
 #modelo: en src están los zip de código fuente y en la carpeta el readme , y la documentación.
 
-install/bio/src/suite/README.md
-install/bio/src/suite.zip
+install/bio/src-bin/suite/README.md
+install/bio/src-bin/suite.zip
 
 
 
