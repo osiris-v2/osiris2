@@ -80,11 +80,6 @@ OsirisVideoDriver driver_activo;
 
 /* sdl_core.c: solo probe_video — el mirror ya no se usa en el path principal */
 extern void probe_video_capacidades(OsirisHardwareMap *map);
-
-
-
-
-
 extern void inicializar_sistema_acero(void);
 extern void inicializar_motor_osiris(void);
 extern void cerrar_motor_osiris(void);
@@ -218,10 +213,6 @@ int main(void) {
     /* Arrancar sistema de ventanas FGN:
      * - SDL_Init, HUD slot 0, SDL_THREAD, FLUSH_THREAD
      * - driver_activo vinculado a slot 0 tras esta llamada */
-    if (fgn_windows_iniciar() != 0) {
-        printf("\x1b[31m[ERROR] No se pudo iniciar sistema de ventanas FGN.\x1b[0m\n");
-        return 1;
-    }
     driver_activo = cargar_driver_gl_legacy();
     driver_activo.iniciar(0, 0);
 
@@ -252,8 +243,15 @@ rb_liberar(&b_token);
 
 
 
+    if (fgn_windows_iniciar() != 0) {
+        printf("\x1b[31m[ERROR] No se pudo iniciar sistema de ventanas FGN.\x1b[0m\n");
+        return 1;
+    }
+
+
 
     /* ── DISPATCH TABLE ──────────────────────────────────────────────────── */
+    printf("Inc. Dispatch Table");
     #include "inline/dispatch_table.inl"
     printf("\x1b[1m--- NODO OSIRIS ACTIVO ---\x1b[0m\n");
 
@@ -336,33 +334,7 @@ next_op: ;
 
     /* ── OP_STREAM (7) ───────────────────────────────────────────────────── */
     op_stream:
-    {
-        if (core_ia && core_ia->modelo_data) {
-            float r = fgn_ai_analizar(core_ia, &uranio_safe);
-            if (r < 0.25f)
-                printf("\x1b[1;31m[!] RESONANCIA BAJA (%.2f)\x1b[0m\n", r);
-        }
-        pthread_mutex_lock(&pipe_mutex);
-        if (!display_pipe && !video_paused && chunk_size > 0) {
-            printf("\x1b[34m[STREAM] Iniciando RAW mpegts+...\n\x1b[0m");
-            display_pipe = popen("ffplay -i pipe:0 -flags low_delay "
-                                 "-probesize 32 -loglevel quiet "
-                                 "-window_title 'FGN Secure RAW STREAM'", "w");
-            update_ffplay_pid();
-        }
-        if (display_pipe && !video_paused) {
-            if (fwrite(uranio_safe.data, 1, chunk_size, display_pipe) < chunk_size) {
-                printf("\x1b[31m[!] Error pipe. Reiniciando...\n\x1b[0m");
-                if (ffplay_pid > 0) { kill(ffplay_pid, SIGTERM); ffplay_pid = 0; }
-                fclose(display_pipe); display_pipe = NULL;
-            } else {
-                fflush(display_pipe);
-                vg_frames++;            /* frame entregado a ffplay */
-            }
-        }
-        pthread_mutex_unlock(&pipe_mutex);
-        vg_hud_request_refresh();       /* pedir refresco HUD al SDL_THREAD */
-    }
+	#include "inline/op_stream.inl"
     goto next_op;
 
     /* ── OP_RESCALE (5) ──────────────────────────────────────────────────── */
@@ -574,25 +546,8 @@ next_op: ;
 
     /* ── OP_JS_EVAL (40) ─────────────────────────────────────────────────── */
       op_js_eval:
-    {
-        if (chunk_size > 0 && chunk_size < 65535) {
-            char *script_buf = malloc(chunk_size + 1);
-            if (script_buf) {
-                int bytes_leidos = 0;
-                while (bytes_leidos < (int)chunk_size) {
-                    int n = read(sock_ctrl, script_buf + bytes_leidos, chunk_size - bytes_leidos);
-                    if (n <= 0) break;
-                    bytes_leidos += n;
-                }
-                script_buf[chunk_size] = '\0';
-
-                manejar_comando_fgn_js(script_buf);
-                free(script_buf);
-                nodo_send_ack(40, ACK_OK);
-            }
-        }
-    }
-    goto next_op;
+        #include "inline/op_js_eval.inl"
+      goto next_op;
 
 
     /* ── OP_JS_LOAD (41) ─────────────────────────────────────────────────── */
@@ -682,21 +637,12 @@ next_op: ;
 
 
 
-
-
-
-
-
 connection_lost:
-        printf("\x1b[31m[!] Conexion perdida. Limpiando...\n\x1b[0m");
-        vg_conectado = 0;
-        vg_hud_request_refresh();   /* HUD muestra estado desconectado */
-        if (core_ia) { fgn_ai_destruir(core_ia); core_ia = NULL; }
-        close_display();
-        close(sock_data); close(sock_ctrl);
-        pthread_cancel(thread_ctrl);
-        sleep(1);
-    } /* fin while(1) */
+
+#include "inline/connection_lost.inl"
+
+
+ } /* fin while(1) */
 
     cerrar_motor_osiris();
     fgn_windows_cerrar();
