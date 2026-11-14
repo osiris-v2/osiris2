@@ -500,11 +500,13 @@ bin/datos.txt
 
 
 #zip install SRC
-#modelo: en src están los zip de código fuente y en la carpeta el readme , y la documentación.
+#modelo: en src-bin están los zip de código fuente y en la carpeta el readme , y la documentación y binarios y codigo.
 
 install/bio/src-bin/suite/README.md
 install/bio/src-bin/suite.zip
 
+install/bio/src-bin/suite/install-deps.sh
+install/bio/src-bin/suite/build-all.sh
 
 
 #EOF
